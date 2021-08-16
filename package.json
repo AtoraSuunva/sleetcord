@@ -1,0 +1,30 @@
+{
+  "name": "sleet",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@discordjs/rest": "^0.1.0-canary.0",
+    "discord-api-types": "^0.22.0",
+    "discord.js": "github:discordjs/discord.js#75b48d8d0f70338c75721df3dbd8fc37866383bc"
+  },
+  "devDependencies": {
+    "@swc/core": "^1.2.75",
+    "@tsconfig/node16": "^1.0.2",
+    "@types/node": "^16.4.13",
+    "@typescript-eslint/eslint-plugin": "^4.29.0",
+    "@typescript-eslint/parser": "^4.29.0",
+    "eslint": "^7.32.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-import": "^2.24.0",
+    "prettier": "2.3.2",
+    "regenerator-runtime": "^0.13.9",
+    "ts-node": "^10.2.0",
+    "typescript": "^4.3.5"
+  }
+}
