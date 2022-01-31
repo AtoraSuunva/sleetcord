@@ -1,9 +1,9 @@
 import {
   APIInteractionGuildMember,
   ApplicationCommandOptionType,
-} from 'discord-api-types'
-import { Guild, GuildMember } from 'discord.js'
-import { SlashCommand } from '../CommandBuilder'
+} from 'discord-api-types/payloads/v9'
+import { Guild, GuildMember, User } from 'discord.js'
+import { SlashCommand } from '../builders/SlashCommand'
 
 async function makeMember(
   guild: Guild,
@@ -14,20 +14,28 @@ async function makeMember(
     : await guild.members.fetch(member.user.id)
 }
 
-export default new SlashCommand('kick', 'Kicks a user')
-  .addOption(
-    'user',
-    'The user to kick',
-    ApplicationCommandOptionType.User,
-    true,
-  )
-  .addOption(
-    'reason',
-    'The reason to kick',
-    ApplicationCommandOptionType.String,
-  )
-  .onInteractionCreate(async (interaction) => {
-    if (!interaction.inGuild()) {
+export default new SlashCommand<{
+  user: User
+  reason?: string
+}>({
+  name: 'kick',
+  description: 'Kicks a user',
+})
+  .addOption({
+    name: 'user',
+    description: 'The user to kick',
+    type: ApplicationCommandOptionType.User,
+    required: true,
+  })
+  .addOption({
+    name: 'reason',
+    description: 'The reason to kick',
+    type: ApplicationCommandOptionType.String,
+  })
+  .onInteractionCreate(async (interaction, params) => {
+    const { user, reason } = params
+
+    if (!interaction.inGuild() || interaction.guild === null) {
       return interaction.reply({
         content: 'I can only kick people in a server',
         ephemeral: true,
@@ -50,10 +58,7 @@ export default new SlashCommand('kick', 'Kicks a user')
       })
     }
 
-    const user = interaction.options.getUser('user', true)
-    const reason = interaction.options.getString('reason') ?? undefined
-
-    await interaction.guild?.members.kick(user, reason)
+    // await interaction.guild?.members.kick(user, reason)
 
     interaction.reply(
       `Kicked ${user.tag} from the server${reason ? `for "${reason}"` : ''}`,

@@ -1,35 +1,31 @@
-import { APIMessage } from 'discord-api-types'
-import { Client, ContextMenuInteraction, Message } from 'discord.js'
-import { MessageCommand } from '../commands/CommandBuilder'
+import { ContextMenuInteraction } from 'discord.js'
+import { MessageCommand } from '../commands/builders/MessageCommand'
+import { baseLogger } from '../logger'
 
-function makeMessage(
-  client: Client<boolean>,
-  message: Message | APIMessage,
-): Message {
-  return message instanceof Message ? message : new Message(client, message)
-}
+const logger = baseLogger.child({
+  name: 'SleetMessageInteraction',
+})
 
 export function handleMessageInteraction(
   commands: Map<string, MessageCommand>,
   interaction: ContextMenuInteraction,
 ): void {
-  console.log(
-    'Handling message interaction',
+  logger.debug(
+    `Handling message interaction %s args %o`,
     interaction.commandName,
-    'args',
     interaction.options.data,
   )
 
   const command = commands.get(interaction.commandName)
 
   if (command) {
-    const message = makeMessage(
-      interaction.client,
-      interaction.options.getMessage('message', true),
-    )
-    command.run(interaction, message)
+    command.handleInteractionCreate(interaction)
   } else {
-    console.error(
+    interaction.reply({
+      content: 'No message command found, something is wrong...',
+      ephemeral: true,
+    })
+    logger.error(
       `No message command found for interaction ${interaction.commandName}`,
     )
   }

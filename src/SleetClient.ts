@@ -1,33 +1,34 @@
 import { Client, Interaction } from 'discord.js'
-import {
-  Command,
-  MessageCommand,
-  SlashCommand,
-  UserCommand,
-} from './commands/CommandBuilder'
 import { handleMessageInteraction } from './handlers/MessageInteractionHandler'
 import { handleSlashInteraction } from './handlers/SlashInteractionHandler'
 import { handleUserInteraction } from './handlers/UserInteractionHandler'
+import { MessageCommand } from './commands/builders/MessageCommand'
+import { SlashCommand } from './commands/builders/SlashCommand'
+import { UserCommand } from './commands/builders/UserCommand'
+import { baseLogger } from './logger'
+
+const logger = baseLogger.child({
+  name: 'SleetClient',
+})
 
 interface SleetClientOptions {
-  commands?: Command<unknown>[]
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  commands?: (SlashCommand<any> | UserCommand | MessageCommand)[]
   commandDirectory?: string
 }
 
 class SleetClient {
   client: Client<boolean>
-  slashCommands: Map<string, SlashCommand>
-  userCommands: Map<string, UserCommand>
-  messageCommands: Map<string, MessageCommand>
+  slashCommands = new Map<string, SlashCommand<unknown>>()
+  userCommands = new Map<string, UserCommand>()
+  messageCommands = new Map<string, MessageCommand>()
   commandDirectory?: string
 
   constructor(client: Client<boolean>, options: SleetClientOptions = {}) {
+    logger.debug(`Setting up SleetClient`)
     const { commands = [], commandDirectory } = options
 
     this.client = client
-    this.slashCommands = new Map()
-    this.userCommands = new Map()
-    this.messageCommands = new Map()
 
     for (const command of commands) {
       if (command instanceof SlashCommand) {
@@ -45,21 +46,21 @@ class SleetClient {
     this.client.on('interactionCreate', this.interactionHandler)
   }
 
-  private interactionHandler(interaction: Interaction): void {
-    console.log('Handling', interaction.type, 'from', interaction.user.tag)
+  interactionHandler = (interaction: Interaction): void => {
+    logger.debug(`Handling ${interaction.type} from ${interaction.user.tag}`)
 
     if (interaction.isContextMenu()) {
       if (interaction.targetType === 'MESSAGE') {
-        handleMessageInteraction(interaction)
+        handleMessageInteraction(this.messageCommands, interaction)
       } else if (interaction.targetType === 'USER') {
-        handleUserInteraction(interaction)
+        handleUserInteraction(this.userCommands, interaction)
       }
     } else if (interaction.isCommand()) {
       handleSlashInteraction(this.slashCommands, interaction)
     }
   }
 
-  login(token: string): void {
+  login = (token: string): void => {
     this.client.login(token)
   }
 }

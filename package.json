@@ -10,8 +10,11 @@
   "license": "MIT",
   "dependencies": {
     "@discordjs/rest": "^0.1.0-canary.0",
+    "@types/pino": "^6.3.11",
     "discord-api-types": "^0.22.0",
-    "discord.js": "github:discordjs/discord.js#75b48d8d0f70338c75721df3dbd8fc37866383bc"
+    "discord.js": "^13.1.0",
+    "pino": "^6.13.1",
+    "pino-pretty": "^6.0.0"
   },
   "devDependencies": {
     "@swc/core": "^1.2.75",

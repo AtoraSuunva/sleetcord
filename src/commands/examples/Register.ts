@@ -1,38 +1,55 @@
-import { ApplicationCommandOptionType } from 'discord-api-types'
-import { Subcommand, SlashCommand } from '../CommandBuilder'
+import { ApplicationCommandOptionType } from 'discord-api-types/payloads/v9'
+import { SlashCommand } from '../builders/SlashCommand'
+import { Subcommand } from '../builders/Subcommand'
 
-const registerSingle = new Subcommand('single', 'Register a single command')
-  .addOption(
-    'name',
-    'The name of the command to register',
-    ApplicationCommandOptionType.String,
-    true,
-  )
-  .addOption(
-    'global',
-    'Register this command globally',
-    ApplicationCommandOptionType.Boolean,
-  )
-  .onInteractionCreate((interaction) => {
-    const name = interaction.options.getString('name', true)
-    const global = interaction.options.getBoolean('global') || false
-
-    console.log(`Register ${name} globally? ${global}`)
+const registerSingle = new Subcommand<{
+  name: string
+  global?: boolean
+}>({
+  name: 'single',
+  description: 'Register a single command',
+})
+  .addOption({
+    name: 'name',
+    description: 'The name of the command to register',
+    type: ApplicationCommandOptionType.String,
+    required: true,
+  })
+  .addOption({
+    name: 'global',
+    description: 'Register this command globally',
+    type: ApplicationCommandOptionType.Boolean,
+  })
+  .onInteractionCreate((interaction, params) => {
+    const { name, global } = params
+    interaction.reply({
+      content: `Register ${name} globally? ${global}`,
+      ephemeral: true,
+    })
   })
 
-const registerAll = new Subcommand('all', 'Register all commands')
-  .addOption(
-    'global',
-    'Register all commands globally',
-    ApplicationCommandOptionType.Boolean,
-  )
-  .onInteractionCreate((interaction) => {
-    const global = interaction.options.getBoolean('global') || false
-
-    console.log(`Register all commands globally? ${global}`)
+const registerAll = new Subcommand<{
+  global?: boolean
+}>({
+  name: 'all',
+  description: 'Register all commands',
+})
+  .addOption({
+    name: 'global',
+    description: 'Register all commands globally',
+    type: ApplicationCommandOptionType.Boolean,
+  })
+  .onInteractionCreate((interaction, params) => {
+    const { global } = params
+    interaction.reply({
+      content: `Register all commands globally? ${global}`,
+      ephemeral: true,
+    })
   })
 
-export default new SlashCommand('register', 'Registers commands', {
+export default new SlashCommand({
+  name: 'register',
+  description: 'Registers commands',
   devGuildOnly: true,
 })
   .addSubcommand(registerSingle)
