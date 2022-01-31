@@ -14,6 +14,8 @@
     "target": "ESNext",
     "lib": ["ESNext"],
     "types": ["node"],
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
 
     /* Modules */
     "module": "ESNext",
@@ -36,7 +38,7 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noImplicitReturns": true,
-    // "noUncheckedIndexedAccess": true,
+    "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
 
     /* Completeness */

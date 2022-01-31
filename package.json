@@ -1,32 +1,35 @@
 {
   "name": "sleet",
   "version": "1.0.0",
-  "description": "",
-  "main": "src/",
+  "description": "An interaction-first command library for Discord.js",
+  "type": "module",
+  "main": "src/index.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "main": "node --loader ts-node/esm -r dotenv/config src/test/index.ts",
+    "once": "node --loader ts-node/esm -r dotenv/config"
   },
-  "author": "",
+  "author": "AtoraSuunva",
   "license": "MIT",
   "dependencies": {
-    "@discordjs/rest": "^0.1.0-canary.0",
-    "@types/pino": "^6.3.11",
-    "discord-api-types": "^0.22.0",
+    "@discordjs/builders": "^0.12.0",
+    "@discordjs/rest": "^0.3.0",
+    "discord-api-types": "^0.26.1",
     "discord.js": "^13.1.0",
-    "pino": "^6.13.1",
-    "pino-pretty": "^6.0.0"
+    "env-var": "^7.1.1",
+    "pino": "^7.6.5",
+    "reflect-metadata": "^0.1.13"
   },
   "devDependencies": {
     "@swc/core": "^1.2.75",
-    "@tsconfig/node16": "^1.0.2",
-    "@types/node": "^16.4.13",
-    "@typescript-eslint/eslint-plugin": "^4.29.0",
-    "@typescript-eslint/parser": "^4.29.0",
-    "eslint": "^7.32.0",
+    "@types/node": "^17.0.13",
+    "@typescript-eslint/eslint-plugin": "^5.10.1",
+    "@typescript-eslint/parser": "^5.10.1",
+    "dotenv": "^14.3.2",
+    "eslint": "^8.8.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-import": "^2.24.0",
-    "prettier": "2.3.2",
-    "regenerator-runtime": "^0.13.9",
+    "pino-pretty": "^7.5.1",
+    "prettier": "2.5.1",
     "ts-node": "^10.2.0",
     "typescript": "^4.3.5"
   }
