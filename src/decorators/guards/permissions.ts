@@ -1,29 +1,23 @@
 import { Interaction, PermissionResolvable } from 'discord.js'
-import { Command } from '../../commands/Command.js'
 import { PreRunError } from '../../errors/PreRunError.js'
+import { makeGuard } from './makeGuard.js'
 
-export const permissions =
-  (requiredPermissions: PermissionResolvable) =>
-  (_target: Command, _key: string, propertyDescriptor: PropertyDescriptor) => {
-    const originalMethod = propertyDescriptor.value
+/**
+ * Guards a command so that the invoking user requires 1 or more permissions to execute it
+ * @param requiredPermissions The permissions required to run the command
+ */
+export const permissions = makeGuard(
+  (requiredPermissions: PermissionResolvable) => (interaction: Interaction) => {
+    const { memberPermissions } = interaction
 
-    propertyDescriptor.value = function (
-      interaction: Interaction,
-      ...args: unknown[]
-    ) {
-      const { memberPermissions } = interaction
+    if (memberPermissions) {
+      const missingPermissions = memberPermissions.missing(requiredPermissions)
 
-      if (memberPermissions) {
-        const missingPermissions =
-          memberPermissions.missing(requiredPermissions)
-
-        if (missingPermissions.length > 0) {
-          throw new PreRunError(
-            `Missing required permissions: ${missingPermissions.join(', ')}`,
-          )
-        }
+      if (missingPermissions.length > 0) {
+        throw new PreRunError(
+          `Missing permissions: ${missingPermissions.join(', ')}`,
+        )
       }
-
-      return originalMethod.apply(this, [interaction, ...args])
     }
-  }
+  },
+)
