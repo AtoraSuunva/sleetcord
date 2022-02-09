@@ -1,10 +1,16 @@
 import { Logger } from 'pino'
 import { baseLogger } from './utils/logger.js'
-import { Client, ClientOptions, Interaction } from 'discord.js'
+import {
+  BaseCommandInteraction,
+  Client,
+  ClientOptions,
+  Interaction,
+} from 'discord.js'
 import { Command } from './commands/Command.js'
 import { SlashCommand } from './commands/SlashCommand.js'
 import { ContextMenuCommand } from './commands/ContextMenuCommand.js'
 import { SleetRest } from './SleetRest.js'
+import { PreRunError } from './errors/PreRunError.js'
 
 /**
  * Sleet-specific options
@@ -123,16 +129,43 @@ export class SleetClient {
         return
       }
 
-      if (interaction.isCommand() && command instanceof SlashCommand) {
-        command.run(interaction)
-      } else if (
-        interaction.isContextMenu() &&
-        command instanceof ContextMenuCommand
-      ) {
-        command.run(interaction)
+      try {
+        if (interaction.isCommand() && command instanceof SlashCommand) {
+          await command.run(interaction)
+        } else if (
+          interaction.isContextMenu() &&
+          command instanceof ContextMenuCommand
+        ) {
+          await command.run(interaction)
+        }
+      } catch (e: unknown) {
+        this.#handleInteractionError(interaction, command, e)
       }
+      // Handle Autocomplete & Message Component later?
     }
+  }
 
-    // Handle Autocomplete & Message Component later?
+  #handleInteractionError(
+    interaction: BaseCommandInteraction,
+    command: Command,
+    error: unknown,
+  ) {
+    if (error instanceof PreRunError) {
+      interaction.reply({
+        content: error.message,
+        ephemeral: true,
+      })
+    } else {
+      this.#logger.error(
+        error,
+        'Error running command "%s" on interaction %o',
+        command.name,
+        interaction,
+      )
+      interaction.reply({
+        content: `An unexpected error occurred while running this command, please try again later.\n${error}`,
+        ephemeral: true,
+      })
+    }
   }
 }
