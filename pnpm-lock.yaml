@@ -9,6 +9,7 @@ specifiers:
   '@typescript-eslint/parser': ^5.10.1
   discord-api-types: ^0.26.1
   discord.js: ^13.1.0
+  discord.tsx: ^3.0.0
   dotenv: ^14.3.2
   env-var: ^7.1.1
   eslint: ^8.8.0
@@ -26,6 +27,7 @@ dependencies:
   '@discordjs/rest': 0.3.0
   discord-api-types: 0.26.1
   discord.js: 13.6.0
+  discord.tsx: 3.0.0
   env-var: 7.1.1
   pino: 7.6.5
   reflect-metadata: 0.1.13
@@ -747,6 +749,10 @@ packages:
       - bufferutil
       - encoding
       - utf-8-validate
+    dev: false
+
+  /discord.tsx/3.0.0:
+    resolution: {integrity: sha512-c9C+NxXrKHGSZrhImtbLjUf37w0+ReXQBW/qe91UUiI0OOGQlpSPK2fiW1e0ZblhHC4xNPpyOEh1iX22E3M9gQ==}
     dev: false
 
   /doctrine/2.1.0:

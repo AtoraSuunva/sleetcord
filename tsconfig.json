@@ -6,6 +6,11 @@
     "files": true
   },
   "compilerOptions": {
+    /* discord.tsx, remove when done fucking around */
+    "jsxFactory": "DiscordComponents.createComponent",
+    "jsx": "react",
+    "jsxFragmentFactory": "DiscordComponents.Fragment",
+
     /* Projects */
     "incremental": true,
     "tsBuildInfoFile": ".tsbuildinfo",

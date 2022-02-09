@@ -2,11 +2,11 @@ import { SlashCommandBuilder } from '@discordjs/builders'
 import { CommandInteraction, User } from 'discord.js'
 import { SlashCommand } from '../commands/SlashCommand.js'
 import {
-  GetBoolean,
-  GetString,
-  GetUsers,
-  Handler,
-} from '../decorators/index.js'
+  getBoolean,
+  getString,
+  getUsers,
+} from '../decorators/inject/getters.js'
+import { injectParameters } from '../decorators/inject/injectParameters.js'
 
 export class EchoCommand extends SlashCommand {
   constructor() {
@@ -31,16 +31,16 @@ export class EchoCommand extends SlashCommand {
     super(echoBuilder.toJSON())
   }
 
-  @Handler()
+  @injectParameters()
   run(
     interaction: CommandInteraction,
-    @GetString('message') message: string,
-    @GetBoolean('ephemeral', false) ephemeral = false,
-    @GetUsers('allowed_mentions', false) allowedMentions: User[] = [],
-  ): void {
+    @getString('message') message: string,
+    @getBoolean('ephemeral', false) ephemeral = false,
+    @getUsers('allowed_mentions', false) allowedMentions: User[] = [],
+  ): Promise<void> {
     const users = allowedMentions.map((user) => user.id)
 
-    interaction.reply({
+    return interaction.reply({
       content: message,
       ephemeral,
       allowedMentions: { users },
