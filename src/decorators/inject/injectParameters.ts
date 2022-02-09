@@ -1,8 +1,8 @@
 import { CommandInteraction } from 'discord.js'
 import { GetMetadata } from './getters.js'
-import { Command } from '../commands/Command.js'
+import { Command } from '../../commands/Command.js'
 
-export const Handler =
+export const injectParameters =
   () =>
   (target: Command, _key: string, propertyDescriptor: PropertyDescriptor) => {
     const keys = Reflect.getOwnMetadataKeys(target)
@@ -31,7 +31,6 @@ export const Handler =
         }
       }
 
-      const result = originalMethod.apply(this, [interaction, ...args])
-      return result
+      return originalMethod.apply(this, [interaction, ...args])
     }
   }

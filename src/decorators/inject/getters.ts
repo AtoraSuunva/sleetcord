@@ -29,7 +29,7 @@ export interface GetMetadata {
   getter: GetOption
 }
 
-export const GetParam =
+export const getParam =
   (name: string, required: boolean, type: ParamType, getter: GetOption) =>
   (target: Record<string, unknown>, _key: string, index: number) => {
     Reflect.defineMetadata(
@@ -39,38 +39,38 @@ export const GetParam =
     )
   }
 
-export const GetString = (name: string, required = true) =>
-  GetParam(name, required, 'string', getOption)
+export const getString = (name: string, required = true) =>
+  getParam(name, required, 'string', getOption)
 
-export const GetBoolean = (name: string, required = true) =>
-  GetParam(name, required, 'boolean', getOption)
+export const getBoolean = (name: string, required = true) =>
+  getParam(name, required, 'boolean', getOption)
 
-export const GetChannel = (name: string, required = true) =>
-  GetParam(name, required, 'channel', getOption)
+export const getChannel = (name: string, required = true) =>
+  getParam(name, required, 'channel', getOption)
 
-export const GetInteger = (name: string, required = true) =>
-  GetParam(name, required, 'integer', getOption)
+export const getInteger = (name: string, required = true) =>
+  getParam(name, required, 'integer', getOption)
 
-export const GetMember = (name: string, required = true) =>
-  GetParam(name, required, 'member', getOption)
+export const getMember = (name: string, required = true) =>
+  getParam(name, required, 'member', getOption)
 
-export const GetMentionable = (name: string, required = true) =>
-  GetParam(name, required, 'mentionable', getOption)
+export const getMentionable = (name: string, required = true) =>
+  getParam(name, required, 'mentionable', getOption)
 
-export const GetNumber = (name: string, required = true) =>
-  GetParam(name, required, 'number', getOption)
+export const getNumber = (name: string, required = true) =>
+  getParam(name, required, 'number', getOption)
 
-export const GetRole = (name: string, required = true) =>
-  GetParam(name, required, 'role', getOption)
+export const getRole = (name: string, required = true) =>
+  getParam(name, required, 'role', getOption)
 
-export const GetUser = (name: string, required = true) =>
-  GetParam(name, required, 'user', getOption)
+export const getUser = (name: string, required = true) =>
+  getParam(name, required, 'user', getOption)
 
-export const GetUsers = (name: string, required = true) =>
-  GetParam(name, required, 'users', getUsers)
+export const getUsers = (name: string, required = true) =>
+  getParam(name, required, 'users', getUsersHelper)
 
-export const GetMembers = (name: string, required = true) =>
-  GetParam(name, required, 'users', getMembers)
+export const getMembers = (name: string, required = true) =>
+  getParam(name, required, 'members', getMembersHelper)
 
 function getOption(
   interaction: CommandInteraction,
@@ -103,7 +103,7 @@ function getOption(
   }
 }
 
-function getUsers(
+function getUsersHelper(
   interaction: CommandInteraction,
   name: string,
   required: boolean,
@@ -115,7 +115,7 @@ function getUsers(
   return Array.from(users.filter((user) => string.includes(user.id)).values())
 }
 
-function getMembers(
+function getMembersHelper(
   interaction: CommandInteraction,
   name: string,
   required: boolean,
