@@ -7,5 +7,5 @@ export abstract class ContextMenuCommand extends Command {
     super(body)
   }
 
-  abstract run(interaction: ContextMenuInteraction): void
+  abstract run(interaction: ContextMenuInteraction): unknown | Promise<unknown>
 }

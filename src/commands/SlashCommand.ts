@@ -7,5 +7,8 @@ export abstract class SlashCommand extends Command {
     super(body)
   }
 
-  abstract run(interaction: CommandInteraction, ...args: unknown[]): void
+  abstract run(
+    interaction: CommandInteraction,
+    ...args: unknown[]
+  ): unknown | Promise<unknown>
 }
