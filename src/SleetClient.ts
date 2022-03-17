@@ -6,11 +6,13 @@ import {
   ClientOptions,
   Interaction,
 } from 'discord.js'
-import { Command } from './commands/Command.js'
-import { SlashCommand } from './commands/SlashCommand.js'
-import { ContextMenuCommand } from './commands/ContextMenuCommand.js'
 import { SleetRest } from './SleetRest.js'
 import { PreRunError } from './errors/PreRunError.js'
+import { SleetCommand } from './modules/SleetCommand.js'
+import { SleetModule } from './modules/SleetModule.js'
+import { SleetSlashCommand } from './modules/SleetSlashCommand.js'
+import { SleetUserCommand } from './modules/SleetUserCommand.js'
+import { SleetMessageCommand } from './modules/SleetMessageCommand.js'
 
 /**
  * Sleet-specific options
@@ -31,9 +33,13 @@ interface SleetClientOptions {
 
 interface PutCommandOptions {
   /** The commands to PUT, if any (defaults to added commands) */
-  commands?: Command[]
+  commands?: SleetCommand[]
   /** The guild to PUT to, if any */
   guildId?: string
+}
+
+function isSleetCommand(value: unknown): value is SleetCommand {
+  return value instanceof SleetCommand
 }
 
 /**
@@ -45,7 +51,7 @@ export class SleetClient {
   options: SleetOptions
   client: Client
   rest: SleetRest
-  commands = new Map<string, Command>()
+  modules = new Map<string, SleetModule>()
 
   constructor(options: SleetClientOptions) {
     this.#logger.debug('Creating new SleetClient')
@@ -57,26 +63,27 @@ export class SleetClient {
   }
 
   /**
-   * Adds a set of commands to Sleet, which will handle incoming interactions
-   * that match them by name
-   * @param commands The commands to add
+   * Adds a set of modules to Sleet, which will handle incoming events using their handlers.
+   *
+   * {@link SleetCommand} is a special module that can also handle incoming interactions, and will be routed automatically by Sleet.
+   * @param modules The modules to add
    * @returns This SleetClient for chaining
    */
-  addCommands(commands: Command[]): this {
-    this.#logger.debug('Adding commands: %o', commands)
-    commands.forEach((command) => this.commands.set(command.name, command))
+  addModules(modules: SleetModule[]): this {
+    this.#logger.debug('Adding modules: %o', modules)
+    modules.forEach((module) => this.modules.set(module.name, module))
     return this
   }
 
   /**
-   * Removes a set of commands from Sleet, they will no longer handle incoming
-   * interactions
-   * @param commands The commands to remove
+   * Removes a set of modules from Sleet, they will no longer handle incoming
+   * events/interactions
+   * @param modules The modules to remove
    * @returns This SleetClient for chaining
    */
-  removeCommands(commands: Command[]): this {
-    this.#logger.debug('Removing commands: %o', commands)
-    commands.forEach((command) => this.commands.delete(command.name))
+  removeModules(modules: SleetModule[]): this {
+    this.#logger.debug('Removing modules: %o', modules)
+    modules.forEach((module) => this.modules.delete(module.name))
     return this
   }
 
@@ -92,7 +99,9 @@ export class SleetClient {
    */
   async putCommands(options: PutCommandOptions = {}): Promise<unknown> {
     const { commands, guildId } = options
-    const toAdd = commands || Array.from(this.commands.values())
+    const toAdd =
+      commands || Array.from(this.modules.values()).filter(isSleetCommand)
+
     this.#logger.debug('Putting commands to api: %o', toAdd)
     const body = toAdd.map((command) => command.body)
 
@@ -123,47 +132,69 @@ export class SleetClient {
     this.#logger.debug('Handling interaction: %o', interaction)
 
     if (interaction.isApplicationCommand()) {
-      const command = this.commands.get(interaction.commandName)
-      if (!command) {
-        this.#logger.warn('No command found for %s', interaction.commandName)
+      const module = this.modules.get(interaction.commandName)
+
+      if (!(module instanceof SleetCommand)) {
+        this.#logger.error(
+          'Module "%s" is not a SleetCommand, but has registered interactions',
+          interaction.commandName,
+        )
+        return
+      }
+
+      if (!module) {
+        this.#logger.error('No module found for %s', interaction.commandName)
         return
       }
 
       try {
-        if (interaction.isCommand() && command instanceof SlashCommand) {
-          await command.run(interaction)
+        // May seem redundant, but this ensures that the right type of command is invoked
+        // A SleetMessageCommand cannot handle an incoming interaction mistakenly registered as a UserContextMenu one
+        if (interaction.isCommand() && module instanceof SleetSlashCommand) {
+          await module.run(interaction)
         } else if (
-          interaction.isContextMenu() &&
-          command instanceof ContextMenuCommand
+          interaction.isUserContextMenu() &&
+          module instanceof SleetUserCommand
         ) {
-          await command.run(interaction)
+          await module.run(interaction)
+        } else if (
+          interaction.isMessageContextMenu() &&
+          module instanceof SleetMessageCommand
+        ) {
+          await module.run(interaction)
+        } else {
+          this.#logger.error(
+            'Module "%s" could not handle incoming interaction: %o',
+            interaction.commandName,
+            interaction,
+          )
         }
       } catch (e: unknown) {
-        this.#handleInteractionError(interaction, command, e)
+        this.#handleInteractionError(interaction, module, e)
       }
-      // Handle Autocomplete & Message Component later?
     }
+    // Handle Autocomplete & Message Component later?
   }
 
   #handleInteractionError(
     interaction: BaseCommandInteraction,
-    command: Command,
+    module: SleetModule,
     error: unknown,
   ) {
     if (error instanceof PreRunError) {
       interaction.reply({
-        content: error.message,
+        content: `:warning: ${error.message}`,
         ephemeral: true,
       })
     } else {
       this.#logger.error(
         error,
-        'Error running command "%s" on interaction %o',
-        command.name,
+        'Error running module "%s" on interaction %o',
+        module.name,
         interaction,
       )
       interaction.reply({
-        content: `An unexpected error occurred while running this command, please try again later.\n${error}`,
+        content: `:warning: An unexpected error occurred while running this command, please try again later.\n${error}`,
         ephemeral: true,
       })
     }

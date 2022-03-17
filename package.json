@@ -11,14 +11,11 @@
   "author": "AtoraSuunva",
   "license": "MIT",
   "dependencies": {
-    "@discordjs/builders": "^0.12.0",
     "@discordjs/rest": "^0.3.0",
     "discord-api-types": "^0.26.1",
     "discord.js": "^13.1.0",
-    "discord.tsx": "^3.0.0",
     "env-var": "^7.1.1",
-    "pino": "^7.6.5",
-    "reflect-metadata": "^0.1.13"
+    "pino": "^7.6.5"
   },
   "devDependencies": {
     "@swc/core": "^1.2.75",

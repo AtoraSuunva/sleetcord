@@ -1,49 +1,46 @@
-import { SlashCommandBuilder } from '@discordjs/builders'
-import { CommandInteraction, User } from 'discord.js'
-import { SlashCommand } from '../commands/SlashCommand.js'
-import {
-  getBoolean,
-  getString,
-  getUsers,
-} from '../decorators/inject/getters.js'
-import { injectParameters } from '../decorators/inject/injectParameters.js'
+import { ApplicationCommandOptionType } from 'discord-api-types/v9'
+import { CommandInteraction } from 'discord.js'
+import { SleetSlashCommand } from '../modules/SleetSlashCommand.js'
+import { getUsers } from '../parsers/resolvedData.js'
 
-export class EchoCommand extends SlashCommand {
-  constructor() {
-    const echoBuilder = new SlashCommandBuilder()
-      .setName('echo')
-      .setDescription('Echoes the message')
-      .addStringOption((opt) =>
-        opt
-          .setName('message')
-          .setDescription('The message to echo')
-          .setRequired(true),
-      )
-      .addBooleanOption((opt) =>
-        opt.setName('ephemeral').setDescription('Ephemeral echo'),
-      )
-      .addStringOption((opt) =>
-        opt
-          .setName('allowed_mentions')
-          .setDescription('What users to allow to mention'),
-      )
+export const echo = new SleetSlashCommand(
+  {
+    name: 'echo',
+    description: 'Echoes the message',
+    options: [
+      {
+        name: 'message',
+        type: ApplicationCommandOptionType.String,
+        description: 'The message to echo',
+        required: true,
+      },
+      {
+        name: 'ephemeral',
+        type: ApplicationCommandOptionType.Boolean,
+        description: 'Ephemeral echo',
+      },
+      {
+        name: 'allowed_mentions',
+        type: ApplicationCommandOptionType.String,
+        description: 'What users to allow to mention',
+      },
+    ],
+  },
+  {
+    run: async (interaction: CommandInteraction) => {
+      const message = interaction.options.getString('message', true)
+      const ephemeral =
+        interaction.options.getBoolean('ephemeral', false) ?? false
+      const allowedMentions = getUsers(interaction, 'allowed_mentions')
+      const users = allowedMentions.map((user) => user.id)
 
-    super(echoBuilder.toJSON())
-  }
-
-  @injectParameters()
-  run(
-    interaction: CommandInteraction,
-    @getString('message') message: string,
-    @getBoolean('ephemeral', false) ephemeral = false,
-    @getUsers('allowed_mentions', false) allowedMentions: User[] = [],
-  ): Promise<void> {
-    const users = allowedMentions.map((user) => user.id)
-
-    return interaction.reply({
-      content: message,
-      ephemeral,
-      allowedMentions: { users },
-    })
-  }
-}
+      interaction.reply({
+        content: message,
+        ephemeral,
+        allowedMentions: {
+          users,
+        },
+      })
+    },
+  },
+)
