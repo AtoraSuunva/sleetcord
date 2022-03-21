@@ -1,17 +1,7 @@
 import { RESTPostAPIApplicationCommandsJSONBody } from 'discord-api-types/rest/v9'
-import { Awaitable, Interaction } from 'discord.js'
-import { SleetModuleEventHandlers, SleetModule } from './SleetModule.js'
-// import type { SleetSlashCommand } from './SleetSlashCommand.js'
-
-/**
- * Event handlers for Sleet events, Discord.js Events, and incoming interactions
- */
-export interface CommandEventHandlers<
-  I extends Interaction,
-  A extends unknown[] = [],
-> extends SleetModuleEventHandlers {
-  run: (interaction: I, ...args: A) => Awaitable<unknown>
-}
+import { Interaction } from 'discord.js'
+import { RunnableEventHandlers } from '../events.js'
+import { SleetRunnable } from './SleetRunnable.js'
 
 /**
  * A command usable by the Sleet client. This one handles any generic "command" that comes in,
@@ -27,16 +17,17 @@ export interface CommandEventHandlers<
 export class SleetCommand<
   I extends Interaction = Interaction,
   A extends unknown[] = [],
-  Handlers extends CommandEventHandlers<I, A> = CommandEventHandlers<I, A>,
-> extends SleetModule<Handlers> {
+  Handlers extends RunnableEventHandlers<I, A> = RunnableEventHandlers<I, A>,
+> extends SleetRunnable<
+  RESTPostAPIApplicationCommandsJSONBody,
+  I,
+  A,
+  Handlers
+> {
   constructor(
-    public body: RESTPostAPIApplicationCommandsJSONBody,
+    public override body: RESTPostAPIApplicationCommandsJSONBody,
     handlers: Handlers,
   ) {
-    super(body.name, handlers)
-  }
-
-  public run(interaction: I, ...args: A): Awaitable<unknown> {
-    return this.handlers.run(interaction, ...args)
+    super(body, handlers)
   }
 }

@@ -1,6 +1,6 @@
 import { ApplicationCommandOptionType } from 'discord-api-types/v9'
 import { CommandInteraction } from 'discord.js'
-import { SleetSlashCommand } from '../modules/SleetSlashCommand.js'
+import { SleetSlashCommand } from '../modules/slash/SleetSlashCommand.js'
 import { getUsers } from '../parsers/resolvedData.js'
 
 export const echo = new SleetSlashCommand(

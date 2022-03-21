@@ -1,7 +1,14 @@
 import { Intents } from 'discord.js'
 import env from 'env-var'
 import { SleetClient } from '../index.js'
-import { slashCommand, messageCommand, userCommand } from './SleetTests.js'
+import {
+  slashCommand,
+  pingCommand,
+  messageCommand,
+  userCommand,
+  userPermissionsCommand,
+  readyLogModule,
+} from './SleetTests.js'
 import { echo } from './echo.js'
 import { mute } from './mute.js'
 
@@ -19,6 +26,15 @@ const sleetClient = new SleetClient({
   },
 })
 
-sleetClient.addModules([mute, echo, slashCommand, messageCommand, userCommand])
-sleetClient.putCommands({ guildId: TEST_GUILD_ID })
+sleetClient.addModules([
+  readyLogModule,
+  mute,
+  echo,
+  slashCommand,
+  pingCommand,
+  messageCommand,
+  userCommand,
+  userPermissionsCommand,
+])
+// sleetClient.putCommands({ guildId: TEST_GUILD_ID })
 sleetClient.login()

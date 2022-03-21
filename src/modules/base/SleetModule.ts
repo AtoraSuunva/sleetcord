@@ -1,24 +1,4 @@
-import { Awaitable, ClientEvents } from 'discord.js'
-
-/**
- * A mapping of 'event name' => Handler arguments for attaching listeners to Discord.js events
- */
-export type ClientEventHandlers = {
-  [Event in keyof ClientEvents]: (
-    ...args: ClientEvents[Event]
-  ) => Awaitable<void>
-}
-
-/**
- * All possible event handlers a command can have, both for Sleet events and Discord.js events
- */
-export interface SleetModuleEventHandlers extends Partial<ClientEventHandlers> {
-  /**
-   * Event emitted when a SleetClient loads this module, can be used to fetch data
-   * from an external source
-   */
-  load?: () => Awaitable<void>
-}
+import { SleetModuleEventHandlers } from '../events'
 
 /**
  * A module usable by the Sleet client.

@@ -7,7 +7,8 @@ import {
   CommandInteractionOption,
   MessageContextMenuInteraction,
 } from 'discord.js'
-import { CommandEventHandlers, SleetCommand } from './SleetCommand.js'
+import { SleetCommand } from '../base/SleetCommand.js'
+import { RunnableEventHandlers, SleetContext } from '../events.js'
 
 type MessageApplicationCommandJSONBody =
   RESTPostAPIContextMenuApplicationCommandsJSONBody & {
@@ -17,7 +18,7 @@ type MessageApplicationCommandJSONBody =
 type InteractionMessage = NonNullable<CommandInteractionOption['message']>
 
 export interface MessageCommandHandlers
-  extends CommandEventHandlers<
+  extends RunnableEventHandlers<
     MessageContextMenuInteraction,
     [InteractionMessage]
   > {
@@ -40,8 +41,11 @@ export class SleetMessageCommand extends SleetCommand<
     super(body, handlers)
   }
 
-  override run(interaction: MessageContextMenuInteraction): Awaitable<unknown> {
+  override run(
+    context: SleetContext,
+    interaction: MessageContextMenuInteraction,
+  ): Awaitable<unknown> {
     const { targetMessage } = interaction
-    return super.run(interaction, targetMessage)
+    return super.run(context, interaction, targetMessage)
   }
 }

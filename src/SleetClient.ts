@@ -8,11 +8,19 @@ import {
 } from 'discord.js'
 import { SleetRest } from './SleetRest.js'
 import { PreRunError } from './errors/PreRunError.js'
-import { SleetCommand } from './modules/SleetCommand.js'
-import { SleetModule } from './modules/SleetModule.js'
-import { SleetSlashCommand } from './modules/SleetSlashCommand.js'
-import { SleetUserCommand } from './modules/SleetUserCommand.js'
-import { SleetMessageCommand } from './modules/SleetMessageCommand.js'
+import { SleetCommand } from './modules/base/SleetCommand.js'
+import { SleetModule } from './modules/base/SleetModule.js'
+import { SleetSlashCommand } from './modules/slash/SleetSlashCommand.js'
+import { SleetUserCommand } from './modules/context-menu/SleetUserCommand.js'
+import { SleetMessageCommand } from './modules/context-menu/SleetMessageCommand.js'
+import {
+  isDiscordEvent,
+  isSleetEvent,
+  isSpecialEvent,
+  SleetContext,
+  SleetModuleEventHandlers,
+} from './modules/events.js'
+import EventEmitter from 'events'
 
 /**
  * Sleet-specific options
@@ -38,6 +46,12 @@ interface PutCommandOptions {
   guildId?: string
 }
 
+type SleetModuleEventKey = keyof SleetModuleEventHandlers
+type SleetModuleEventRegistration = [
+  SleetModuleEventKey,
+  SleetModuleEventHandlers[SleetModuleEventKey],
+]
+
 function isSleetCommand(value: unknown): value is SleetCommand {
   return value instanceof SleetCommand
 }
@@ -46,18 +60,25 @@ function isSleetCommand(value: unknown): value is SleetCommand {
  * A command handler built around Discord.js, the SleetClient handles passing
  * interactions to commands and registering them
  */
-export class SleetClient {
+export class SleetClient extends EventEmitter {
   #logger: Logger = baseLogger.child({ name: 'SleetClient' })
   options: SleetOptions
   client: Client
   rest: SleetRest
   modules = new Map<string, SleetModule>()
+  registeredEvents = new Map<SleetModule, SleetModuleEventRegistration[]>()
+  context: SleetContext
 
   constructor(options: SleetClientOptions) {
+    super()
     this.#logger.debug('Creating new SleetClient')
     this.options = options.sleet
     this.client = new Client(options.client)
     this.rest = new SleetRest(options.sleet.token, options.sleet.applicationId)
+    this.context = {
+      sleet: this,
+      client: this.client,
+    }
 
     this.client.on('interactionCreate', this.#interactionCreate.bind(this))
   }
@@ -71,7 +92,14 @@ export class SleetClient {
    */
   addModules(modules: SleetModule[]): this {
     this.#logger.debug('Adding modules: %o', modules)
-    modules.forEach((module) => this.modules.set(module.name, module))
+
+    for (const module of modules) {
+      this.#registerEventsFor(module)
+      this.modules.set(module.name, module)
+      module.handlers.load?.call(this.context)
+      this.emit('loadModule', module)
+    }
+
     return this
   }
 
@@ -83,8 +111,60 @@ export class SleetClient {
    */
   removeModules(modules: SleetModule[]): this {
     this.#logger.debug('Removing modules: %o', modules)
-    modules.forEach((module) => this.modules.delete(module.name))
+
+    for (const module of modules) {
+      this.#unregisterEventsFor(module)
+      this.modules.delete(module.name)
+      module.handlers.unload?.call(this.context)
+      this.emit('unloadModule', module)
+    }
+
     return this
+  }
+
+  #registerEventsFor(module: SleetModule) {
+    const events = this.registeredEvents.get(module) ?? []
+
+    for (const [event, handler] of Object.entries(module.handlers)) {
+      const eventHandler = handler.bind(this.context)
+
+      if (isDiscordEvent(event)) {
+        this.client.on(event, eventHandler)
+      } else if (isSleetEvent(event)) {
+        this.on(event, eventHandler)
+      } else if (!isSpecialEvent(event)) {
+        throw new Error(
+          `Unknown event '${event}' while processing ${module.name}`,
+        )
+      }
+
+      events.push([event as keyof SleetModuleEventHandlers, eventHandler])
+    }
+
+    this.registeredEvents.set(module, events)
+  }
+
+  #unregisterEventsFor(module: SleetModule) {
+    const events = this.registeredEvents.get(module)
+    if (!events) return
+
+    for (const [event, eventHandler] of events) {
+      if (!eventHandler) continue
+
+      if (isDiscordEvent(event)) {
+        // Cast as string otherwise typescript does some crazy type inferrence that
+        // makes it both error and lag like mad
+        this.client.off(event as string, eventHandler)
+      } else if (isSleetEvent(event)) {
+        this.off(event, eventHandler)
+      } else if (!isSpecialEvent(event)) {
+        throw new Error(
+          `Unknown event '${event}' while processing ${module.name}`,
+        )
+      }
+    }
+
+    this.registeredEvents.delete(module)
   }
 
   /**
@@ -151,17 +231,17 @@ export class SleetClient {
         // May seem redundant, but this ensures that the right type of command is invoked
         // A SleetMessageCommand cannot handle an incoming interaction mistakenly registered as a UserContextMenu one
         if (interaction.isCommand() && module instanceof SleetSlashCommand) {
-          await module.run(interaction)
+          await module.run(this.context, interaction)
         } else if (
           interaction.isUserContextMenu() &&
           module instanceof SleetUserCommand
         ) {
-          await module.run(interaction)
+          await module.run(this.context, interaction)
         } else if (
           interaction.isMessageContextMenu() &&
           module instanceof SleetMessageCommand
         ) {
-          await module.run(interaction)
+          await module.run(this.context, interaction)
         } else {
           this.#logger.error(
             'Module "%s" could not handle incoming interaction: %o',
@@ -182,10 +262,16 @@ export class SleetClient {
     error: unknown,
   ) {
     if (error instanceof PreRunError) {
-      interaction.reply({
-        content: `:warning: ${error.message}`,
-        ephemeral: true,
-      })
+      const content = `:warning: ${error.message}`
+
+      if (interaction.deferred) {
+        interaction.editReply(content)
+      } else {
+        interaction.reply({
+          content,
+          ephemeral: true,
+        })
+      }
     } else {
       this.#logger.error(
         error,

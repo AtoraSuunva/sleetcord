@@ -1,7 +1,7 @@
 import { ApplicationCommandOptionType } from 'discord-api-types/v9'
 import { CommandInteraction, GuildMember } from 'discord.js'
 import { hasPermissions, inGuild } from '../guards/index.js'
-import { SleetSlashCommand } from '../modules/SleetSlashCommand.js'
+import { SleetSlashCommand } from '../modules/slash/SleetSlashCommand.js'
 import { getMembers } from '../parsers/resolvedData.js'
 
 interface MuteFail {
