@@ -13,6 +13,7 @@ import { hasPermissions } from '../guards/index.js'
 import { getChannel, getMember } from '../parsers/resolvedData.js'
 import { SleetModule } from '../modules/base/SleetModule.js'
 import { Message } from 'discord.js'
+import { autocompleteForStrings } from '../utils/autocomplete.js'
 
 export const readyLogModule = new SleetModule('ready-log', {
   load: () => {
@@ -75,6 +76,128 @@ export const pingCommand = new SleetSlashCommand(
     },
   },
 )
+
+const fruits = [
+  'apple',
+  'orange',
+  'banana',
+  'pear',
+  'strawberry',
+  'grape',
+  'peach',
+  'mango',
+  'pineapple',
+  'watermelon',
+  'kiwi',
+  'coconut',
+  'papaya',
+  'avocado',
+  'cherry',
+  'peach',
+  'plum',
+  'blackberry',
+  'blueberry',
+  'raspberry',
+]
+
+const vegetables = [
+  'carrot',
+  'potato',
+  'tomato',
+  'cucumber',
+  'onion',
+  'pepper',
+  'lettuce',
+  'broccoli',
+  'spinach',
+  'cabbage',
+  'celery',
+  'artichoke',
+  'asparagus',
+  'avocado',
+  'eggplant',
+  'beet',
+  'bell pepper',
+  'black bean',
+  'black-eyed pea',
+  'bok choy',
+  'borlotti bean',
+  'brussels sprout',
+]
+
+export const autocompleteCommand = new SleetSlashCommand(
+  {
+    name: 'autocomplete',
+    description: 'Autocomplete to fruits',
+    options: [
+      {
+        name: 'fruit',
+        type: ApplicationCommandOptionType.String,
+        description: 'The fruit you want',
+        required: true,
+        autocomplete: autocompleteForStrings({
+          array: fruits,
+        }),
+      },
+    ],
+  },
+  {
+    run: (interaction) => {
+      const fruit = interaction.options.getString('fruit', true)
+      interaction.reply(`You picked ${fruit}!`)
+    },
+  },
+)
+
+const autocompleteFruit = new SleetSlashSubcommand(
+  {
+    name: 'fruit',
+    description: 'Autocomplete to fruits',
+    options: [
+      {
+        name: 'fruit',
+        type: ApplicationCommandOptionType.String,
+        description: 'The fruit you want',
+        required: true,
+        autocomplete: autocompleteForStrings({ array: fruits }),
+      },
+    ],
+  },
+  {
+    run: (interaction) => {
+      const fruit = interaction.options.getString('fruit', true)
+      interaction.reply(`You picked ${fruit}!`)
+    },
+  },
+)
+
+const autocompleteVegetable = new SleetSlashSubcommand(
+  {
+    name: 'vegetable',
+    description: 'Autocomplete to vegetables',
+    options: [
+      {
+        name: 'vegetable',
+        type: ApplicationCommandOptionType.String,
+        description: 'The vegetable you want',
+        required: true,
+        autocomplete: autocompleteForStrings({ array: vegetables }),
+      },
+    ],
+  },
+  {
+    run: (interaction) => {
+      const vegetable = interaction.options.getString('vegetable', true)
+      interaction.reply(`You picked ${vegetable}!`)
+    },
+  },
+)
+
+export const autocompleteFood = new SleetSlashCommand({
+  name: 'food',
+  description: 'Autocomplete to fruits and vegetables',
+  options: [autocompleteFruit, autocompleteVegetable],
+})
 
 export const userCommand = new SleetUserCommand(
   {

@@ -6,15 +6,24 @@ import {
 import { CommandInteraction } from 'discord.js'
 import { noop } from '../../utils/funcs.js'
 import { SleetCommand } from '../base/SleetCommand.js'
-import { SleetContext } from '../events.js'
+import {
+  NoRunSlashEventHandlers,
+  SlashEventHandlers,
+  SleetContext,
+} from '../events.js'
+import {
+  autocompleteWithSubcommands,
+  isAutocompleteableOption,
+  SleetAutocompleteable,
+  SleetAutocompleteableOption,
+} from './SleetAutocompleteable.js'
 import { SleetSlashSubcommand } from './SleetSlashSubcommand.js'
 import { SleetSlashCommandGroup } from './SleetSlashSubcommandGroup.js'
-import { SlashCommandHandlers, SlashCommandPartialHandlers } from './types.js'
 
 interface SleetSlashCommandBody
   extends Omit<RESTPostAPIChatInputApplicationCommandsJSONBody, 'options'> {
   options?:
-    | APIApplicationCommandOption[]
+    | (APIApplicationCommandOption | SleetAutocompleteableOption)[]
     | SleetSlashSubcommand[]
     | SleetSlashCommandGroup[]
 }
@@ -22,6 +31,11 @@ interface SleetSlashCommandBody
 interface SleetSlashCommandBodyJSON
   extends Omit<SleetSlashCommandBody, 'options'> {
   options?: APIApplicationCommandOption[]
+}
+
+interface SleetSlashCommandBodyAutocompleteable
+  extends Omit<SleetSlashCommandBody, 'options'> {
+  options?: (APIApplicationCommandOption | SleetAutocompleteableOption)[]
 }
 
 interface SleetSlashCommandBodyWithSubcommands
@@ -33,16 +47,16 @@ interface ParsedSlashCommandOptions {
   json: APIApplicationCommandOption[]
   subcommands: Map<string, SleetSlashSubcommand>
   groups: Map<string, SleetSlashCommandGroup>
+  autocomplete: Map<string, SleetAutocompleteableOption>
 }
 
 function parseSlashCommandOptions(
-  options: SleetSlashCommandBody['options'],
+  options: SleetSlashCommandBody['options'] = [],
 ): ParsedSlashCommandOptions {
   const json: APIApplicationCommandOption[] = []
   const subcommands = new Map<string, SleetSlashSubcommand>()
   const groups = new Map<string, SleetSlashCommandGroup>()
-
-  if (!options) return { json, subcommands, groups }
+  const autocomplete = new Map<string, SleetAutocompleteableOption>()
 
   for (const option of options) {
     if (option instanceof SleetSlashSubcommand) {
@@ -52,28 +66,45 @@ function parseSlashCommandOptions(
       groups.set(option.name, option)
       json.push(option.body)
     } else {
-      json.push(option)
+      if (isAutocompleteableOption(option)) {
+        autocomplete.set(option.name, option)
+        json.push({
+          ...option,
+          autocomplete: true,
+        })
+      } else {
+        json.push(option)
+      }
     }
   }
 
-  return { json, subcommands, groups }
+  return { json, subcommands, groups, autocomplete }
 }
 
-export class SleetSlashCommand extends SleetCommand<CommandInteraction> {
+export class SleetSlashCommand
+  extends SleetCommand<CommandInteraction, [], SlashEventHandlers>
+  implements SleetAutocompleteable
+{
   public subcommands: Map<string, SleetSlashSubcommand>
   public groups: Map<string, SleetSlashCommandGroup>
+  public autocompleteHandlers: Map<string, SleetAutocompleteableOption>
 
   constructor(
     body: SleetSlashCommandBodyWithSubcommands,
-    handlers?: SlashCommandPartialHandlers,
+    handlers?: NoRunSlashEventHandlers,
   )
-  constructor(body: SleetSlashCommandBodyJSON, handlers: SlashCommandHandlers)
+  constructor(
+    body: SleetSlashCommandBodyAutocompleteable,
+    handlers: SlashEventHandlers,
+  )
+  constructor(body: SleetSlashCommandBodyJSON, handlers: SlashEventHandlers)
   constructor(
     body: SleetSlashCommandBody,
-    handlers: SlashCommandPartialHandlers = {},
+    handlers: NoRunSlashEventHandlers = {},
   ) {
+    const { json, subcommands, groups, autocomplete } =
+      parseSlashCommandOptions(body.options)
     body.type = ApplicationCommandType.ChatInput
-    const { json, subcommands, groups } = parseSlashCommandOptions(body.options)
     body.options = json
 
     if (
@@ -91,11 +122,12 @@ export class SleetSlashCommand extends SleetCommand<CommandInteraction> {
 
     super(
       body as RESTPostAPIChatInputApplicationCommandsJSONBody,
-      handlers as SlashCommandHandlers,
+      handlers as SlashEventHandlers,
     )
 
     this.subcommands = subcommands
     this.groups = groups
+    this.autocompleteHandlers = autocomplete
   }
 
   public override async run(
@@ -131,4 +163,7 @@ export class SleetSlashCommand extends SleetCommand<CommandInteraction> {
       }
     }
   }
+
+  public autocomplete: SleetAutocompleteable['autocomplete'] =
+    autocompleteWithSubcommands.bind(this)
 }

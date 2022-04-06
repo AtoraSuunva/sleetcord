@@ -6,9 +6,17 @@ import {
 import { CommandInteraction } from 'discord.js'
 import { noop } from '../../utils/funcs.js'
 import { SleetRunnable } from '../base/SleetRunnable.js'
-import { SleetContext } from '../events.js'
+import {
+  NoRunSlashEventHandlers,
+  SlashEventHandlers,
+  SleetContext,
+} from '../events.js'
+import {
+  autocompleteWithSubcommands,
+  SleetAutocompleteable,
+  SleetAutocompleteableOption,
+} from './SleetAutocompleteable.js'
 import { SleetSlashSubcommand } from './SleetSlashSubcommand.js'
-import { SlashCommandHandlers, SlashCommandPartialHandlers } from './types.js'
 
 export interface SleetSlashCommandGroupBody
   extends Omit<APIApplicationCommandSubcommandGroupOption, 'options' | 'type'> {
@@ -41,15 +49,21 @@ function parseSlashCommandGroupOptions(
   return { json, subcommands }
 }
 
-export class SleetSlashCommandGroup extends SleetRunnable<
-  APIApplicationCommandSubcommandGroupOption,
-  CommandInteraction
-> {
+export class SleetSlashCommandGroup
+  extends SleetRunnable<
+    APIApplicationCommandSubcommandGroupOption,
+    CommandInteraction
+  >
+  implements SleetAutocompleteable
+{
   public subcommands: Map<string, SleetSlashSubcommand>
+  // TODO: maybe actually implement this, but i dont feel like it
+  public autocompleteHandlers: Map<string, SleetAutocompleteableOption> =
+    new Map()
 
   constructor(
     body: SleetSlashCommandGroupBody,
-    handlers: SlashCommandPartialHandlers = {},
+    handlers: NoRunSlashEventHandlers = {},
   ) {
     const { json, subcommands } = parseSlashCommandGroupOptions(body)
 
@@ -59,7 +73,7 @@ export class SleetSlashCommandGroup extends SleetRunnable<
 
     super(
       body as APIApplicationCommandSubcommandGroupOption,
-      handlers as SlashCommandHandlers,
+      handlers as SlashEventHandlers,
     )
 
     this.subcommands = subcommands
@@ -87,4 +101,7 @@ export class SleetSlashCommandGroup extends SleetRunnable<
       }
     }
   }
+
+  public autocomplete: SleetAutocompleteable['autocomplete'] =
+    autocompleteWithSubcommands.bind(this)
 }

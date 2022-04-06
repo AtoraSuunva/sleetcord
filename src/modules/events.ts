@@ -1,7 +1,10 @@
+import { APIApplicationCommandOptionChoice } from 'discord-api-types'
 import {
+  AutocompleteInteraction,
   Awaitable,
   Client,
   ClientEvents,
+  CommandInteraction,
   Constants as DjsConstants,
   Interaction,
 } from 'discord.js'
@@ -51,7 +54,12 @@ export type SleetEvent = Exclude<
 /**
  * An array of all possible Sleet Event keys
  */
-export const SleetEventsList: SleetEvent[] = ['load', 'unload']
+export const SleetEventsList: SleetEvent[] = [
+  'load',
+  'unload',
+  'loadModule',
+  'unloadModule',
+]
 
 /**
  * Checks if a string is a valid Sleet Event
@@ -77,7 +85,7 @@ export interface SleetModuleEventHandlers extends Partial<ClientEventHandlers> {
 }
 
 export type SpecialEvent = Exclude<
-  keyof RunnableEventHandlers<Interaction>,
+  keyof RunnableEventHandlers<Interaction> | keyof SlashEventHandlers,
   keyof SleetModuleEventHandlers
 >
 
@@ -85,7 +93,7 @@ export type SpecialEvent = Exclude<
  * An array of all "events" that aren't hooked directly into discord.js' or Sleet's event emitters,
  * and instead require some special processing
  */
-export const SpecialEventsList: SpecialEvent[] = ['run']
+export const SpecialEventsList: SpecialEvent[] = ['run', 'autocomplete']
 
 /**
  * Checks if a string is a valid Special Event
@@ -105,3 +113,19 @@ export interface RunnableEventHandlers<
 > extends SleetModuleEventHandlers {
   run: (this: SleetContext, interaction: I, ...args: A) => Awaitable<unknown>
 }
+
+/**
+ * Event handler for Sleet events, Discord.js Events, runnable modules, and
+ * slash commands (autocomplete!)
+ */
+export interface SlashEventHandlers
+  extends RunnableEventHandlers<CommandInteraction, []> {
+  autocomplete?: (
+    this: SleetContext,
+    interaction: AutocompleteInteraction,
+    name: string,
+    value: string | number,
+  ) => Awaitable<APIApplicationCommandOptionChoice[]>
+}
+
+export type NoRunSlashEventHandlers = Partial<SlashEventHandlers>

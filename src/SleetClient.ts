@@ -1,6 +1,7 @@
 import { Logger } from 'pino'
 import { baseLogger } from './utils/logger.js'
 import {
+  AutocompleteInteraction,
   BaseCommandInteraction,
   Client,
   ClientOptions,
@@ -91,7 +92,10 @@ export class SleetClient extends EventEmitter {
    * @returns This SleetClient for chaining
    */
   addModules(modules: SleetModule[]): this {
-    this.#logger.debug('Adding modules: %o', modules)
+    this.#logger.debug(
+      'Adding modules: %o',
+      modules.map((m) => m.name),
+    )
 
     for (const module of modules) {
       this.#registerEventsFor(module)
@@ -110,7 +114,10 @@ export class SleetClient extends EventEmitter {
    * @returns This SleetClient for chaining
    */
   removeModules(modules: SleetModule[]): this {
-    this.#logger.debug('Removing modules: %o', modules)
+    this.#logger.debug(
+      'Removing modules: %o',
+      modules.map((m) => m.name),
+    )
 
     for (const module of modules) {
       this.#unregisterEventsFor(module)
@@ -126,6 +133,7 @@ export class SleetClient extends EventEmitter {
     const events = this.registeredEvents.get(module) ?? []
 
     for (const [event, handler] of Object.entries(module.handlers)) {
+      this.#logger.debug(`Registering event '${event}' for '${module.name}'`)
       const eventHandler = handler.bind(this.context)
 
       if (isDiscordEvent(event)) {
@@ -182,7 +190,10 @@ export class SleetClient extends EventEmitter {
     const toAdd =
       commands || Array.from(this.modules.values()).filter(isSleetCommand)
 
-    this.#logger.debug('Putting commands to api: %o', toAdd)
+    this.#logger.debug(
+      'Putting commands to api: %o',
+      toAdd.map((c) => c.name),
+    )
     const body = toAdd.map((command) => command.body)
 
     if (guildId) {
@@ -212,48 +223,93 @@ export class SleetClient extends EventEmitter {
     this.#logger.debug('Handling interaction: %o', interaction)
 
     if (interaction.isApplicationCommand()) {
-      const module = this.modules.get(interaction.commandName)
-
-      if (!(module instanceof SleetCommand)) {
-        this.#logger.error(
-          'Module "%s" is not a SleetCommand, but has registered interactions',
-          interaction.commandName,
-        )
-        return
-      }
-
-      if (!module) {
-        this.#logger.error('No module found for %s', interaction.commandName)
-        return
-      }
-
-      try {
-        // May seem redundant, but this ensures that the right type of command is invoked
-        // A SleetMessageCommand cannot handle an incoming interaction mistakenly registered as a UserContextMenu one
-        if (interaction.isCommand() && module instanceof SleetSlashCommand) {
-          await module.run(this.context, interaction)
-        } else if (
-          interaction.isUserContextMenu() &&
-          module instanceof SleetUserCommand
-        ) {
-          await module.run(this.context, interaction)
-        } else if (
-          interaction.isMessageContextMenu() &&
-          module instanceof SleetMessageCommand
-        ) {
-          await module.run(this.context, interaction)
-        } else {
-          this.#logger.error(
-            'Module "%s" could not handle incoming interaction: %o',
-            interaction.commandName,
-            interaction,
-          )
-        }
-      } catch (e: unknown) {
-        this.#handleInteractionError(interaction, module, e)
-      }
+      this.#handleApplicationInteraction(interaction)
+    } else if (interaction.isAutocomplete()) {
+      this.#handleAutocompleteInteraction(interaction)
     }
-    // Handle Autocomplete & Message Component later?
+  }
+
+  async #handleApplicationInteraction(interaction: BaseCommandInteraction) {
+    const module = this.modules.get(interaction.commandName)
+
+    if (!(module instanceof SleetCommand)) {
+      this.#logger.error(
+        'Module "%s" is not a SleetCommand, but has registered interactions',
+        interaction.commandName,
+      )
+      return
+    }
+
+    if (!module) {
+      this.#logger.error('No module found for %s', interaction.commandName)
+      return
+    }
+
+    try {
+      // May seem redundant, but this ensures that the right type of command is invoked
+      // A SleetMessageCommand cannot handle an incoming interaction mistakenly registered as a UserContextMenu one
+      if (interaction.isCommand() && module instanceof SleetSlashCommand) {
+        await module.run(this.context, interaction)
+      } else if (
+        interaction.isUserContextMenu() &&
+        module instanceof SleetUserCommand
+      ) {
+        await module.run(this.context, interaction)
+      } else if (
+        interaction.isMessageContextMenu() &&
+        module instanceof SleetMessageCommand
+      ) {
+        await module.run(this.context, interaction)
+      } else {
+        this.#logger.error(
+          'Module "%s" could not handle incoming interaction: %o',
+          interaction.commandName,
+          interaction,
+        )
+      }
+    } catch (e: unknown) {
+      this.#handleInteractionError(interaction, module, e)
+    }
+  }
+
+  async #handleAutocompleteInteraction(interaction: AutocompleteInteraction) {
+    const module = this.modules.get(interaction.commandName)
+
+    if (!module) {
+      this.#logger.error('No module found for %s', interaction.commandName)
+      return
+    }
+
+    try {
+      if (module instanceof SleetSlashCommand) {
+        await module.autocomplete(this.context, interaction)
+      }
+    } catch (e: unknown) {
+      this.#handleAutocompleteInteractionError(interaction, module, e)
+    }
+  }
+
+  #handleAutocompleteInteractionError(
+    interaction: AutocompleteInteraction,
+    module: SleetModule,
+    error: unknown,
+  ) {
+    this.#logger.error(
+      error,
+      'Error handling autocomplete for module "%s" on interaction %o',
+      module.name,
+      interaction,
+    )
+    const response = [
+      {
+        name: `An error occurred while handling autocomplete for ${module.name}`,
+        value: 'ERROR',
+      },
+    ]
+
+    if (!interaction.responded) {
+      interaction.respond(response)
+    }
   }
 
   #handleInteractionError(
@@ -263,15 +319,7 @@ export class SleetClient extends EventEmitter {
   ) {
     if (error instanceof PreRunError) {
       const content = `:warning: ${error.message}`
-
-      if (interaction.deferred) {
-        interaction.editReply(content)
-      } else {
-        interaction.reply({
-          content,
-          ephemeral: true,
-        })
-      }
+      conditionalReply(interaction, content)
     } else {
       this.#logger.error(
         error,
@@ -279,10 +327,22 @@ export class SleetClient extends EventEmitter {
         module.name,
         interaction,
       )
-      interaction.reply({
-        content: `:warning: An unexpected error occurred while running this command, please try again later.\n${error}`,
-        ephemeral: true,
-      })
+      const content = `:warning: An unexpected error occurred while running this command, please try again later.\n${error}`
+      conditionalReply(interaction, content)
     }
+  }
+}
+
+function conditionalReply(
+  interaction: BaseCommandInteraction,
+  content: string,
+) {
+  if (interaction.deferred) {
+    interaction.editReply(content)
+  } else {
+    interaction.reply({
+      content,
+      ephemeral: true,
+    })
   }
 }

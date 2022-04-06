@@ -4,6 +4,8 @@ import { SleetClient } from '../index.js'
 import {
   slashCommand,
   pingCommand,
+  autocompleteCommand,
+  autocompleteFood,
   messageCommand,
   userCommand,
   userPermissionsCommand,
@@ -22,7 +24,11 @@ const sleetClient = new SleetClient({
     applicationId: APPLICATION_ID,
   },
   client: {
-    intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES],
+    intents: [
+      Intents.FLAGS.GUILDS,
+      Intents.FLAGS.GUILD_MESSAGES,
+      Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
+    ],
   },
 })
 
@@ -32,6 +38,8 @@ sleetClient.addModules([
   echo,
   slashCommand,
   pingCommand,
+  autocompleteCommand,
+  autocompleteFood,
   messageCommand,
   userCommand,
   userPermissionsCommand,
