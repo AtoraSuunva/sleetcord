@@ -2,12 +2,12 @@ import {
   APIApplicationCommandBasicOption,
   APIApplicationCommandSubcommandOption,
   ApplicationCommandOptionType,
-} from 'discord-api-types/v9'
+} from 'discord-api-types/v10'
 import { CommandInteraction } from 'discord.js'
 import { SleetRunnable } from '../base/SleetRunnable.js'
 import { SlashEventHandlers } from '../events.js'
 import {
-  autocomplete,
+  autocomplete as sleetAutocomplete,
   isAutocompleteableOption,
   SleetAutocompleteable,
   SleetAutocompleteableOption,
@@ -70,5 +70,5 @@ export class SleetSlashSubcommand
   }
 
   public autocomplete: SleetAutocompleteable['autocomplete'] =
-    autocomplete.bind(this)
+    sleetAutocomplete.bind(this)
 }

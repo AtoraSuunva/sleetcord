@@ -1,4 +1,4 @@
-import { ApplicationCommandOptionType } from 'discord-api-types/v9'
+import { ApplicationCommandOptionType } from 'discord-api-types/v10'
 import { CommandInteraction, GuildMember } from 'discord.js'
 import { hasPermissions, inGuild } from '../guards/index.js'
 import { SleetSlashCommand } from '../modules/slash/SleetSlashCommand.js'

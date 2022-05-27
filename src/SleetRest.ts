@@ -2,7 +2,7 @@ import { REST } from '@discordjs/rest'
 import {
   RESTPostAPIApplicationCommandsJSONBody,
   Routes,
-} from 'discord-api-types/v9'
+} from 'discord-api-types/v10'
 import { Logger } from 'pino'
 import { baseLogger } from './utils/logger.js'
 

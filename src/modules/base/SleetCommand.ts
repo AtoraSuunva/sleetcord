@@ -1,4 +1,4 @@
-import { RESTPostAPIApplicationCommandsJSONBody } from 'discord-api-types/rest/v9'
+import { RESTPostAPIApplicationCommandsJSONBody } from 'discord-api-types/rest/v10'
 import { Interaction } from 'discord.js'
 import { RunnableEventHandlers } from '../events.js'
 import { SleetRunnable } from './SleetRunnable.js'

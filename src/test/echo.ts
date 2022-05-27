@@ -1,4 +1,4 @@
-import { ApplicationCommandOptionType } from 'discord-api-types/v9'
+import { ApplicationCommandOptionType } from 'discord-api-types/v10'
 import { CommandInteraction } from 'discord.js'
 import { SleetSlashCommand } from '../modules/slash/SleetSlashCommand.js'
 import { getUsers } from '../parsers/resolvedData.js'
@@ -31,7 +31,7 @@ export const echo = new SleetSlashCommand(
       const message = interaction.options.getString('message', true)
       const ephemeral =
         interaction.options.getBoolean('ephemeral', false) ?? false
-      const allowedMentions = getUsers(interaction, 'allowed_mentions')
+      const allowedMentions = getUsers(interaction, 'allowed_mentions') ?? []
       const users = allowedMentions.map((user) => user.id)
 
       interaction.reply({

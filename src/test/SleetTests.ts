@@ -1,7 +1,7 @@
 import {
   ApplicationCommandOptionType,
   ApplicationCommandType,
-} from 'discord-api-types/v9'
+} from 'discord-api-types/v10'
 import { SleetMessageCommand } from '../modules/context-menu/SleetMessageCommand.js'
 import { SleetSlashCommand } from '../modules/slash/SleetSlashCommand.js'
 import { SleetUserCommand } from '../modules/context-menu/SleetUserCommand.js'
@@ -26,6 +26,9 @@ export const readyLogModule = new SleetModule('ready-log', {
     console.log(
       `${user.tag} reacted with ${messageReaction.emoji.name} to ${messageReaction.message.id}`,
     )
+  },
+  messageDelete: (message) => {
+    console.log(`Deleted message ${message.id}`)
   },
 })
 

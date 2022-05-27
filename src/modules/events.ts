@@ -1,4 +1,4 @@
-import { APIApplicationCommandOptionChoice } from 'discord-api-types'
+import { APIApplicationCommandOptionChoice } from 'discord-api-types/v10'
 import {
   AutocompleteInteraction,
   Awaitable,
@@ -8,8 +8,8 @@ import {
   Constants as DjsConstants,
   Interaction,
 } from 'discord.js'
-import { SleetClient } from '../SleetClient'
-import { SleetModule } from './base/SleetModule'
+import { SleetClient } from '../SleetClient.js'
+import { SleetModule } from './base/SleetModule.js'
 
 export type SleetContext = {
   sleet: SleetClient

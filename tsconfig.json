@@ -6,32 +6,25 @@
     "files": true
   },
   "compilerOptions": {
-    /* discord.tsx, remove when done fucking around */
-    "jsxFactory": "DiscordComponents.createComponent",
-    "jsx": "react",
-    "jsxFragmentFactory": "DiscordComponents.Fragment",
-
     /* Projects */
-    "incremental": true,
+    "composite": true,
+    "rootDir": "./src",
+    "outDir": "./dist",
     "tsBuildInfoFile": ".tsbuildinfo",
 
     /* Language and Environment */
-    "target": "ESNext",
-    "lib": ["ESNext"],
+    "target": "ES2022",
+    "lib": ["ES2022"],
     "types": ["node"],
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
 
     /* Modules */
-    "module": "ESNext",
-    "rootDir": "./src",
+    "module": "Node16",
     "moduleResolution": "node",
-    "resolveJsonModule": true,
 
     /* Emit */
-    "declaration": true,
     "sourceMap": true,
-    "outDir": "./out",
+    "declaration": true,
+    "declarationMap": true,
 
     /* Interop Constraints */
     "esModuleInterop": true,
@@ -39,12 +32,12 @@
 
     /* Type Checking */
     "strict": true,
-    "useUnknownInCatchVariables": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
+    "exactOptionalPropertyTypes": true,
 
     /* Completeness */
     "skipLibCheck": true

@@ -8,3 +8,5 @@
 
 - More helpers?
   - Probably just based on what common things I need later on, that are very common or core to sleet
+
+- goddamn permissions

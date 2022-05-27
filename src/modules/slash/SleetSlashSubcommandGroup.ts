@@ -2,7 +2,7 @@ import {
   APIApplicationCommandSubcommandGroupOption,
   APIApplicationCommandSubcommandOption,
   ApplicationCommandOptionType,
-} from 'discord-api-types/v9'
+} from 'discord-api-types/v10'
 import { CommandInteraction } from 'discord.js'
 import { noop } from '../../utils/funcs.js'
 import { SleetRunnable } from '../base/SleetRunnable.js'

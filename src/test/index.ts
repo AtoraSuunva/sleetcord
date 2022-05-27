@@ -16,7 +16,7 @@ import { mute } from './mute.js'
 
 const TOKEN = env.get('TOKEN').required().asString()
 const APPLICATION_ID = env.get('APPLICATION_ID').required().asString()
-const TEST_GUILD_ID = env.get('TEST_GUILD_ID').required().asString()
+// const TEST_GUILD_ID = env.get('TEST_GUILD_ID').required().asString()
 
 const sleetClient = new SleetClient({
   sleet: {
