@@ -1,10 +1,12 @@
 import {
   APIApplicationCommandOption,
   ApplicationCommandType,
+  Permissions as PermissionsAsString,
   RESTPostAPIChatInputApplicationCommandsJSONBody,
 } from 'discord-api-types/v10'
-import { CommandInteraction } from 'discord.js'
+import { CommandInteraction, PermissionResolvable } from 'discord.js'
 import { noop } from '../../utils/funcs.js'
+import { permissionsToStringBitfield } from '../../utils/permissions.js'
 import { SleetCommand } from '../base/SleetCommand.js'
 import {
   NoRunSlashEventHandlers,
@@ -21,7 +23,25 @@ import { SleetSlashSubcommand } from './SleetSlashSubcommand.js'
 import { SleetSlashCommandGroup } from './SleetSlashSubcommandGroup.js'
 
 interface SleetSlashCommandBody
-  extends Omit<RESTPostAPIChatInputApplicationCommandsJSONBody, 'options'> {
+  extends Omit<
+    RESTPostAPIChatInputApplicationCommandsJSONBody,
+    'options' | 'default_member_permissions'
+  > {
+  /**
+   * The default permissions for this command, sent during creation
+   *
+   * Sleet does NOT use this to validate permissions when running the command, use
+   * `{@link hasPermissions}` inside of your commands instead for run-time validation
+   *
+   * Can be any of:
+   *   - Array of `PermissionResolvable` like `["SEND_MESSAGES", "EMBED_LINKS"]`
+   *   - A permissions bitfield as a string
+   *   - `null`
+   */
+  default_member_permissions?:
+    | PermissionResolvable[]
+    | PermissionsAsString
+    | null
   options?:
     | (APIApplicationCommandOption | SleetAutocompleteableOption)[]
     | SleetSlashSubcommand[]
@@ -106,6 +126,9 @@ export class SleetSlashCommand
       parseSlashCommandOptions(body.options)
     body.type = ApplicationCommandType.ChatInput
     body.options = json
+    body.default_member_permissions = permissionsToStringBitfield(
+      body.default_member_permissions ?? null,
+    )
 
     if (
       subcommands.size === 0 &&

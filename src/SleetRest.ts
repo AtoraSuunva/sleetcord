@@ -11,7 +11,7 @@ export class SleetRest {
   rest: REST
 
   constructor(token: string, public applicationId: string) {
-    this.rest = new REST({ version: '9' }).setToken(token)
+    this.rest = new REST({ version: '10' }).setToken(token)
   }
 
   /**
