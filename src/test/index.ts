@@ -13,10 +13,10 @@ import {
 } from './SleetTests.js'
 import { echo } from './echo.js'
 import { mute } from './mute.js'
+import { purge } from './purge.js'
 
 const TOKEN = env.get('TOKEN').required().asString()
 const APPLICATION_ID = env.get('APPLICATION_ID').required().asString()
-// const TEST_GUILD_ID = env.get('TEST_GUILD_ID').required().asString()
 
 const sleetClient = new SleetClient({
   sleet: {
@@ -35,6 +35,7 @@ const sleetClient = new SleetClient({
 sleetClient.addModules([
   readyLogModule,
   mute,
+  purge,
   echo,
   slashCommand,
   pingCommand,
@@ -44,5 +45,6 @@ sleetClient.addModules([
   userCommand,
   userPermissionsCommand,
 ])
+// const TEST_GUILD_ID = env.get('TEST_GUILD_ID').required().asString()
 // sleetClient.putCommands({ guildId: TEST_GUILD_ID })
 sleetClient.login()

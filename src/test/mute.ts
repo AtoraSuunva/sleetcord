@@ -1,6 +1,6 @@
 import { ApplicationCommandOptionType } from 'discord-api-types/v10'
 import { CommandInteraction, GuildMember } from 'discord.js'
-import { hasPermissions, inGuild } from '../guards/index.js'
+import { inGuild } from '../guards/index.js'
 import { SleetSlashCommand } from '../modules/slash/SleetSlashCommand.js'
 import { getMembers } from '../parsers/resolvedData.js'
 
@@ -15,6 +15,8 @@ export const mute = new SleetSlashCommand(
   {
     name: 'mute',
     description: 'Mutes a user',
+    default_member_permissions: ['MANAGE_ROLES'],
+    dm_permission: false,
     options: [
       {
         name: 'members',
@@ -41,7 +43,6 @@ export const mute = new SleetSlashCommand(
 
 async function runMute(interaction: CommandInteraction): Promise<unknown> {
   inGuild(interaction)
-  hasPermissions(interaction, ['MANAGE_ROLES'])
 
   const members = getMembers(interaction, 'members', true)
   const reason = interaction.options.getString('reason')
