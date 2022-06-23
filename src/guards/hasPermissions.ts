@@ -5,6 +5,8 @@ export function hasPermissions(
   interaction: Interaction,
   requiredPermissions: PermissionResolvable[],
 ) {
+  if (!interaction.inGuild()) return
+
   const { memberPermissions } = interaction
 
   if (memberPermissions) {
