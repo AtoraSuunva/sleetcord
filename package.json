@@ -7,7 +7,9 @@
   "scripts": {
     "main": "node --loader ts-node/esm -r dotenv/config src/test/index.ts",
     "once": "node --loader ts-node/esm -r dotenv/config",
-    "build": "tsc --build"
+    "build": "tsc --build",
+    "lint": "eslint src/ && prettier --check src/ && tsc --noEmit",
+    "lint:fix": "eslint src/ --fix && prettier --write src/ && tsc --noEmit"
   },
   "author": "AtoraSuunva",
   "license": "MIT",
