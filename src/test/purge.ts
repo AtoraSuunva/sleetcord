@@ -1,8 +1,22 @@
 import { ApplicationCommandOptionType } from 'discord-api-types/v10'
-import { CommandInteraction } from 'discord.js'
+import {
+  ChannelLogsQueryOptions,
+  Collection,
+  CommandInteraction,
+  DMChannel,
+  GuildMember,
+  Message,
+  Snowflake,
+  User,
+} from 'discord.js'
 import { PreRunError } from '../errors/PreRunError.js'
+import { inGuild } from '../guards/inGuild.js'
 import { SleetSlashCommand } from '../modules/slash/SleetSlashCommand.js'
-import { getUsers } from '../parsers/resolvedData.js'
+import {
+  getMentionables,
+  getTextBasedChannel,
+  Mentionable,
+} from '../parsers/resolvedData.js'
 import { getIntInRange } from '../validation/integers.js'
 
 export const purge = new SleetSlashCommand(
@@ -47,29 +61,27 @@ export const purge = new SleetSlashCommand(
       },
       {
         name: 'embeds',
-        type: ApplicationCommandOptionType.Boolean,
-        description: 'Purge only messages with embeds (default: false)',
+        type: ApplicationCommandOptionType.Integer,
+        description:
+          'Purge only messages with this many or more embeds (default: 0)',
       },
       {
         name: 'before',
         type: ApplicationCommandOptionType.String,
-        description: 'Purge only messages before this message (default: none)',
+        description:
+          'Purge only messages before this message ID (default: none)',
       },
       {
         name: 'after',
         type: ApplicationCommandOptionType.String,
-        description: 'Purge only messages after this message (default: none)',
+        description:
+          'Purge only messages after this message ID (default: none)',
       },
       {
         name: 'channel',
         type: ApplicationCommandOptionType.Channel,
         description:
           'The channel to purge messages from (default: current channel)',
-      },
-      {
-        name: 'reason',
-        type: ApplicationCommandOptionType.String,
-        description: 'The reason for the purge (default: you!)',
       },
       {
         name: 'silent',
@@ -84,6 +96,8 @@ export const purge = new SleetSlashCommand(
 )
 
 async function runPurge(interaction: CommandInteraction) {
+  inGuild(interaction)
+
   const count =
     getIntInRange(interaction, {
       name: 'count',
@@ -92,90 +106,235 @@ async function runPurge(interaction: CommandInteraction) {
     }) ?? 100
 
   const content = interaction.options.getString('content')
-  // TODO: not getUsers, getMentionables (users/roles)
-  const from = getUsers(interaction, 'from')
-  const mentions = getUsers(interaction, 'mentions')
-  const botsOnly = interaction.options.getBoolean('bots') ?? false
-  const emojiOnly = interaction.options.getBoolean('emoji') ?? false
-  const embedsOnly = interaction.options.getBoolean('embeds') ?? false
+  const from = await getMentionables(interaction, 'from')
+  const mentions = await getMentionables(interaction, 'mentions')
+  const bots = interaction.options.getBoolean('bots') ?? false
+  const emoji = interaction.options.getBoolean('emoji') ?? false
+  const embeds =
+    getIntInRange(interaction, {
+      name: 'embeds',
+      min: 0,
+    }) ?? 0
 
   const before = interaction.options.getString('before')
   const after = interaction.options.getString('after')
 
-  // TODO: getTextBasedChannel(interaction, 'channel'): TextBasedChannel
-  const channel =
-    interaction.options.getChannel('channel') ?? interaction.channel
-  const reason =
-    interaction.options.getString('reason') ?? `Purge by ${interaction.member}`
-  const silent = interaction.options.getBoolean('silent') ?? true
+  const channelOption = interaction.options.getChannel('channel')
+  const channel = channelOption
+    ? await getTextBasedChannel(interaction, 'channel')
+    : interaction.channel
 
-  if (!channel) {
-    throw new PreRunError("Somehow, you're not in a channel.")
+  if (channel === null) {
+    throw new PreRunError('You need to provide a text channel or thread')
   }
 
-  await interaction.deferReply()
+  if (channel instanceof DMChannel) {
+    throw new PreRunError('You must provide a guild channel')
+  }
 
-  /** Fetch messages before this message */
-  let offset = before
+  const silent = interaction.options.getBoolean('silent') ?? true
+
+  await interaction.deferReply({ ephemeral: silent })
+
+  /**
+   * Fetch messages after this offset
+   *
+   * Only used if we're searching forwards (!before && after)
+   */
+  let afterOffset = after
+  /**
+   * Fetch messages before this message
+   *
+   * Only used if we're searching forwards (not (!before && after))
+   */
+  let beforeOffset = before
   /** Messages that were purged so far */
   let deletedCount = 0
   /** Try 3 times to fetch messages if the count hasn't been reached, keeps the bot from searching forever */
   let triesLeft = 3
 
+  console.log('entering loop')
   while (deletedCount < count && triesLeft > 0) {
-    const messages = await channel.messages.fetch({
-      limit: Math.min(count, 100),
-      before,
-      after,
-    })
+    console.log({ deletedCount, count, triesLeft, afterOffset, beforeOffset })
+    const fetchOptions = getFetchOptions(count, afterOffset, beforeOffset)
+    const messages = await channel.messages.fetch(fetchOptions)
 
-    if (messages.size === 0) {
-      break
+    if (!before && after) {
+      // Forward search
+      const youngestMessage = messages.sort(youngestFirst).first()
+
+      if (youngestMessage === undefined || youngestMessage.id === afterOffset) {
+        break
+      }
+
+      afterOffset = youngestMessage.id
+    } else {
+      // Backward search
+      const oldestMessage = messages.sort(youngestFirst).last()
+
+      if (oldestMessage === undefined || oldestMessage.id === beforeOffset) {
+        break
+      }
+
+      beforeOffset = oldestMessage.id
     }
 
-    const filteredMessages = messages
-      .filter((message) => {
-        if (content && !message.content.toLowerCase().includes(content)) {
-          return false
-        }
-
-        if (from && !from.includes(message.author)) {
-          return false
-        }
-
-        if (
-          mentions &&
-          !mentions.some((mention) => message.mentions.has(mention))
-        ) {
-          return false
-        }
-
-        if (botsOnly && !message.author.bot) {
-          return false
-        }
-
-        if (emojiOnly && !message.content.includes('<:')) {
-          return false
-        }
-
-        if (embedsOnly && !message.embeds.length) {
-          return false
-        }
-
-        return true
-      })
-      .sort((a, b) => b.createdTimestamp - a.createdTimestamp)
+    const filteredMessages = filterMessages(messages, {
+      after,
+      before,
+      content,
+      from,
+      mentions,
+      bots,
+      emoji,
+      embeds,
+    })
 
     if (filteredMessages.size === 0) {
-      break
+      triesLeft -= 1
+      continue
     }
 
-    await channel.bulkDelete(filteredMessages, {
-      reason,
-      silent,
-    })
+    const { size } = await channel.bulkDelete(filteredMessages, true)
+    deletedCount += size
 
-    deletedCount += filteredMessages.size
-    if (filteredMessages.size === 0) triesLeft -= 1
+    // When searching backwards:
+    // We reached some point after the specified "after", stop
+    // Next fetch would just be after that point and be pointless
+    if (
+      before &&
+      after &&
+      filteredMessages.some((message) => !isAfter(message, after))
+    ) {
+      break
+    }
   }
+
+  interaction.editReply({
+    content: `🗑️ Deleted ${deletedCount} message${
+      deletedCount === 1 ? '' : 's'
+    }...`,
+  })
+}
+
+const MAX_FETCH_MESSAGES = 100
+
+function getFetchOptions(
+  count: number,
+  after: string | null,
+  before: string | null,
+): ChannelLogsQueryOptions {
+  const fetchOptions: ChannelLogsQueryOptions = {
+    limit: Math.max(count, MAX_FETCH_MESSAGES),
+  }
+
+  if (after) {
+    fetchOptions.after = after
+  }
+
+  if (before) {
+    fetchOptions.before = before
+  }
+  return fetchOptions
+}
+interface FilterOptions {
+  after?: string | null
+  before?: string | null
+  content?: string | null
+  from?: Mentionable[] | null
+  mentions?: Mentionable[] | null
+  bots: boolean
+  emoji: boolean
+  embeds: number
+}
+
+type FetchedMessages = Collection<Snowflake, Message>
+
+function filterMessages(
+  messages: FetchedMessages,
+  {
+    after,
+    before,
+    content,
+    from,
+    mentions,
+    bots,
+    emoji,
+    embeds,
+  }: FilterOptions,
+): FetchedMessages {
+  return messages.filter((message) => {
+    if (after && !isAfter(message, after)) return false
+    if (before && !isBefore(message, before)) return false
+    if (content && !hasContent(message, content)) return false
+    if (from && !isFrom(message, from)) return false
+    if (mentions && !doesMention(message, mentions)) return false
+    if (bots && !isBot(message)) return false
+    if (emoji && !hasEmoji(message)) return false
+    if (embeds && !hasCountEmbeds(message, embeds)) return false
+    if (!isDeleteable(message)) return false
+    return true
+  })
+}
+
+type HasTimestamp = { createdTimestamp: number }
+function youngestFirst<T extends HasTimestamp>(first: T, second: T): number {
+  return second.createdTimestamp - first.createdTimestamp
+}
+
+function isAfter(message: Message, after: string): boolean {
+  return message.id > after
+}
+
+function isBefore(message: Message, before: string): boolean {
+  return message.id < before
+}
+
+function hasContent(message: Message, content: string): boolean {
+  return message.content.toLowerCase().includes(content.toLowerCase())
+}
+
+function isFrom(message: Message, from: Mentionable[]): boolean {
+  const { author, member } = message
+
+  for (const mentionable of from) {
+    if (mentionable instanceof User || mentionable instanceof GuildMember) {
+      if (author.id === mentionable.id) return true
+    } else {
+      if (!member) continue
+      if (member.roles.cache.has(mentionable.id)) return true
+    }
+  }
+
+  return false
+}
+
+function doesMention(message: Message, mentions: Mentionable[]): boolean {
+  for (const mentionable of mentions) {
+    if (message.mentions.has(mentionable)) return true
+  }
+
+  return false
+}
+
+function isBot(message: Message): boolean {
+  return message.author.bot
+}
+
+function hasEmoji(message: Message): boolean {
+  // TODO: regex this
+  return message.content.includes('🙏')
+}
+
+function hasCountEmbeds(message: Message, embedCount: number): boolean {
+  const count = message.embeds.length + message.attachments.size
+  return count >= embedCount
+}
+
+// 14 Days period in ms
+const p14Days = 60 * 60 * 24 * 14
+
+function isDeleteable(message: Message): boolean {
+  const tDelta = message.createdTimestamp - Date.now()
+  return message.deletable && tDelta < p14Days
 }

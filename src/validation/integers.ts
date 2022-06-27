@@ -1,5 +1,5 @@
 import { CommandInteraction } from 'discord.js'
-import { PreRunError } from '../errors/PreRunError'
+import { PreRunError } from '../errors/PreRunError.js'
 
 interface GetIntInRangeOptions<Required extends boolean> {
   /** The name of the option you're fetching */
