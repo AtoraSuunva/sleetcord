@@ -1,36 +1,38 @@
-import {
-  ApplicationCommandOptionType,
-  ApplicationCommandType,
-} from 'discord-api-types/v10'
-import { SleetMessageCommand } from '../modules/context-menu/SleetMessageCommand.js'
-import { SleetSlashCommand } from '../modules/slash/SleetSlashCommand.js'
-import { SleetUserCommand } from '../modules/context-menu/SleetUserCommand.js'
-import { SleetSlashCommandGroup } from '../modules/slash/SleetSlashSubcommandGroup.js'
-import { SleetSlashSubcommand } from '../modules/slash/SleetSlashSubcommand.js'
-import { inGuild } from '../guards/inGuild.js'
-import { PreRunError } from '../errors/PreRunError.js'
-import { hasPermissions } from '../guards/index.js'
-import { getChannel, getMember } from '../parsers/resolvedData.js'
-import { SleetModule } from '../modules/base/SleetModule.js'
+import { ApplicationCommandOptionType } from 'discord-api-types/v10'
+import { SleetMessageCommand } from '../src/modules/context-menu/SleetMessageCommand.js'
+import { SleetSlashCommand } from '../src/modules/slash/SleetSlashCommand.js'
+import { SleetUserCommand } from '../src/modules/context-menu/SleetUserCommand.js'
+import { SleetSlashCommandGroup } from '../src/modules/slash/SleetSlashCommandGroup.js'
+import { SleetSlashSubcommand } from '../src/modules/slash/SleetSlashSubcommand.js'
+import { inGuild } from '../src/guards/inGuild.js'
+import { PreRunError } from '../src/errors/PreRunError.js'
+import { hasPermissions } from '../src/guards/index.js'
+import { getChannel, getMember } from '../src/parsers/resolvedData.js'
+import { SleetModule } from '../src/modules/base/SleetModule.js'
 import { Message } from 'discord.js'
-import { autocompleteForStrings } from '../utils/autocomplete.js'
+import { autocompleteForStrings } from '../src/utils/autocomplete.js'
 
-export const readyLogModule = new SleetModule('ready-log', {
-  load: () => {
-    console.log(`${readyLogModule.name} loaded!`)
+export const readyLogModule = new SleetModule(
+  {
+    name: 'readyLog',
   },
-  ready: (client) => {
-    console.log(`Logged in as ${client.user.tag}`)
+  {
+    load: () => {
+      console.log(`${readyLogModule.name} loaded!`)
+    },
+    ready: (client) => {
+      console.log(`Logged in as ${client.user.tag}`)
+    },
+    messageReactionAdd: (messageReaction, user) => {
+      console.log(
+        `${user.tag} reacted with ${messageReaction.emoji.name} to ${messageReaction.message.id}`,
+      )
+    },
+    messageDelete: (message) => {
+      console.log(`Deleted message ${message.id}`)
+    },
   },
-  messageReactionAdd: (messageReaction, user) => {
-    console.log(
-      `${user.tag} reacted with ${messageReaction.emoji.name} to ${messageReaction.message.id}`,
-    )
-  },
-  messageDelete: (message) => {
-    console.log(`Deleted message ${message.id}`)
-  },
-})
+)
 
 export const slashCommand = new SleetSlashCommand(
   {
@@ -205,7 +207,6 @@ export const autocompleteFood = new SleetSlashCommand({
 export const userCommand = new SleetUserCommand(
   {
     name: 'User Test',
-    type: ApplicationCommandType.User,
   },
   {
     run: (interaction, user) => {
@@ -217,7 +218,6 @@ export const userCommand = new SleetUserCommand(
 export const messageCommand = new SleetMessageCommand(
   {
     name: 'Message Test',
-    type: ApplicationCommandType.Message,
   },
   {
     run: (interaction, message) => {

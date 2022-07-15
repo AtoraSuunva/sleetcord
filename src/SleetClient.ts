@@ -2,9 +2,12 @@ import { Logger } from 'pino'
 import { baseLogger } from './utils/logger.js'
 import {
   AutocompleteInteraction,
+  Awaitable,
   BaseCommandInteraction,
   Client,
+  ClientEvents,
   ClientOptions,
+  CommandInteraction,
   Interaction,
 } from 'discord.js'
 import { SleetRest } from './SleetRest.js'
@@ -42,7 +45,7 @@ interface SleetClientOptions {
 
 interface PutCommandOptions {
   /** The commands to PUT, if any (defaults to added commands) */
-  commands?: SleetCommand[]
+  commands?: SleetCommand<CommandInteraction>[]
   /** The guild to PUT to, if any */
   guildId?: string
 }
@@ -160,9 +163,14 @@ export class SleetClient extends EventEmitter {
       if (!eventHandler) continue
 
       if (isDiscordEvent(event)) {
-        // Cast as string otherwise typescript does some crazy type inferrence that
+        // Casts otherwise typescript does some crazy type inferrence that
         // makes it both error and lag like mad
-        this.client.off(event as string, eventHandler)
+        // "Expression produces a union type that is too complex to represent."
+        // ???? what do you mean ????
+        this.client.off(
+          event as keyof ClientEvents,
+          eventHandler as unknown as () => Awaitable<void>,
+        )
       } else if (isSleetEvent(event)) {
         this.off(event, eventHandler)
       } else if (!isSpecialEvent(event)) {
@@ -211,6 +219,7 @@ export class SleetClient extends EventEmitter {
   login(): this {
     this.#logger.debug('Logging in')
     this.client.login(this.options.token)
+    this.client.once('ready', () => void this.client.application?.fetch())
     return this
   }
 

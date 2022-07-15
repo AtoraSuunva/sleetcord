@@ -1,4 +1,9 @@
-import { SleetModuleEventHandlers } from '../events'
+import { SleetModuleEventHandlers } from '../events.js'
+
+export interface SleetModuleOptions {
+  /** The name of this module. used for logging and debugging */
+  name: string
+}
 
 /**
  * A module usable by the Sleet client.
@@ -24,10 +29,14 @@ import { SleetModuleEventHandlers } from '../events'
 export class SleetModule<
   Handlers extends SleetModuleEventHandlers = SleetModuleEventHandlers,
 > {
+  public name: string
+
   /**
    * Create a new SleetModule that a SleetClient can load and handle events for
-   * @param name The name of this module, used for logging and debugging
+   * @param options The options for this module
    * @param handlers Event handlers for Sleet to register
    */
-  constructor(public name: string, public handlers: Handlers) {}
+  constructor(public options: SleetModuleOptions, public handlers: Handlers) {
+    this.name = options.name
+  }
 }

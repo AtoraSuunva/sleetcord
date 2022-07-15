@@ -11,12 +11,16 @@ import {
 import { SleetCommand } from '../base/SleetCommand.js'
 import { RunnableEventHandlers, SleetContext } from '../events.js'
 
-type UserApplicationCommandJSONBody =
-  RESTPostAPIContextMenuApplicationCommandsJSONBody & {
-    type?: ApplicationCommandType.User
-  }
+type UserApplicationCommandJSONBody = Omit<
+  RESTPostAPIContextMenuApplicationCommandsJSONBody,
+  'type'
+> & {
+  type?: ApplicationCommandType.User
+}
 
-type InteractionMember = NonNullable<CommandInteractionOption['member']> | null
+export type InteractionMember = NonNullable<
+  CommandInteractionOption['member']
+> | null
 
 export interface UserCommandHandlers
   extends RunnableEventHandlers<

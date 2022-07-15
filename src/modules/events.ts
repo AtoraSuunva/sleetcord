@@ -42,7 +42,7 @@ export type ClientEventHandlers = {
   [Event in keyof ClientEvents]: (
     this: SleetContext,
     ...args: ClientEvents[Event]
-  ) => Awaitable<void>
+  ) => Awaitable<unknown>
 }
 
 /** A type of every possible sleet event key */
@@ -78,10 +78,10 @@ export interface SleetModuleEventHandlers extends Partial<ClientEventHandlers> {
    * Event emitted when a SleetClient loads this module, can be used to fetch data
    * from an external source
    */
-  load?: (this: SleetContext) => Awaitable<void>
-  unload?: (this: SleetContext) => Awaitable<void>
-  loadModule?: (this: SleetContext, module: SleetModule) => Awaitable<void>
-  unloadModule?: (this: SleetContext, module: SleetModule) => Awaitable<void>
+  load?: (this: SleetContext) => Awaitable<unknown>
+  unload?: (this: SleetContext) => Awaitable<unknown>
+  loadModule?: (this: SleetContext, module: SleetModule) => Awaitable<unknown>
+  unloadModule?: (this: SleetContext, module: SleetModule) => Awaitable<unknown>
 }
 
 export type SpecialEvent = Exclude<
@@ -120,12 +120,14 @@ export interface RunnableEventHandlers<
  */
 export interface SlashEventHandlers
   extends RunnableEventHandlers<CommandInteraction, []> {
-  autocomplete?: (
-    this: SleetContext,
-    interaction: AutocompleteInteraction,
-    name: string,
-    value: string | number,
-  ) => Awaitable<APIApplicationCommandOptionChoice[]>
+  autocomplete?:
+    | ((
+        this: SleetContext,
+        interaction: AutocompleteInteraction,
+        name: string,
+        value: string | number,
+      ) => Awaitable<APIApplicationCommandOptionChoice[]>)
+    | undefined
 }
 
 export type NoRunSlashEventHandlers = Partial<SlashEventHandlers>

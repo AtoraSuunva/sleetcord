@@ -1,11 +1,7 @@
-import pino from 'pino'
+import { pino } from 'pino'
 
 export const baseLogger = pino({
-  level: process.env.NODE_ENV === 'production' ? 'warn' : 'debug',
-  transport: {
-    target: 'pino-pretty',
-    options: {
-      translateTime: 'SYS:standard',
-    },
-  },
+  level:
+    process.env.SLEETCORD_LOG_LEVEL ??
+    (process.env.NODE_ENV === 'production' ? 'warn' : 'debug'),
 })

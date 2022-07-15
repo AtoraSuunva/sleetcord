@@ -22,7 +22,7 @@ export class SleetRunnable<
   Handlers extends RunnableEventHandlers<I, A> = RunnableEventHandlers<I, A>,
 > extends SleetModule<Handlers> {
   constructor(public body: B, handlers: Handlers) {
-    super(body.name, handlers)
+    super(body, handlers)
   }
 
   public run(

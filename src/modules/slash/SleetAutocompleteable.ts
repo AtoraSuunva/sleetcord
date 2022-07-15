@@ -9,7 +9,7 @@ import {
 import { AutocompleteInteraction, Awaitable } from 'discord.js'
 import { SlashEventHandlers, SleetContext } from '../events.js'
 import { SleetSlashCommand } from './SleetSlashCommand.js'
-import { SleetSlashCommandGroup } from './SleetSlashSubcommandGroup.js'
+import { SleetSlashCommandGroup } from './SleetSlashCommandGroup.js'
 
 export type AutocompleteHandler<T extends string | number> = (
   this: SleetContext,

@@ -6,16 +6,31 @@ export function hasPermissions(
   requiredPermissions: PermissionResolvable[],
 ) {
   if (!interaction.inGuild()) return
-
   const { memberPermissions } = interaction
 
-  if (memberPermissions) {
-    const missingPermissions = memberPermissions.missing(requiredPermissions)
+  const missingPermissions = memberPermissions.missing(requiredPermissions)
 
-    if (missingPermissions.length > 0) {
-      throw new PreRunError(
-        `Missing permissions: ${missingPermissions.join(', ')}`,
-      )
-    }
+  if (missingPermissions.length > 0) {
+    throw new PreRunError(
+      `You're missing these permissions: ${missingPermissions.join(', ')}`,
+    )
+  }
+}
+
+export function botHasPermissions(
+  interaction: Interaction,
+  requiredPermissions: PermissionResolvable[],
+) {
+  if (!interaction.inGuild()) return
+  const myPermissions = interaction.guild?.me?.permissions
+  // Honestly how
+  if (!myPermissions) throw new PreRunError('Could not get my permissions')
+
+  const missingPermissions = myPermissions.missing(requiredPermissions)
+
+  if (missingPermissions.length > 0) {
+    throw new PreRunError(
+      `I'm missing these permissions: ${missingPermissions.join(', ')}`,
+    )
   }
 }

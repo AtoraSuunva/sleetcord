@@ -1,91 +1,187 @@
 import {
   Channel,
+  Client,
   CommandInteraction,
   Guild,
   GuildBasedChannel,
   GuildMember,
   GuildTextBasedChannel,
+  Interaction,
   MessageManager,
   Role,
   User,
 } from 'discord.js'
+import { PreRunError } from '../errors/PreRunError.js'
 
 /**
  * An error indication there was a problem trying to resolve some data from the interaction,
  * typically because it's impossible to fetch (ie. fetching a member/guild in DMs)
  */
-class ResolveDataError extends Error {
+class ResolveDataError extends PreRunError {
   constructor(message: string) {
     super(message)
     this.name = 'ResolveDataError'
   }
 }
 
+/** ID regex but "bounded" to string start/end or whitespace, to get IDs not in <@id> format */
+const idRegexBounded = /(?:^\w)\d{16,19}(?:\w|$)/g
+/** ID regex that only matches if the entire string from start to end is likely an ID */
+const idRegexFull = /^\d{16,19}$/
+
+/**
+ * Check a string to see if it's a string of 16-19 digits, meaning it *might* be a Discord ID
+ *
+ * You will need to check with Discord to see if it's a real ID, but it'll at least be in the right format
+ * @param str To string to check if it's an ID
+ * @returns If the string is *likely* an ID
+ */
+export const isLikelyID = (str: string) => idRegexFull.test(str)
+
+/**
+ * Check a string to see if there's any string of 16-19 digits, meaning it *might* be a Discord ID
+ *
+ * You will need to check with Discord to see if it's a real ID, but it'll at least be in the right format
+ *
+ * IDs are only matched if they're bounded by whitespace or the string start/end, so:
+ *
+ * ```js
+ * getAllIds('74768773940256768 <@205164225625194496> 200723772427337729asdsa')
+ * // Returns ['74768773940256768']
+ * ```
+ * @param str To string to check for potential IDs
+ * @returns All potential IDs in the string
+ */
+export const getAllIDs = (str: string) =>
+  Array.from(str.matchAll(idRegexBounded), (m) => m[0])
+
 /**
  * Allows you to parse multiple users from a single string option (because the User option only accepts 1 user)
+ *
+ * Accepts user mentions (parsed from resolved data) or user IDs (fetched from Discord)
  * @param interaction The interaction to resolve data for
  * @param name The name of the option to resolve data for
  * @param required Is the option required? If true and missing, an error will be thrown, otherwise null will be returned
  * @returns An array of User objects, or null if the option is not required & missing
  */
-export function getUsers(
+export async function getUsers(
   interaction: CommandInteraction,
   name: string,
   required: true,
-): User[]
-export function getUsers(
+): Promise<User[]>
+export async function getUsers(
   interaction: CommandInteraction,
   name: string,
   required?: boolean,
-): User[] | null
-export function getUsers(
+): Promise<User[] | null>
+export async function getUsers(
   interaction: CommandInteraction,
   name: string,
   required = false,
-): User[] | null {
+): Promise<User[] | null> {
   const string = interaction.options.getString(name, required)
   if (string === null) return null
-  const data = interaction.options.resolved.users
 
-  return data?.toJSON().filter((v) => string.includes(v.id)) ?? []
+  const ids = getAllIDs(string)
+  const resolvedIDUsers = await Promise.all(
+    ids.map((uid) => tryFetchUser(interaction.client, uid)),
+  ).then((res) => res.filter(isDefined))
+
+  const data = interaction.options.resolved.users
+  const resolvedDataUsers =
+    data?.toJSON().filter((v) => string.includes(v.id)) ?? []
+
+  return [...resolvedIDUsers, ...resolvedDataUsers]
 }
 
 /**
  * Allows you to parse multiple members from a single string option (because the Member option only accepts 1 member)
+ *
+ * Accepts user mentions (parsed from resolved data) or user IDs (fetched from Discord)
  * @param interaction The interaction to resolve data for
  * @param name The name of the option to resolve data for
  * @param required Is the option required? If missing, an error will be thrown if true, null will be returned if false
  * @returns An array of GuildMember objects, or null if the option is not required & missing
  */
-export function getMembers(
+export async function getMembers(
   interaction: CommandInteraction,
   name: string,
   required: true,
-): GuildMember[]
-export function getMembers(
+): Promise<GuildMember[]>
+export async function getMembers(
   interaction: CommandInteraction,
   name: string,
   required?: boolean,
-): GuildMember[] | null
-export function getMembers(
+): Promise<GuildMember[] | null>
+export async function getMembers(
   interaction: CommandInteraction,
   name: string,
   required = false,
-): GuildMember[] | null {
+): Promise<GuildMember[] | null> {
   const string = interaction.options.getString(name, required)
   if (string === null) return null
+
+  const guild = await getGuild(interaction, true)
+  const ids = getAllIDs(string)
+  const resolvedIDMembers = await Promise.all(
+    ids.map((uid) => tryFetchMember(guild, uid)),
+  ).then((res) => res.filter(isDefined))
+
   const data = interaction.options.resolved.members
+  const resolvedDataMembers =
+    data
+      ?.filter((m): m is GuildMember => {
+        if (m === null) return false
+        if (m instanceof GuildMember) return true
+        // TODO: how to resolve APIInteractionDataResolvedGuildMember into a GuildMember???
+        return false
+      })
+      .toJSON() ?? []
 
-  const members = data
-    ?.filter((m): m is GuildMember => {
-      if (m === null) return false
-      if (m instanceof GuildMember) return true
-      // TODO: how to resolve APIInteractionDataResolvedGuildMember into a GuildMember???
-      return false
-    })
-    .toJSON()
+  return [...resolvedIDMembers, ...resolvedDataMembers]
+}
 
-  return members ?? []
+/**
+ * Try to fetch a user from a "possible" user ID
+ * @param client The client to fetch data from
+ * @param uid The (potential) ID of the user to fetch
+ * @returns The user if successfully fetched, otherwise null if an error occured or the user doesn't exist
+ */
+export async function tryFetchUser(
+  client: Client,
+  uid: string,
+): Promise<User | null> {
+  try {
+    return await client.users.fetch(uid)
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Try to fetch a member from a "possible" user ID and guild
+ * @param guild The guild to fetch data from
+ * @param uid The (potential) ID of the member to fetch
+ * @returns The member if successfully fetched, otherwise null if an error occured or there's no member with that ID in the guild
+ */
+export async function tryFetchMember(
+  guild: Guild,
+  uid: string,
+): Promise<GuildMember | null> {
+  try {
+    return await guild.members.fetch(uid)
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Typeguard a value to filter out null and undefined from things
+ * @param value The value to check
+ * @returns If the value is defined (not null or undefined)
+ */
+function isDefined<T>(value: T | undefined | null): value is T {
+  return value !== undefined && value !== null
 }
 
 /**
@@ -94,15 +190,15 @@ export function getMembers(
  * @param required If the guild is required, if the guild is missing, an error will be thrown if true, null will be returned if false
  */
 export async function getGuild(
-  interaction: CommandInteraction,
+  interaction: Interaction,
   required: true,
 ): Promise<Guild>
 export async function getGuild(
-  interaction: CommandInteraction,
+  interaction: Interaction,
   required?: boolean,
 ): Promise<Guild | null>
 export async function getGuild(
-  interaction: CommandInteraction,
+  interaction: Interaction,
   required = false,
 ): Promise<Guild | null> {
   if (!interaction.inGuild()) {
@@ -251,9 +347,13 @@ export async function getTextBasedChannel(
   const channel = interaction.options.getChannel(name, required)
   if (channel === null) return null
 
-  return 'messages' in channel && channel.messages instanceof MessageManager
-    ? channel
-    : null
+  if ('messages' in channel && channel.messages instanceof MessageManager) {
+    return channel
+  }
+
+  throw new ResolveDataError(
+    `Channel "${channel.name}" provided for "${name}" is not a text channel.`,
+  )
 }
 
 /**
@@ -364,8 +464,8 @@ export async function getMentionables(
   const mentions = interaction.options.getString(name, required)
   if (!mentions) return null
 
-  const users = getUsers(interaction, name) ?? []
-  const members = getMembers(interaction, name) ?? []
+  const users = (await getUsers(interaction, name)) ?? []
+  const members = (await getMembers(interaction, name)) ?? []
   const roles = guild !== null ? await getRoles(interaction, name) : []
 
   const finalUsers = users.filter((u) => members.every((m) => m.id !== u.id))

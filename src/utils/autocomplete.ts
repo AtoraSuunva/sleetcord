@@ -6,6 +6,13 @@ export interface StringAutocompleteHandlerOptions {
   matcher?: (arrayValue: string, autocompleteValue: string) => boolean
 }
 
+/**
+ * Creates an autocomplete function that will match incoming autocomplete requests against an array of strings and return possible matches
+ *
+ * Useful if you have a set of choices you just want as suggestions, dynamic choices that may change on bot start, or choices that don't fit an interaction's `choices` option
+ * @param autocompleteOptions The options for this autocomplete
+ * @returns A function that can be passed to an option's `autocomplete` to autocomplete
+ */
 export function autocompleteForStrings(
   { array, caseSensitive, matcher }: StringAutocompleteHandlerOptions = {
     array: [],

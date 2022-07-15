@@ -2,20 +2,21 @@ import {
   ApplicationCommandType,
   RESTPostAPIContextMenuApplicationCommandsJSONBody,
 } from 'discord-api-types/v10'
-import {
-  Awaitable,
-  CommandInteractionOption,
-  MessageContextMenuInteraction,
-} from 'discord.js'
-import { SleetCommand } from '../base/SleetCommand.js'
+import { Awaitable, MessageContextMenuInteraction } from 'discord.js'
+import { SleetCommand, SleetCommandExtras } from '../base/SleetCommand.js'
 import { RunnableEventHandlers, SleetContext } from '../events.js'
 
-type MessageApplicationCommandJSONBody =
-  RESTPostAPIContextMenuApplicationCommandsJSONBody & {
-    type?: ApplicationCommandType.Message
-  }
+type BaseCommandBody = Omit<
+  RESTPostAPIContextMenuApplicationCommandsJSONBody,
+  'type' | keyof SleetCommandExtras
+> &
+  SleetCommandExtras
 
-type InteractionMessage = NonNullable<CommandInteractionOption['message']>
+interface SleetMessageCommandBody extends BaseCommandBody {
+  type?: ApplicationCommandType.Message
+}
+
+export type InteractionMessage = MessageContextMenuInteraction['targetMessage']
 
 export interface MessageCommandHandlers
   extends RunnableEventHandlers<
@@ -33,12 +34,9 @@ export class SleetMessageCommand extends SleetCommand<
   [InteractionMessage],
   MessageCommandHandlers
 > {
-  constructor(
-    body: MessageApplicationCommandJSONBody,
-    handlers: MessageCommandHandlers,
-  ) {
+  constructor(body: SleetMessageCommandBody, handlers: MessageCommandHandlers) {
     body.type = ApplicationCommandType.Message
-    super(body, handlers)
+    super(body as RESTPostAPIContextMenuApplicationCommandsJSONBody, handlers)
   }
 
   override run(

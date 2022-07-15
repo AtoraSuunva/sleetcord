@@ -1,7 +1,30 @@
 import { RESTPostAPIApplicationCommandsJSONBody } from 'discord-api-types/rest/v10'
-import { Interaction } from 'discord.js'
+import { Permissions as PermissionsAsString } from 'discord-api-types/v10'
+import { Interaction, PermissionResolvable } from 'discord.js'
+import { permissionsToStringBitfield } from '../../utils/permissions.js'
 import { RunnableEventHandlers } from '../events.js'
 import { SleetRunnable } from './SleetRunnable.js'
+
+/**
+ * Extra types added to all sleet commands, usually used to add additional "functionality" to commands like accepting one type of input and automatically converting it to what the api wants
+ */
+export type SleetCommandExtras = {
+  /**
+   * The default permissions for this command, sent during creation
+   *
+   * Sleet does NOT use this to validate permissions when running the command, use
+   * `{@link hasPermissions}` inside of your commands instead for run-time validation
+   *
+   * Can be any of:
+   *   - Array of `PermissionResolvable` like `["SEND_MESSAGES", "EMBED_LINKS"]`
+   *   - A permissions bitfield as a string
+   *   - `null`
+   */
+  default_member_permissions?:
+    | PermissionResolvable[]
+    | PermissionsAsString
+    | null
+}
 
 /**
  * A command usable by the Sleet client. This one handles any generic "command" that comes in,
@@ -28,6 +51,10 @@ export class SleetCommand<
     public override body: RESTPostAPIApplicationCommandsJSONBody,
     handlers: Handlers,
   ) {
+    body.default_member_permissions = permissionsToStringBitfield(
+      body.default_member_permissions ?? null,
+    )
+
     super(body, handlers)
   }
 }

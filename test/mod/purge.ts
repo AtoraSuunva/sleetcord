@@ -9,15 +9,15 @@ import {
   Snowflake,
   User,
 } from 'discord.js'
-import { PreRunError } from '../errors/PreRunError.js'
-import { inGuild } from '../guards/inGuild.js'
-import { SleetSlashCommand } from '../modules/slash/SleetSlashCommand.js'
+import { PreRunError } from '../../errors/PreRunError.js'
+import { botHasPermissions } from '../../guards/hasPermissions.js'
+import { inGuild } from '../../guards/inGuild.js'
+import { SleetSlashCommand } from '../../modules/slash/SleetSlashCommand.js'
 import {
   getMentionables,
   getTextBasedChannel,
   Mentionable,
-} from '../parsers/resolvedData.js'
-import { getIntInRange } from '../validation/integers.js'
+} from '../../parsers/resolvedData.js'
 
 export const purge = new SleetSlashCommand(
   {
@@ -30,6 +30,8 @@ export const purge = new SleetSlashCommand(
         name: 'count',
         type: ApplicationCommandOptionType.Integer,
         description: 'The number of messages to purge (default: 100)',
+        min_value: 1,
+        max_value: 100,
       },
       {
         name: 'content',
@@ -64,6 +66,7 @@ export const purge = new SleetSlashCommand(
         type: ApplicationCommandOptionType.Integer,
         description:
           'Purge only messages with this many or more embeds (default: 0)',
+        min_value: 0,
       },
       {
         name: 'before',
@@ -95,27 +98,27 @@ export const purge = new SleetSlashCommand(
   },
 )
 
+const MAX_FETCH_MESSAGES = 100
+
+/**
+ * Purge a set of messages based on a couple filter criteria.
+ * @param interaction The interaction to use
+ */
 async function runPurge(interaction: CommandInteraction) {
   inGuild(interaction)
+  botHasPermissions(interaction, [
+    'VIEW_CHANNEL',
+    'MANAGE_MESSAGES',
+    'READ_MESSAGE_HISTORY',
+  ])
 
-  const count =
-    getIntInRange(interaction, {
-      name: 'count',
-      min: 1,
-      max: 100,
-    }) ?? 100
-
+  const count = interaction.options.getInteger('count') ?? 0
   const content = interaction.options.getString('content')
   const from = await getMentionables(interaction, 'from')
   const mentions = await getMentionables(interaction, 'mentions')
   const bots = interaction.options.getBoolean('bots') ?? false
   const emoji = interaction.options.getBoolean('emoji') ?? false
-  const embeds =
-    getIntInRange(interaction, {
-      name: 'embeds',
-      min: 0,
-    }) ?? 0
-
+  const embeds = interaction.options.getInteger('embeds') ?? 0
   const before = interaction.options.getString('before')
   const after = interaction.options.getString('after')
 
@@ -153,10 +156,8 @@ async function runPurge(interaction: CommandInteraction) {
   /** Try 3 times to fetch messages if the count hasn't been reached, keeps the bot from searching forever */
   let triesLeft = 3
 
-  console.log('entering loop')
   while (deletedCount < count && triesLeft > 0) {
-    console.log({ deletedCount, count, triesLeft, afterOffset, beforeOffset })
-    const fetchOptions = getFetchOptions(count, afterOffset, beforeOffset)
+    const fetchOptions = getFetchOptions(afterOffset, beforeOffset)
     const messages = await channel.messages.fetch(fetchOptions)
 
     if (!before && after) {
@@ -208,6 +209,11 @@ async function runPurge(interaction: CommandInteraction) {
     ) {
       break
     }
+
+    // We fetched under 100 messages, meaning that there's no more messages left
+    if (messages.size < MAX_FETCH_MESSAGES) {
+      break
+    }
   }
 
   interaction.editReply({
@@ -217,15 +223,20 @@ async function runPurge(interaction: CommandInteraction) {
   })
 }
 
-const MAX_FETCH_MESSAGES = 100
-
+/**
+ * Create the ChannelLogsQueryOptions to fetch messages, because TS' strict checking
+ * doesn't allow for `after: undefined` (defined as `undefined` instead of not being present,
+ * which are actually slightly different.)
+ * @param after The message ID to purge after
+ * @param before The message ID to purge before
+ * @returns An object that can be passed as query options to fetch messages
+ */
 function getFetchOptions(
-  count: number,
   after: string | null,
   before: string | null,
 ): ChannelLogsQueryOptions {
   const fetchOptions: ChannelLogsQueryOptions = {
-    limit: Math.max(count, MAX_FETCH_MESSAGES),
+    limit: MAX_FETCH_MESSAGES,
   }
 
   if (after) {
@@ -235,8 +246,13 @@ function getFetchOptions(
   if (before) {
     fetchOptions.before = before
   }
+
   return fetchOptions
 }
+
+/**
+ * Options on how to filter messages
+ */
 interface FilterOptions {
   after?: string | null
   before?: string | null
@@ -250,6 +266,12 @@ interface FilterOptions {
 
 type FetchedMessages = Collection<Snowflake, Message>
 
+/**
+ * Filter a Collection of messages based on the filter options so we can purge the right ones
+ * @param messages The messages to filter
+ * @param options How to filter the messages
+ * @returns A Collection of messages that passed the filter
+ */
 function filterMessages(
   messages: FetchedMessages,
   {
@@ -278,6 +300,12 @@ function filterMessages(
 }
 
 type HasTimestamp = { createdTimestamp: number }
+/**
+ * Comparison function for two messages, sorting by youngest first
+ * @param first First message to compare
+ * @param second Second message to compare
+ * @returns A number showing the comparison result, >0 if first is older than second, <0 if first is newer than second, =0 if they are the same
+ */
 function youngestFirst<T extends HasTimestamp>(first: T, second: T): number {
   return second.createdTimestamp - first.createdTimestamp
 }
