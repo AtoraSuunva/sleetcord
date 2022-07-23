@@ -1,4 +1,5 @@
 import {
+  BaseInteraction,
   ChatInputCommandInteraction,
   Client,
   CommandInteraction,
@@ -181,15 +182,15 @@ export async function tryFetchMember(
  * @param required If the guild is required, if the guild is missing, an error will be thrown if true, null will be returned if false
  */
 export async function getGuild(
-  interaction: CommandInteraction,
+  interaction: BaseInteraction,
   required: true,
 ): Promise<Guild>
 export async function getGuild(
-  interaction: CommandInteraction,
+  interaction: BaseInteraction,
   required?: boolean,
 ): Promise<Guild | null>
 export async function getGuild(
-  interaction: CommandInteraction,
+  interaction: BaseInteraction,
   required = false,
 ): Promise<Guild | null> {
   if (!interaction.inGuild()) {
