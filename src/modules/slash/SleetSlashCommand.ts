@@ -3,7 +3,7 @@ import {
   ApplicationCommandType,
   RESTPostAPIChatInputApplicationCommandsJSONBody,
 } from 'discord-api-types/v10'
-import { CommandInteraction } from 'discord.js'
+import { ChatInputCommandInteraction } from 'discord.js'
 import { noop } from '../../utils/funcs.js'
 import { SleetCommand, SleetCommandExtras } from '../base/SleetCommand.js'
 import {
@@ -87,7 +87,7 @@ function parseSlashCommandOptions(
 }
 
 export class SleetSlashCommand
-  extends SleetCommand<CommandInteraction, [], SlashEventHandlers>
+  extends SleetCommand<ChatInputCommandInteraction, [], SlashEventHandlers>
   implements SleetAutocompleteable
 {
   public subcommands: Map<string, SleetSlashSubcommand>
@@ -137,7 +137,7 @@ export class SleetSlashCommand
 
   public override async run(
     context: SleetContext,
-    interaction: CommandInteraction,
+    interaction: ChatInputCommandInteraction,
   ) {
     // First run the handler for the command itself
     // Users can throw errors to exit execution early to have things like permission

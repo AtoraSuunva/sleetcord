@@ -2,11 +2,11 @@ import { APIApplicationCommandOptionChoice } from 'discord-api-types/v10'
 import {
   AutocompleteInteraction,
   Awaitable,
+  ChatInputCommandInteraction,
   Client,
   ClientEvents,
   CommandInteraction,
-  Constants as DjsConstants,
-  Interaction,
+  Events,
 } from 'discord.js'
 import { SleetClient } from '../SleetClient.js'
 import { SleetModule } from './base/SleetModule.js'
@@ -17,14 +17,14 @@ export type SleetContext = {
 }
 
 /** A type of every possible Discord event key */
-export type DiscordEvent = keyof ClientEvents
+type DiscordEvent = keyof ClientEvents
 
 /**
  * An array of all possible Discord Event keys
+ * *Technically* incorrect since 'voiceServerUpdate' and 'voiceStateUpdate' are included, but require @discord.js/voice
+ * but screw it, it works
  */
-export const DiscordEventsList: DiscordEvent[] = Object.values(
-  DjsConstants.Events,
-)
+const DiscordEventsList = Object.values(Events)
 
 /**
  * Checks if a string is a valid discord event
@@ -32,7 +32,7 @@ export const DiscordEventsList: DiscordEvent[] = Object.values(
  * @returns If the key is a valid Discord event
  */
 export function isDiscordEvent(event: string): event is DiscordEvent {
-  return DiscordEventsList.includes(event as unknown as DiscordEvent)
+  return DiscordEventsList.includes(event as unknown as Events)
 }
 
 /**
@@ -85,7 +85,7 @@ export interface SleetModuleEventHandlers extends Partial<ClientEventHandlers> {
 }
 
 export type SpecialEvent = Exclude<
-  keyof RunnableEventHandlers<Interaction> | keyof SlashEventHandlers,
+  keyof RunnableEventHandlers<CommandInteraction> | keyof SlashEventHandlers,
   keyof SleetModuleEventHandlers
 >
 
@@ -108,7 +108,7 @@ export function isSpecialEvent(event: string): event is SpecialEvent {
  * Event handlers for Sleet events, Discord.js Events, and runnable modules
  */
 export interface RunnableEventHandlers<
-  I extends Interaction,
+  I extends CommandInteraction,
   A extends unknown[] = [],
 > extends SleetModuleEventHandlers {
   run: (this: SleetContext, interaction: I, ...args: A) => Awaitable<unknown>
@@ -119,7 +119,7 @@ export interface RunnableEventHandlers<
  * slash commands (autocomplete!)
  */
 export interface SlashEventHandlers
-  extends RunnableEventHandlers<CommandInteraction, []> {
+  extends RunnableEventHandlers<ChatInputCommandInteraction, []> {
   autocomplete?:
     | ((
         this: SleetContext,

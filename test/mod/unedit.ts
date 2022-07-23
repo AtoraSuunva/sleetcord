@@ -1,19 +1,18 @@
 import { ApplicationCommandOptionType } from 'discord-api-types/v10'
 import {
+  ChatInputCommandInteraction,
   Collection,
-  CommandInteraction,
   Formatters,
   Message,
   PartialMessage,
 } from 'discord.js'
-import { SleetSlashCommand } from '../../modules/slash/SleetSlashCommand.js'
-import { isLikelyID } from '../../parsers/resolvedData.js'
+import { SleetSlashCommand, isLikelyID } from '../../src/index.js'
 
 export const unedit = new SleetSlashCommand(
   {
     name: 'unedit',
     description: 'Unedits a message',
-    default_member_permissions: ['MANAGE_MESSAGES'],
+    default_member_permissions: ['ManageMessages'],
     dm_permission: false,
     options: [
       {
@@ -66,7 +65,7 @@ async function handleMessageUpdate(
   editStore.sweep(editSweeper)
 }
 
-async function runUnedit(interaction: CommandInteraction) {
+async function runUnedit(interaction: ChatInputCommandInteraction) {
   const messageLink = interaction.options.getString('message_link', true)
   const messageId = getMessageId(messageLink)
 
@@ -91,7 +90,7 @@ async function runUnedit(interaction: CommandInteraction) {
     JSON.stringify(previousEdits.edits, null, 2),
   )
 
-  interaction.reply(edits)
+  return interaction.reply(edits)
 }
 
 const messageLinkRegex =

@@ -1,6 +1,6 @@
 import { OAuth2Scopes } from 'discord-api-types/v10'
 import { ClientUser, Message } from 'discord.js'
-import { SleetModule } from '../../modules/base/SleetModule.js'
+import { SleetModule } from '../../src/index.js'
 
 export const autoreply = new SleetModule(
   {

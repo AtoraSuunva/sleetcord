@@ -1,6 +1,6 @@
 import { RESTPostAPIApplicationCommandsJSONBody } from 'discord-api-types/rest/v10'
 import { Permissions as PermissionsAsString } from 'discord-api-types/v10'
-import { Interaction, PermissionResolvable } from 'discord.js'
+import { CommandInteraction, PermissionResolvable } from 'discord.js'
 import { permissionsToStringBitfield } from '../../utils/permissions.js'
 import { RunnableEventHandlers } from '../events.js'
 import { SleetRunnable } from './SleetRunnable.js'
@@ -38,7 +38,7 @@ export type SleetCommandExtras = {
  * If you're looking to write a module that adds event handlers but doesn't require any interaction, use {@link SleetModule}.
  */
 export class SleetCommand<
-  I extends Interaction = Interaction,
+  I extends CommandInteraction = CommandInteraction,
   A extends unknown[] = [],
   Handlers extends RunnableEventHandlers<I, A> = RunnableEventHandlers<I, A>,
 > extends SleetRunnable<

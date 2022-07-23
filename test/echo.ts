@@ -1,7 +1,21 @@
 import { ApplicationCommandOptionType } from 'discord-api-types/v10'
-import { CommandInteraction } from 'discord.js'
-import { SleetSlashCommand } from '../src/modules/slash/SleetSlashCommand.js'
-import { getUsers } from '../src/parsers/resolvedData.js'
+import { ChatInputCommandInteraction } from 'discord.js'
+import {
+  SleetSlashCommand,
+  getUsers,
+  AutocompleteHandler,
+} from '../src/index.js'
+
+const messageAutocomplete: AutocompleteHandler<string> = (
+  _interaction,
+  _name,
+  value,
+) => [
+  {
+    name: value,
+    value: `${value}!`,
+  },
+]
 
 export const echo = new SleetSlashCommand(
   {
@@ -13,12 +27,7 @@ export const echo = new SleetSlashCommand(
         type: ApplicationCommandOptionType.String,
         description: 'The message to echo',
         required: true,
-        autocomplete: (interaction, name, value) => [
-          {
-            name: value,
-            value: `${value}!`,
-          },
-        ],
+        autocomplete: messageAutocomplete,
       },
       {
         name: 'ephemeral',
@@ -33,7 +42,7 @@ export const echo = new SleetSlashCommand(
     ],
   },
   {
-    run: async (interaction: CommandInteraction) => {
+    run: async (interaction: ChatInputCommandInteraction) => {
       const message = interaction.options.getString('message', true)
       const ephemeral =
         interaction.options.getBoolean('ephemeral', false) ?? false

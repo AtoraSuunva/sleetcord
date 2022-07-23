@@ -1,17 +1,17 @@
 import {
-  Channel,
+  ChatInputCommandInteraction,
   Client,
   CommandInteraction,
   Guild,
   GuildBasedChannel,
   GuildMember,
   GuildTextBasedChannel,
-  Interaction,
   MessageManager,
   Role,
   User,
 } from 'discord.js'
 import { PreRunError } from '../errors/PreRunError.js'
+import { exists } from '../utils/funcs.js'
 
 /**
  * An error indication there was a problem trying to resolve some data from the interaction,
@@ -25,7 +25,7 @@ class ResolveDataError extends PreRunError {
 }
 
 /** ID regex but "bounded" to string start/end or whitespace, to get IDs not in <@id> format */
-const idRegexBounded = /(?:^\w)\d{16,19}(?:\w|$)/g
+const idRegexBounded = /(?:^|\s)(?<id>\d{16,19})(?:\s|$)/g
 /** ID regex that only matches if the entire string from start to end is likely an ID */
 const idRegexFull = /^\d{16,19}$/
 
@@ -36,7 +36,7 @@ const idRegexFull = /^\d{16,19}$/
  * @param str To string to check if it's an ID
  * @returns If the string is *likely* an ID
  */
-export const isLikelyID = (str: string) => idRegexFull.test(str)
+export const isLikelyID = (str: string): boolean => idRegexFull.test(str)
 
 /**
  * Check a string to see if there's any string of 16-19 digits, meaning it *might* be a Discord ID
@@ -52,8 +52,8 @@ export const isLikelyID = (str: string) => idRegexFull.test(str)
  * @param str To string to check for potential IDs
  * @returns All potential IDs in the string
  */
-export const getAllIDs = (str: string) =>
-  Array.from(str.matchAll(idRegexBounded), (m) => m[0])
+export const getAllIDs = (str: string): string[] =>
+  Array.from(str.matchAll(idRegexBounded), (m) => m.groups?.id).filter(exists)
 
 /**
  * Allows you to parse multiple users from a single string option (because the User option only accepts 1 user)
@@ -65,17 +65,17 @@ export const getAllIDs = (str: string) =>
  * @returns An array of User objects, or null if the option is not required & missing
  */
 export async function getUsers(
-  interaction: CommandInteraction,
+  interaction: ChatInputCommandInteraction,
   name: string,
   required: true,
 ): Promise<User[]>
 export async function getUsers(
-  interaction: CommandInteraction,
+  interaction: ChatInputCommandInteraction,
   name: string,
   required?: boolean,
 ): Promise<User[] | null>
 export async function getUsers(
-  interaction: CommandInteraction,
+  interaction: ChatInputCommandInteraction,
   name: string,
   required = false,
 ): Promise<User[] | null> {
@@ -85,9 +85,9 @@ export async function getUsers(
   const ids = getAllIDs(string)
   const resolvedIDUsers = await Promise.all(
     ids.map((uid) => tryFetchUser(interaction.client, uid)),
-  ).then((res) => res.filter(isDefined))
+  ).then((res) => res.filter(exists))
 
-  const data = interaction.options.resolved.users
+  const data = interaction.options.resolved?.users
   const resolvedDataUsers =
     data?.toJSON().filter((v) => string.includes(v.id)) ?? []
 
@@ -104,17 +104,17 @@ export async function getUsers(
  * @returns An array of GuildMember objects, or null if the option is not required & missing
  */
 export async function getMembers(
-  interaction: CommandInteraction,
+  interaction: ChatInputCommandInteraction,
   name: string,
   required: true,
 ): Promise<GuildMember[]>
 export async function getMembers(
-  interaction: CommandInteraction,
+  interaction: ChatInputCommandInteraction,
   name: string,
   required?: boolean,
 ): Promise<GuildMember[] | null>
 export async function getMembers(
-  interaction: CommandInteraction,
+  interaction: ChatInputCommandInteraction,
   name: string,
   required = false,
 ): Promise<GuildMember[] | null> {
@@ -125,9 +125,9 @@ export async function getMembers(
   const ids = getAllIDs(string)
   const resolvedIDMembers = await Promise.all(
     ids.map((uid) => tryFetchMember(guild, uid)),
-  ).then((res) => res.filter(isDefined))
+  ).then((res) => res.filter(exists))
 
-  const data = interaction.options.resolved.members
+  const data = interaction.options.resolved?.members
   const resolvedDataMembers =
     data
       ?.filter((m): m is GuildMember => {
@@ -176,29 +176,20 @@ export async function tryFetchMember(
 }
 
 /**
- * Typeguard a value to filter out null and undefined from things
- * @param value The value to check
- * @returns If the value is defined (not null or undefined)
- */
-function isDefined<T>(value: T | undefined | null): value is T {
-  return value !== undefined && value !== null
-}
-
-/**
  * Get the guild associated with an interaction, fetching it if it's not cached
  * @param interaction The interaction to resolve data for
  * @param required If the guild is required, if the guild is missing, an error will be thrown if true, null will be returned if false
  */
 export async function getGuild(
-  interaction: Interaction,
+  interaction: CommandInteraction,
   required: true,
 ): Promise<Guild>
 export async function getGuild(
-  interaction: Interaction,
+  interaction: CommandInteraction,
   required?: boolean,
 ): Promise<Guild | null>
 export async function getGuild(
-  interaction: Interaction,
+  interaction: CommandInteraction,
   required = false,
 ): Promise<Guild | null> {
   if (!interaction.inGuild()) {
@@ -269,9 +260,11 @@ export async function getMember(
   }
 
   const guild = await getGuild(interaction, true)
-  const member = interaction.options.getMember(name, required)
+  const member = interaction.options.getMember(name)
   if (member === null) return null
-  const user = interaction.options.getUser(name, true)
+  const user = interaction.options.getUser(name, required)
+
+  if (user === null) return null
 
   return member instanceof GuildMember
     ? member
@@ -285,17 +278,17 @@ export async function getMember(
  * @param required Is the option required? If missing, an error will be thrown if true, null will be returned if false
  */
 export async function getChannel(
-  interaction: CommandInteraction,
+  interaction: ChatInputCommandInteraction,
   name: string,
   required: true,
 ): Promise<GuildBasedChannel>
 export async function getChannel(
-  interaction: CommandInteraction,
+  interaction: ChatInputCommandInteraction,
   name: string,
   required?: boolean,
 ): Promise<GuildBasedChannel | null>
 export async function getChannel(
-  interaction: CommandInteraction,
+  interaction: ChatInputCommandInteraction,
   name: string,
   required = false,
 ): Promise<GuildBasedChannel | null> {
@@ -309,9 +302,7 @@ export async function getChannel(
   const channel = interaction.options.getChannel(name, required)
   if (channel === null) return null
 
-  return channel instanceof Channel
-    ? channel
-    : await guild.channels.fetch(channel.id)
+  return 'guild' in channel ? channel : await guild.channels.fetch(channel.id)
 }
 
 /**
@@ -323,17 +314,17 @@ export async function getChannel(
  * @param required Is the option required? If missing, an error will be thrown if true, null will be returned if false
  */
 export async function getTextBasedChannel(
-  interaction: CommandInteraction,
+  interaction: ChatInputCommandInteraction,
   name: string,
   required: true,
 ): Promise<GuildTextBasedChannel>
 export async function getTextBasedChannel(
-  interaction: CommandInteraction,
+  interaction: ChatInputCommandInteraction,
   name: string,
   required?: boolean,
 ): Promise<GuildTextBasedChannel | null>
 export async function getTextBasedChannel(
-  interaction: CommandInteraction,
+  interaction: ChatInputCommandInteraction,
   name: string,
   required = false,
 ): Promise<GuildTextBasedChannel | null> {
@@ -363,17 +354,17 @@ export async function getTextBasedChannel(
  * @param required Is the option required? If missing, an error will be thrown if true, null will be returned if false
  */
 export async function getRole(
-  interaction: CommandInteraction,
+  interaction: ChatInputCommandInteraction,
   name: string,
   required: true,
 ): Promise<Role>
 export async function getRole(
-  interaction: CommandInteraction,
+  interaction: ChatInputCommandInteraction,
   name: string,
   required?: boolean,
 ): Promise<Role | null>
 export async function getRole(
-  interaction: CommandInteraction,
+  interaction: ChatInputCommandInteraction,
   name: string,
   required = false,
 ): Promise<Role | null> {
@@ -399,7 +390,7 @@ export async function getRole(
  * @param required Is the option required? If missing, an error will be thrown if true, null will be returned if false
  */
 export async function getRoles(
-  interaction: CommandInteraction,
+  interaction: ChatInputCommandInteraction,
   name: string,
   required = false,
 ): Promise<Role[]> {
@@ -414,7 +405,7 @@ export async function getRoles(
   if (string === null) return []
 
   const rolePromises =
-    interaction.options.resolved.roles
+    interaction.options.resolved?.roles
       ?.filter((role) => {
         if (role === null || !string.includes(`<@&${role.id}>`)) return false
         return true
@@ -425,10 +416,6 @@ export async function getRoles(
       }) ?? []
 
   return (await Promise.all(rolePromises)).filter(exists)
-}
-
-function exists<T>(value: T | null | undefined): value is T {
-  return !(value === null || value === undefined)
 }
 
 /**
@@ -445,17 +432,17 @@ export type Mentionable = User | GuildMember | Role
  * @returns An array of all the mentionables found in that option
  */
 export async function getMentionables(
-  interaction: CommandInteraction,
+  interaction: ChatInputCommandInteraction,
   name: string,
   required?: boolean,
 ): Promise<Mentionable[] | null>
 export async function getMentionables(
-  interaction: CommandInteraction,
+  interaction: ChatInputCommandInteraction,
   name: string,
   required: true,
 ): Promise<Mentionable[]>
 export async function getMentionables(
-  interaction: CommandInteraction,
+  interaction: ChatInputCommandInteraction,
   name: string,
   required = false,
 ): Promise<Mentionable[] | null> {

@@ -1,5 +1,10 @@
-import { Interaction, PermissionResolvable } from 'discord.js'
+import {
+  CommandInteraction,
+  Interaction,
+  PermissionResolvable,
+} from 'discord.js'
 import { PreRunError } from '../errors/PreRunError.js'
+import { getGuild } from '../index.js'
 
 export function hasPermissions(
   interaction: Interaction,
@@ -17,14 +22,14 @@ export function hasPermissions(
   }
 }
 
-export function botHasPermissions(
-  interaction: Interaction,
+export async function botHasPermissions(
+  interaction: CommandInteraction,
   requiredPermissions: PermissionResolvable[],
 ) {
   if (!interaction.inGuild()) return
-  const myPermissions = interaction.guild?.me?.permissions
-  // Honestly how
-  if (!myPermissions) throw new PreRunError('Could not get my permissions')
+  const guild = await getGuild(interaction, true)
+  const me = await guild.members.fetchMe()
+  const myPermissions = me.permissions
 
   const missingPermissions = myPermissions.missing(requiredPermissions)
 

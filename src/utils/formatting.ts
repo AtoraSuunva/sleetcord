@@ -1,4 +1,4 @@
-import { GuildMember, User, Util } from 'discord.js'
+import { escapeMarkdown, GuildMember, User } from 'discord.js'
 
 export interface FormatUserOptions {
   /** Show the user's ID after their tag */
@@ -35,7 +35,7 @@ export function formatUser(
   const formatted: string[] = []
 
   if (markdown) formatted.push('**')
-  formatted.push(Util.escapeMarkdown(user.username))
+  formatted.push(escapeMarkdown(user.username))
   if (markdown) formatted.push('**')
   if (bidirectional) formatted.push('\u{200e}')
   formatted.push(`#${user.discriminator}`)

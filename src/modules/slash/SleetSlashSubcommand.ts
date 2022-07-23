@@ -3,7 +3,7 @@ import {
   APIApplicationCommandSubcommandOption,
   ApplicationCommandOptionType,
 } from 'discord-api-types/v10'
-import { CommandInteraction } from 'discord.js'
+import { ChatInputCommandInteraction } from 'discord.js'
 import { SleetRunnable } from '../base/SleetRunnable.js'
 import { SlashEventHandlers } from '../events.js'
 import {
@@ -53,7 +53,7 @@ function parseSlashSubcommandOptions(
 export class SleetSlashSubcommand
   extends SleetRunnable<
     APIApplicationCommandSubcommandOption,
-    CommandInteraction
+    ChatInputCommandInteraction
   >
   implements SleetAutocompleteable
 {

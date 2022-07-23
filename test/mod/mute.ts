@@ -1,9 +1,11 @@
 import { ApplicationCommandOptionType } from 'discord-api-types/v10'
-import { CommandInteraction, GuildMember, Role } from 'discord.js'
-import { inGuild } from '../../guards/index.js'
-import { SleetSlashCommand } from '../../modules/slash/SleetSlashCommand.js'
-import { getMembers } from '../../parsers/resolvedData.js'
-import { formatUser } from '../../utils/formatting.js'
+import { ChatInputCommandInteraction, GuildMember, Role } from 'discord.js'
+import {
+  formatUser,
+  getMembers,
+  inGuild,
+  SleetSlashCommand,
+} from '../../src/index.js'
 
 const mutedRoles = [
   'muted',
@@ -19,7 +21,7 @@ export const mute = new SleetSlashCommand(
   {
     name: 'mute',
     description: 'Mutes a user',
-    default_member_permissions: ['MANAGE_ROLES'],
+    default_member_permissions: ['ManageRoles'],
     dm_permission: false,
     options: [
       {
@@ -41,7 +43,7 @@ export const mute = new SleetSlashCommand(
     ],
   },
   {
-    run: (i) => runMute(i, 'unmute'),
+    run: (i) => runMute(i, 'mute'),
   },
 )
 
@@ -49,7 +51,7 @@ export const unmute = new SleetSlashCommand(
   {
     name: 'unmute',
     description: 'Unmutes a user',
-    default_member_permissions: ['MANAGE_ROLES'],
+    default_member_permissions: ['ManageRoles'],
     dm_permission: false,
     options: [
       {
@@ -92,30 +94,24 @@ interface ActionResult {
 }
 
 async function runMute(
-  interaction: CommandInteraction,
+  interaction: ChatInputCommandInteraction,
   action: MuteAction,
 ): Promise<unknown> {
   inGuild(interaction)
 
-  const capitalAction = action === 'mute' ? 'Mute' : 'Unmute'
+  const capitalAction = action === 'mute' ? 'Muted' : 'Unmuted'
 
   const members = await getMembers(interaction, 'members', true)
-  const reason = interaction.options.getString('reason')
+  const reason = interaction.options.getString('reason') ?? 'No reason given'
   const ephemeral = interaction.options.getBoolean('ephemeral') ?? false
 
   const interactionMember = interaction.member as GuildMember
+  const me = await interactionMember.guild.members.fetchMe()
   const userHighestRole = interactionMember.roles.highest
-  const myHighestRole = interactionMember.guild.me?.roles.highest
+  const myHighestRole = me.roles.highest
   const mutedRole = interactionMember.guild.roles.cache.find((r) =>
     mutedRoles.includes(r.name.toLowerCase()),
   )
-
-  if (!myHighestRole) {
-    return interaction.reply({
-      content: 'Somehow I am not cached in this guild',
-      ephemeral: true,
-    })
-  }
 
   if (!mutedRole) {
     return interaction.reply({
@@ -140,7 +136,7 @@ async function runMute(
     const hasMutedRole = member.roles.cache.get(mutedRole.id)
     const shouldHaveRole = action === 'unmute'
 
-    if (member.id === interaction.client.user?.id) {
+    if (member.id === me.user.id) {
       earlyFailed.push({ member, reason: 'This is me.' })
     } else if (member.id === interaction.user.id) {
       earlyFailed.push({ member, reason: `You cannot ${action} yourself.` })
@@ -174,9 +170,9 @@ async function runMute(
 
   const { succeeded, failed } = await (action === 'mute'
     ? muteAction(toMute, mutedRole, formattedReason)
-    : unmuteAction(toMute, formattedReason))
+    : unmuteAction(toMute, mutedRole, formattedReason))
 
-  await interaction.deferReply({ ephemeral })
+  const deferReply = interaction.deferReply({ ephemeral })
 
   const totalFails = [...earlyFailed, ...failed]
   const succ =
@@ -186,6 +182,7 @@ async function runMute(
   const fail =
     totalFails.length > 0 ? `\n**Failed:**\n${formatFails(totalFails)}` : ''
 
+  await deferReply
   return interaction.editReply(`**${capitalAction}:**${succ}${fail}`)
 }
 
@@ -213,6 +210,7 @@ function muteAction(
 
 function unmuteAction(
   members: GuildMember[],
+  mutedRole: Role,
   reason: string,
 ): Promise<ActionResult> {
   const succeeded: MuteSuccess[] = []
@@ -220,7 +218,7 @@ function unmuteAction(
 
   const actions = members.map(async (member) => {
     try {
-      const restoredRoles = await restoreRoles(member, reason)
+      const restoredRoles = await restoreRoles(member, mutedRole, reason)
       succeeded.push({ member, roles: restoredRoles })
     } catch (e) {
       failed.push({ member, reason: String(e) })
@@ -241,20 +239,27 @@ async function storeRoles(member: GuildMember): Promise<Role[]> {
 
 async function restoreRoles(
   member: GuildMember,
+  mutedRole: Role,
   reason?: string,
 ): Promise<Role[]> {
-  const roles = storedMutes.get(member.id)
-  if (!roles || roles.length === 0) return []
+  const roles = storedMutes.get(member.id) ?? []
 
-  const applyRoles = (
-    await Promise.all(
-      roles.map(async (r) => {
-        const role = member.guild.roles.cache.get(r)
-        if (role) return role
+  // Resolve all the roles in case one of them has since been deleted or something
+  const resolvedStoredRoles = await Promise.all(
+    roles.map(async (r) => {
+      const role = member.guild.roles.cache.get(r)
+      if (role) return role
+      try {
         return await member.guild.roles.fetch(r)
-      }),
-    )
-  ).filter(isDefined)
+      } catch {
+        return null
+      }
+    }),
+  )
+
+  const applyRoles = [...resolvedStoredRoles, ...member.roles.cache.toJSON()]
+    .filter(isDefined)
+    .filter((r) => validRole(r) && r.id !== mutedRole.id)
 
   await member.roles.set(applyRoles, reason)
   storedMutes.delete(member.id)
@@ -278,9 +283,11 @@ function formatSuccesses(succeeded: MuteSuccess[], action: MuteAction): string {
         const { member, roles } = success
         const act = action === 'mute' ? 'Previous Roles' : 'Restored'
 
+        const validRoles = (roles ?? []).filter(validRole)
+
         const restored =
-          roles && roles.length > 0
-            ? ` - **${act}:** ${formatRoles(roles)}`
+          validRoles.length > 0
+            ? ` - **${act}:** ${formatRoles(validRoles)}`
             : ''
 
         return `> ${formatUser(member)}${restored}`
@@ -296,8 +303,7 @@ function formatFails(failed: MuteFail[]): string {
 }
 
 function formatRoles(roles: Role[]): string {
-  return roles
-    .filter(validRole)
-    .map((r) => r.toString())
-    .join(', ')
+  if (roles.length === 0) return 'None'
+
+  return roles.map((r) => r.toString()).join(', ')
 }

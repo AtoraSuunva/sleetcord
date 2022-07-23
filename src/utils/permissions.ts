@@ -1,4 +1,4 @@
-import { PermissionResolvable, Permissions } from 'discord.js'
+import { PermissionResolvable, PermissionsBitField } from 'discord.js'
 
 /**
  * Converts an array of permission resolvables to a permission string, preserves existing permission strings as strings, and null as null
@@ -12,5 +12,5 @@ export function permissionsToStringBitfield(
     return permissions
   }
 
-  return new Permissions(permissions).bitfield.toString()
+  return new PermissionsBitField(permissions).bitfield.toString()
 }

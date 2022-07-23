@@ -1,15 +1,15 @@
 import { ApplicationCommandOptionType } from 'discord-api-types/v10'
 import {
-  AnyChannel,
   Client,
-  CommandInteraction,
   Guild,
   Message,
-  MessageEmbed,
+  EmbedBuilder,
   TextBasedChannel,
   User,
+  Channel,
+  ChatInputCommandInteraction,
 } from 'discord.js'
-import { SleetSlashCommand } from '../../modules/slash/SleetSlashCommand.js'
+import { SleetSlashCommand } from '../../src/index.js'
 
 export const quote = new SleetSlashCommand(
   {
@@ -52,7 +52,7 @@ async function handleMessageCreate(message: Message) {
   }
 }
 
-async function runQuote(interaction: CommandInteraction) {
+async function runQuote(interaction: ChatInputCommandInteraction) {
   const messageLink = interaction.options.getString('message_link', true)
 
   try {
@@ -97,7 +97,7 @@ async function getQuoteFor(
   client: Client,
   user: User,
   content: string,
-): Promise<MessageEmbed> {
+): Promise<EmbedBuilder> {
   const matches = getMessageLinkIds(content)
 
   if (!matches) {
@@ -118,8 +118,7 @@ async function getQuoteFor(
     throw new Error('Channel not found')
   }
 
-  if (!channel.isText()) {
-    channel
+  if (!channel.isTextBased()) {
     throw new Error('Channel is not a text channel')
   }
 
@@ -133,13 +132,13 @@ async function getQuoteFor(
     throw new Error('Message is not in a guild')
   }
 
-  const embed = new MessageEmbed()
+  const embed = new EmbedBuilder()
     .setAuthor({
       name: `${message.author.tag} - #${message.channel.name}`,
       iconURL: message.author.displayAvatarURL(),
       url: message.url,
     })
-    .setDescription(message.content)
+    .setDescription(message.content || '[Failed to fetch content]')
     .setTimestamp(message.createdTimestamp)
     .setFooter({
       text: `Quoted by ${user.tag}`,
@@ -174,7 +173,7 @@ async function tryFetchGuild(
 async function tryFetchChannel(
   client: Client,
   channelId: string,
-): Promise<AnyChannel | null> {
+): Promise<Channel | null> {
   try {
     return await client.channels.fetch(channelId)
   } catch {

@@ -5,5 +5,9 @@ export { SleetUserCommand } from './context-menu/SleetUserCommand.js'
 export type { InteractionMember } from './context-menu/SleetUserCommand.js'
 export { SleetSlashCommand } from './slash/SleetSlashCommand.js'
 export { SleetSlashSubcommand } from './slash/SleetSlashSubcommand.js'
+export type {
+  AutocompleteHandler,
+  AutocompleteableType,
+} from './slash/SleetAutocompleteable.js'
 export { SleetSlashCommandGroup } from './slash/SleetSlashCommandGroup.js'
 export type { SleetContext } from './events.js'

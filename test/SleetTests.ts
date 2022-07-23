@@ -1,16 +1,18 @@
 import { ApplicationCommandOptionType } from 'discord-api-types/v10'
-import { SleetMessageCommand } from '../src/modules/context-menu/SleetMessageCommand.js'
-import { SleetSlashCommand } from '../src/modules/slash/SleetSlashCommand.js'
-import { SleetUserCommand } from '../src/modules/context-menu/SleetUserCommand.js'
-import { SleetSlashCommandGroup } from '../src/modules/slash/SleetSlashCommandGroup.js'
-import { SleetSlashSubcommand } from '../src/modules/slash/SleetSlashSubcommand.js'
-import { inGuild } from '../src/guards/inGuild.js'
-import { PreRunError } from '../src/errors/PreRunError.js'
-import { hasPermissions } from '../src/guards/index.js'
-import { getChannel, getMember } from '../src/parsers/resolvedData.js'
-import { SleetModule } from '../src/modules/base/SleetModule.js'
-import { Message } from 'discord.js'
-import { autocompleteForStrings } from '../src/utils/autocomplete.js'
+import {
+  autocompleteForStrings,
+  getChannel,
+  getMember,
+  hasPermissions,
+  inGuild,
+  PreRunError,
+  SleetMessageCommand,
+  SleetModule,
+  SleetSlashCommand,
+  SleetSlashCommandGroup,
+  SleetSlashSubcommand,
+  SleetUserCommand,
+} from '../src/index.js'
 
 export const readyLogModule = new SleetModule(
   {
@@ -67,15 +69,8 @@ export const pingCommand = new SleetSlashCommand(
         fetchReply: true,
       })
 
-      const message =
-        reply instanceof Message
-          ? reply
-          : await interaction.channel?.messages.fetch(reply.id)
-
-      if (!message) return interaction.reply('Could not fetch message')
-
       const wsPing = this.client.ws.ping
-      const apiPing = message.createdTimestamp - interaction.createdTimestamp
+      const apiPing = reply.createdTimestamp - interaction.createdTimestamp
       const content = `Pong! **WS**: ${wsPing}ms, **API**: ${apiPing}ms`
       interaction.editReply(content)
     },
@@ -251,7 +246,7 @@ export const userGetCommand = new SleetSlashSubcommand(
       // and should respond to the interaction!!
 
       console.log('Running `/permissions user get` subcommand handler...')
-      hasPermissions(interaction, ['MANAGE_ROLES'])
+      hasPermissions(interaction, ['ManageRoles'])
       await interaction.deferReply()
 
       const member = await getMember(interaction, 'user', true)
@@ -295,7 +290,7 @@ export const userEditCommand = new SleetSlashSubcommand(
       // Then individual commands can also have their own permission checking
       // and should respond to the interaction!!
       console.log('Editing for user...')
-      hasPermissions(interaction, ['MANAGE_ROLES'])
+      hasPermissions(interaction, ['ManageRoles'])
       interaction.reply('Imagine this actually edited permissions')
     },
   },

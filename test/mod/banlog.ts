@@ -1,7 +1,6 @@
 import { ApplicationCommandOptionType } from 'discord-api-types/v10'
-import { CommandInteraction, Formatters } from 'discord.js'
-import { SleetSlashCommand } from '../../modules/slash/SleetSlashCommand.js'
-import { makeChoices } from '../../utils/choices.js'
+import { ChatInputCommandInteraction, Formatters } from 'discord.js'
+import { SleetSlashCommand, makeChoices } from '../../src/index.js'
 
 const typeChoices = makeChoices(['Ban', 'Unban', 'Kick', 'Mute'])
 
@@ -41,7 +40,7 @@ export const banlog = new SleetSlashCommand(
   },
 )
 
-function runBanlog(interaction: CommandInteraction) {
+function runBanlog(interaction: ChatInputCommandInteraction) {
   const user = interaction.options.getUser('user', true)
   const reason = interaction.options.getString('reason', true)
   const type = interaction.options.getString('type', false) ?? 'Ban'

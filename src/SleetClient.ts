@@ -1,14 +1,17 @@
 import { Logger } from 'pino'
 import { baseLogger } from './utils/logger.js'
 import {
+  ApplicationCommandType,
   AutocompleteInteraction,
   Awaitable,
-  BaseCommandInteraction,
+  ChatInputCommandInteraction,
   Client,
-  ClientEvents,
   ClientOptions,
   CommandInteraction,
   Interaction,
+  InteractionType,
+  MessageContextMenuCommandInteraction,
+  UserContextMenuCommandInteraction,
 } from 'discord.js'
 import { SleetRest } from './SleetRest.js'
 import { PreRunError } from './errors/PreRunError.js'
@@ -45,7 +48,7 @@ interface SleetClientOptions {
 
 interface PutCommandOptions {
   /** The commands to PUT, if any (defaults to added commands) */
-  commands?: SleetCommand<CommandInteraction>[]
+  commands?: SleetCommand[]
   /** The guild to PUT to, if any */
   guildId?: string
 }
@@ -55,6 +58,11 @@ type SleetModuleEventRegistration = [
   SleetModuleEventKey,
   SleetModuleEventHandlers[SleetModuleEventKey],
 ]
+
+type ApplicationInteraction =
+  | ChatInputCommandInteraction
+  | MessageContextMenuCommandInteraction
+  | UserContextMenuCommandInteraction
 
 function isSleetCommand(value: unknown): value is SleetCommand {
   return value instanceof SleetCommand
@@ -165,12 +173,7 @@ export class SleetClient extends EventEmitter {
       if (isDiscordEvent(event)) {
         // Casts otherwise typescript does some crazy type inferrence that
         // makes it both error and lag like mad
-        // "Expression produces a union type that is too complex to represent."
-        // ???? what do you mean ????
-        this.client.off(
-          event as keyof ClientEvents,
-          eventHandler as unknown as () => Awaitable<void>,
-        )
+        this.client.off(event, eventHandler as unknown as () => Awaitable<void>)
       } else if (isSleetEvent(event)) {
         this.off(event, eventHandler)
       } else if (!isSpecialEvent(event)) {
@@ -231,14 +234,16 @@ export class SleetClient extends EventEmitter {
   async #interactionCreate(interaction: Interaction): Promise<void> {
     this.#logger.debug('Handling interaction: %o', interaction)
 
-    if (interaction.isApplicationCommand()) {
+    if (interaction.type === InteractionType.ApplicationCommand) {
       this.#handleApplicationInteraction(interaction)
-    } else if (interaction.isAutocomplete()) {
+    } else if (
+      interaction.type === InteractionType.ApplicationCommandAutocomplete
+    ) {
       this.#handleAutocompleteInteraction(interaction)
     }
   }
 
-  async #handleApplicationInteraction(interaction: BaseCommandInteraction) {
+  async #handleApplicationInteraction(interaction: ApplicationInteraction) {
     const module = this.modules.get(interaction.commandName)
 
     if (!(module instanceof SleetCommand)) {
@@ -255,17 +260,19 @@ export class SleetClient extends EventEmitter {
     }
 
     try {
-      // May seem redundant, but this ensures that the right type of command is invoked
-      // A SleetMessageCommand cannot handle an incoming interaction mistakenly registered as a UserContextMenu one
-      if (interaction.isCommand() && module instanceof SleetSlashCommand) {
+      // Make sure the module can run the incoming type of interaction
+      if (
+        interaction.commandType === ApplicationCommandType.ChatInput &&
+        module instanceof SleetSlashCommand
+      ) {
         await module.run(this.context, interaction)
       } else if (
-        interaction.isUserContextMenu() &&
+        interaction.commandType === ApplicationCommandType.User &&
         module instanceof SleetUserCommand
       ) {
         await module.run(this.context, interaction)
       } else if (
-        interaction.isMessageContextMenu() &&
+        interaction.commandType === ApplicationCommandType.Message &&
         module instanceof SleetMessageCommand
       ) {
         await module.run(this.context, interaction)
@@ -322,7 +329,7 @@ export class SleetClient extends EventEmitter {
   }
 
   #handleInteractionError(
-    interaction: BaseCommandInteraction,
+    interaction: CommandInteraction,
     module: SleetModule,
     error: unknown,
   ) {
@@ -342,10 +349,7 @@ export class SleetClient extends EventEmitter {
   }
 }
 
-function conditionalReply(
-  interaction: BaseCommandInteraction,
-  content: string,
-) {
+function conditionalReply(interaction: CommandInteraction, content: string) {
   if (interaction.deferred) {
     interaction.editReply(content)
   } else {

@@ -3,7 +3,7 @@ import {
   APIApplicationCommandSubcommandOption,
   ApplicationCommandOptionType,
 } from 'discord-api-types/v10'
-import { CommandInteraction } from 'discord.js'
+import { ChatInputCommandInteraction } from 'discord.js'
 import { noop } from '../../utils/funcs.js'
 import { SleetRunnable } from '../base/SleetRunnable.js'
 import {
@@ -52,7 +52,7 @@ function parseSlashCommandGroupOptions(
 export class SleetSlashCommandGroup
   extends SleetRunnable<
     APIApplicationCommandSubcommandGroupOption,
-    CommandInteraction
+    ChatInputCommandInteraction
   >
   implements SleetAutocompleteable
 {
@@ -81,7 +81,7 @@ export class SleetSlashCommandGroup
 
   public override async run(
     context: SleetContext,
-    interaction: CommandInteraction,
+    interaction: ChatInputCommandInteraction,
   ) {
     // First run the handler for the subcommand group itself
     // Users can throw errors to exit execution early to have things like permission

@@ -1,13 +1,14 @@
-import { MessageContextMenuInteraction, MessageFlags } from 'discord.js'
 import {
-  InteractionMessage,
-  SleetMessageCommand,
-} from '../../modules/context-menu/SleetMessageCommand.js'
+  MessageContextMenuCommandInteraction,
+  MessageFlags,
+  MessageFlagsBitField,
+} from 'discord.js'
+import { InteractionMessage, SleetMessageCommand } from '../../src/index.js'
 
 export const restore_embeds = new SleetMessageCommand(
   {
     name: 'Restore Embeds',
-    default_member_permissions: ['MANAGE_MESSAGES'],
+    default_member_permissions: ['ManageMessages'],
     dm_permission: true,
   },
   {
@@ -16,19 +17,19 @@ export const restore_embeds = new SleetMessageCommand(
 )
 
 async function runRestoreEmbeds(
-  interaction: MessageContextMenuInteraction,
+  interaction: MessageContextMenuCommandInteraction,
   message: InteractionMessage,
 ) {
-  const flags = new MessageFlags(message.flags)
+  const flags = new MessageFlagsBitField(message.flags)
 
-  if (!flags.has(MessageFlags.FLAGS.SUPPRESS_EMBEDS)) {
+  if (!flags.has(MessageFlags.SuppressEmbeds)) {
     return interaction.reply({
       ephemeral: true,
       content: 'This message does not have suppressed embeds.',
     })
   }
 
-  flags.remove(MessageFlags.FLAGS.SUPPRESS_EMBEDS)
+  flags.remove(MessageFlags.SuppressEmbeds)
 
   if (interaction.channel === null) {
     return interaction.reply({

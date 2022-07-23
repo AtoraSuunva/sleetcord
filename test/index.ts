@@ -1,4 +1,3 @@
-import { Intents } from 'discord.js'
 import env from 'env-var'
 import { SleetClient } from '../src/index.js'
 import {
@@ -30,6 +29,8 @@ import { send } from './secret/send.js'
 import { extract } from './util/extract.js'
 import { count_members } from './util/count_members.js'
 import { restore_embeds } from './util/restore_embeds.js'
+import { GatewayIntentBits } from 'discord.js'
+import { unban } from './mod/unban.js'
 
 const TOKEN = env.get('TOKEN').required().asString()
 const APPLICATION_ID = env.get('APPLICATION_ID').required().asString()
@@ -41,10 +42,11 @@ const sleetClient = new SleetClient({
   },
   client: {
     intents: [
-      Intents.FLAGS.GUILDS,
-      Intents.FLAGS.GUILD_MEMBERS,
-      Intents.FLAGS.GUILD_MESSAGES,
-      Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
+      GatewayIntentBits.Guilds,
+      GatewayIntentBits.GuildMembers,
+      GatewayIntentBits.GuildMessages,
+      GatewayIntentBits.MessageContent,
+      GatewayIntentBits.GuildMessageReactions,
     ],
   },
 })
@@ -55,6 +57,7 @@ sleetClient.addModules([
   mute,
   unmute,
   softban,
+  unban,
   purge,
   revoke,
   banlog,

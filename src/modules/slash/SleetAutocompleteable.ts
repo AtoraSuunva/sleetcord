@@ -11,7 +11,9 @@ import { SlashEventHandlers, SleetContext } from '../events.js'
 import { SleetSlashCommand } from './SleetSlashCommand.js'
 import { SleetSlashCommandGroup } from './SleetSlashCommandGroup.js'
 
-export type AutocompleteHandler<T extends string | number> = (
+export type AutocompleteableType = string | number
+
+export type AutocompleteHandler<T extends AutocompleteableType> = (
   this: SleetContext,
   interaction: AutocompleteInteraction,
   name: string,
@@ -22,8 +24,6 @@ type APIApplicationAutocompleteableOption =
   | APIApplicationCommandStringOption
   | APIApplicationCommandIntegerOption
   | APIApplicationCommandNumberOption
-
-export type AutocompleteableType = string | number
 
 type GetAutocompleteableOptionType<
   T extends APIApplicationAutocompleteableOption,

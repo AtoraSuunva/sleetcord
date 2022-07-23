@@ -1,53 +1,54 @@
 import {
   AutocompleteInteraction,
-  BaseCommandInteraction,
+  BaseInteraction,
   ButtonInteraction,
+  ChatInputCommandInteraction,
   CommandInteraction,
-  ContextMenuInteraction,
-  Interaction,
+  ContextMenuCommandInteraction,
   MessageComponentInteraction,
-  MessageContextMenuInteraction,
+  MessageContextMenuCommandInteraction,
   SelectMenuInteraction,
-  UserContextMenuInteraction,
+  UserContextMenuCommandInteraction,
 } from 'discord.js'
 import { PreRunError } from '../errors/PreRunError.js'
 
-type CacheType = 'cached' | 'raw'
+type InGuildCacheType = 'cached' | 'raw'
 
 export function inGuild(
   interaction: ButtonInteraction,
-): asserts interaction is ButtonInteraction<CacheType>
+): asserts interaction is ButtonInteraction<InGuildCacheType>
 export function inGuild(
   interaction: SelectMenuInteraction,
-): asserts interaction is SelectMenuInteraction<CacheType>
+): asserts interaction is SelectMenuInteraction<InGuildCacheType>
 export function inGuild(
   interaction: MessageComponentInteraction,
-): asserts interaction is MessageComponentInteraction<CacheType>
+): asserts interaction is MessageComponentInteraction<InGuildCacheType>
 
 export function inGuild(
-  interaction: MessageContextMenuInteraction,
-): asserts interaction is MessageContextMenuInteraction<CacheType>
+  interaction: MessageContextMenuCommandInteraction,
+): asserts interaction is MessageContextMenuCommandInteraction<InGuildCacheType>
 export function inGuild(
-  interaction: UserContextMenuInteraction,
-): asserts interaction is UserContextMenuInteraction<CacheType>
+  interaction: UserContextMenuCommandInteraction,
+): asserts interaction is UserContextMenuCommandInteraction<InGuildCacheType>
 export function inGuild(
-  interaction: ContextMenuInteraction,
-): asserts interaction is ContextMenuInteraction<CacheType>
+  interaction: ContextMenuCommandInteraction,
+): asserts interaction is ContextMenuCommandInteraction<InGuildCacheType>
+
+export function inGuild(
+  interaction: ChatInputCommandInteraction,
+): asserts interaction is ChatInputCommandInteraction<InGuildCacheType>
 
 export function inGuild(
   interaction: CommandInteraction,
-): asserts interaction is CommandInteraction<CacheType>
-export function inGuild(
-  interaction: BaseCommandInteraction,
-): asserts interaction is BaseCommandInteraction<CacheType>
+): asserts interaction is CommandInteraction<InGuildCacheType>
 
 export function inGuild(
   interaction: AutocompleteInteraction,
-): asserts interaction is AutocompleteInteraction<CacheType>
+): asserts interaction is AutocompleteInteraction<InGuildCacheType>
 
 export function inGuild(
-  interaction: Interaction,
-): asserts interaction is Interaction<CacheType> {
+  interaction: BaseInteraction,
+): asserts interaction is BaseInteraction<InGuildCacheType> {
   if (!interaction.inGuild()) {
     throw new PreRunError('This command must be run in a guild.')
   }

@@ -1,5 +1,5 @@
-import { CommandInteraction } from 'discord.js'
-import { SleetSlashCommand } from '../../modules/slash/SleetSlashCommand.js'
+import { ChatInputCommandInteraction } from 'discord.js'
+import { SleetSlashCommand } from '../../src/index.js'
 
 /** Generates a random fursona! */
 export const furrygen = new SleetSlashCommand(
@@ -13,7 +13,7 @@ export const furrygen = new SleetSlashCommand(
 )
 
 /** Generate a fursona */
-function runFurrygen(interaction: CommandInteraction) {
+function runFurrygen(interaction: ChatInputCommandInteraction) {
   const lines: string[] = []
 
   for (const field of fieldList) {

@@ -6,7 +6,7 @@ import {
   Awaitable,
   CommandInteractionOption,
   User,
-  UserContextMenuInteraction,
+  UserContextMenuCommandInteraction,
 } from 'discord.js'
 import { SleetCommand } from '../base/SleetCommand.js'
 import { RunnableEventHandlers, SleetContext } from '../events.js'
@@ -24,18 +24,18 @@ export type InteractionMember = NonNullable<
 
 export interface UserCommandHandlers
   extends RunnableEventHandlers<
-    UserContextMenuInteraction,
+    UserContextMenuCommandInteraction,
     [User, InteractionMember]
   > {
   run: (
-    interaction: UserContextMenuInteraction,
+    interaction: UserContextMenuCommandInteraction,
     user: User,
     member: InteractionMember,
   ) => Awaitable<unknown>
 }
 
 export class SleetUserCommand extends SleetCommand<
-  UserContextMenuInteraction,
+  UserContextMenuCommandInteraction,
   [User, InteractionMember],
   UserCommandHandlers
 > {
@@ -49,7 +49,7 @@ export class SleetUserCommand extends SleetCommand<
 
   override run(
     context: SleetContext,
-    interaction: UserContextMenuInteraction,
+    interaction: UserContextMenuCommandInteraction,
   ): Awaitable<unknown> {
     const { targetUser, targetMember } = interaction
     return super.run(context, interaction, targetUser, targetMember)

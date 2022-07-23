@@ -1,11 +1,11 @@
 {
   "name": "sleetcord",
-  "version": "0.0.4",
+  "version": "0.1.0",
   "description": "An interaction-first command library for Discord.js",
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
-    "main": "node --loader ts-node/esm -r dotenv/config src/test/index.ts | pino-pretty",
+    "main": "node --loader ts-node/esm -r dotenv/config test/index.ts | pino-pretty",
     "build": "tsc --build",
     "lint": "eslint src/ && prettier --check src/ && tsc --noEmit",
     "lint:fix": "eslint src/ --fix && prettier --write src/ && tsc --noEmit",
@@ -14,26 +14,26 @@
   "author": "AtoraSuunva",
   "license": "MIT",
   "dependencies": {
-    "@discordjs/rest": "^0.5.0",
-    "discord-api-types": "^0.36.1",
-    "discord.js": "^13.8.1",
+    "@discordjs/rest": "^1.0.0",
+    "discord-api-types": "^0.36.3",
+    "discord.js": "^14.0.3",
     "env-var": "^7.1.1",
-    "pino": "^8.1.0",
-    "undici": "^5.6.1"
+    "pino": "^8.3.0",
+    "undici": "^5.8.0"
   },
   "devDependencies": {
-    "@swc/core": "^1.2.210",
-    "@types/node": "^18.0.3",
-    "@typescript-eslint/eslint-plugin": "^5.30.5",
-    "@typescript-eslint/parser": "^5.30.5",
+    "@swc/core": "^1.2.218",
+    "@types/node": "^18.0.6",
+    "@typescript-eslint/eslint-plugin": "^5.30.7",
+    "@typescript-eslint/parser": "^5.30.7",
     "dotenv": "^16.0.1",
-    "eslint": "^8.19.0",
+    "eslint": "^8.20.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-import": "^2.26.0",
     "pino-pretty": "^8.1.0",
     "prettier": "2.7.1",
     "rimraf": "^3.0.2",
-    "ts-node": "^10.8.2",
+    "ts-node": "^10.9.1",
     "typescript": "^4.7.4"
   }
 }

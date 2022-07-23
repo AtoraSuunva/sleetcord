@@ -1,7 +1,6 @@
 import { ApplicationCommandOptionType } from 'discord-api-types/v10'
-import { CommandInteraction } from 'discord.js'
-import { PreRunError } from '../../errors/PreRunError.js'
-import { SleetSlashCommand } from '../../modules/slash/SleetSlashCommand.js'
+import { ChatInputCommandInteraction } from 'discord.js'
+import { SleetSlashCommand, PreRunError } from '../../src/index.js'
 
 /**
  * Generate a minesweeper grid that you can play using spoilers
@@ -42,7 +41,7 @@ export const minesweeper = new SleetSlashCommand(
 )
 
 /** Minesweeper time! */
-function runMinesweeper(interaction: CommandInteraction) {
+function runMinesweeper(interaction: ChatInputCommandInteraction) {
   const mines = interaction.options.getInteger('mines') ?? 0
   const width = interaction.options.getInteger('width') ?? 7
   const height = interaction.options.getInteger('height') ?? 7
@@ -167,7 +166,7 @@ type Grid = (number | string)[][]
 function genGrid(height: number, width: number): Grid {
   const grid: number[][] = []
   while (height--) {
-    const row = []
+    const row: number[] = []
     let w = width
     while (w--) row.push(0)
     grid.push(row)

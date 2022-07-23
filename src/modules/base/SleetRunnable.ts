@@ -1,4 +1,4 @@
-import { Awaitable, Interaction } from 'discord.js'
+import { Awaitable, CommandInteraction } from 'discord.js'
 import { RunnableEventHandlers, SleetContext } from '../events.js'
 import { SleetModule } from './SleetModule.js'
 
@@ -17,7 +17,7 @@ export type NamedBody = {
  */
 export class SleetRunnable<
   B extends NamedBody,
-  I extends Interaction = Interaction,
+  I extends CommandInteraction = CommandInteraction,
   A extends unknown[] = [],
   Handlers extends RunnableEventHandlers<I, A> = RunnableEventHandlers<I, A>,
 > extends SleetModule<Handlers> {
