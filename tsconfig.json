@@ -7,9 +7,9 @@
   },
   "compilerOptions": {
     /* Projects */
-    "composite": true,
     "rootDir": "./src",
     "outDir": "./dist",
+    "incremental": true,
     "tsBuildInfoFile": ".tsbuildinfo",
 
     /* Language and Environment */
