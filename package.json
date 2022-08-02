@@ -1,19 +1,20 @@
 {
   "name": "sleetcord",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "An interaction-first command library for Discord.js",
   "license": "MIT",
   "author": "AtoraSuunva",
   "type": "module",
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "require": "./dist/index.cjs",
       "import": "./dist/index.mjs"
     }
   },
+  "types": "./dist/index.d.ts",
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
   "scripts": {
     "build": "unbuild",
     "lint": "eslint src/ && prettier --check src/ && tsc --noEmit",
