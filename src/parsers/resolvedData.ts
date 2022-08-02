@@ -393,8 +393,18 @@ export async function getRole(
 export async function getRoles(
   interaction: ChatInputCommandInteraction,
   name: string,
+  required: true,
+): Promise<Role[]>
+export async function getRoles(
+  interaction: ChatInputCommandInteraction,
+  name: string,
+  required?: boolean,
+): Promise<Role[] | null>
+export async function getRoles(
+  interaction: ChatInputCommandInteraction,
+  name: string,
   required = false,
-): Promise<Role[]> {
+): Promise<Role[] | null> {
   if (!interaction.inGuild()) {
     throw new ResolveDataError(
       'Tried to get roles, but interaction was not in a guild',
@@ -403,7 +413,7 @@ export async function getRoles(
 
   const guild = await getGuild(interaction, true)
   const string = interaction.options.getString(name, required)
-  if (string === null) return []
+  if (string === null) return null
 
   const rolePromises =
     interaction.options.resolved?.roles
@@ -452,9 +462,10 @@ export async function getMentionables(
   const mentions = interaction.options.getString(name, required)
   if (!mentions) return null
 
-  const users = (await getUsers(interaction, name)) ?? []
-  const members = (await getMembers(interaction, name)) ?? []
-  const roles = guild !== null ? await getRoles(interaction, name) : []
+  const users = (await getUsers(interaction, name, required)) ?? []
+  const members = (await getMembers(interaction, name, required)) ?? []
+  const roles =
+    guild !== null ? (await getRoles(interaction, name, required)) ?? [] : []
 
   const finalUsers = users.filter((u) => members.every((m) => m.id !== u.id))
 
