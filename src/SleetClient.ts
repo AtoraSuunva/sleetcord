@@ -1,18 +1,19 @@
 import { pino, Logger } from 'pino'
 import {
+  ApplicationCommand,
   ApplicationCommandType,
   AutocompleteInteraction,
   Awaitable,
   ChatInputCommandInteraction,
   Client,
   ClientOptions,
+  Collection,
   CommandInteraction,
   Interaction,
   InteractionType,
   MessageContextMenuCommandInteraction,
   UserContextMenuCommandInteraction,
 } from 'discord.js'
-import { SleetRest } from './SleetRest.js'
 import { PreRunError } from './errors/PreRunError.js'
 import { SleetCommand } from './modules/base/SleetCommand.js'
 import { SleetModule } from './modules/base/SleetModule.js'
@@ -77,7 +78,6 @@ export class SleetClient extends EventEmitter {
   #logger: Logger
   options: SleetOptions
   client: Client
-  rest: SleetRest
   modules = new Map<string, SleetModule>()
   registeredEvents = new Map<SleetModule, SleetModuleEventRegistration[]>()
   context: SleetContext
@@ -89,7 +89,6 @@ export class SleetClient extends EventEmitter {
     this.#logger.debug('Creating new SleetClient')
     this.options = options.sleet
     this.client = new Client(options.client)
-    this.rest = new SleetRest(options.sleet.token, options.sleet.applicationId)
     this.context = {
       sleet: this,
       client: this.client,
@@ -199,7 +198,9 @@ export class SleetClient extends EventEmitter {
    * @param options Options for the PUT
    * @returns The response from Discord
    */
-  async putCommands(options: PutCommandOptions = {}): Promise<unknown> {
+  async putCommands(
+    options: PutCommandOptions = {},
+  ): Promise<Collection<string, ApplicationCommand>> {
     const { commands, guildId } = options
     const toAdd =
       commands || Array.from(this.modules.values()).filter(isSleetCommand)
@@ -210,10 +211,15 @@ export class SleetClient extends EventEmitter {
     )
     const body = toAdd.map((command) => command.body)
 
+    if (!this.client.application) {
+      throw new Error('Cannot PUT commands without an application')
+    }
+    // if because .set(body, undefined) gives a typescript error
+    // .set uses overloads instead of optional params
     if (guildId) {
-      return this.rest.putGuildCommands(body, guildId)
+      return this.client.application.commands.set(body, guildId)
     } else {
-      return this.rest.putCommands(body)
+      return this.client.application.commands.set(body)
     }
   }
 
