@@ -1,5 +1,4 @@
-import { Logger } from 'pino'
-import { baseLogger } from './utils/logger.js'
+import { pino, Logger } from 'pino'
 import {
   ApplicationCommandType,
   AutocompleteInteraction,
@@ -44,6 +43,7 @@ interface SleetOptions {
 interface SleetClientOptions {
   sleet: SleetOptions
   client: ClientOptions
+  logger?: Parameters<typeof pino>[number]
 }
 
 interface PutCommandOptions {
@@ -73,7 +73,8 @@ function isSleetCommand(value: unknown): value is SleetCommand {
  * interactions to commands and registering them
  */
 export class SleetClient extends EventEmitter {
-  #logger: Logger = baseLogger.child({ name: 'SleetClient' })
+  baseLogger: Logger
+  #logger: Logger
   options: SleetOptions
   client: Client
   rest: SleetRest
@@ -83,6 +84,8 @@ export class SleetClient extends EventEmitter {
 
   constructor(options: SleetClientOptions) {
     super()
+    this.baseLogger = pino(options.logger)
+    this.#logger = this.baseLogger.child({ name: 'SleetClient' })
     this.#logger.debug('Creating new SleetClient')
     this.options = options.sleet
     this.client = new Client(options.client)
@@ -350,6 +353,16 @@ export class SleetClient extends EventEmitter {
 }
 
 function conditionalReply(interaction: CommandInteraction, content: string) {
+  // TODO: if you do
+  // const defer = interaction.deferReply()
+  // [error here!!]
+  // await defer
+  // The interaction can be in the middle of being deferred _but_ d.js doesn't mark it as deferred
+  // until the request is done (response from discord),
+  // leading to deferred = false -> reply attempt -> race condition -> error already replied
+  // Possible solutions:
+  //  - Listen to apiRequest/apiResponse, mark as "awaiting defer"/"deferred"
+  //  - try catch wait
   if (interaction.deferred) {
     interaction.editReply(content)
   } else {
