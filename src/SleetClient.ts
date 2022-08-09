@@ -88,8 +88,15 @@ export class SleetClient extends EventEmitter {
     this.#logger = this.baseLogger.child({ name: 'SleetClient' })
     this.#logger.debug('Creating new SleetClient')
     this.options = options.sleet
+
     this.client = new Client(options.client)
-    this.rest = new SleetRest(options.sleet.token, options.sleet.applicationId)
+
+    this.rest = new SleetRest({
+      token: options.sleet.token,
+      applicationId: options.sleet.applicationId,
+      logger: this.baseLogger,
+    })
+
     this.context = {
       sleet: this,
       client: this.client,

@@ -4,14 +4,22 @@ import {
   Routes,
 } from 'discord-api-types/v10'
 import { Logger } from 'pino'
-import { baseLogger } from './utils/logger.js'
+
+export interface SleetRestOptions {
+  token: string
+  applicationId: string
+  logger: Logger
+}
 
 export class SleetRest {
-  #logger: Logger = baseLogger.child({ name: 'SleetRest' })
+  applicationId: string
+  #logger: Logger
   rest: REST
 
-  constructor(token: string, public applicationId: string) {
+  constructor({ token, applicationId, logger }: SleetRestOptions) {
     this.rest = new REST({ version: '10' }).setToken(token)
+    this.applicationId = applicationId
+    this.#logger = logger.child({ name: 'SleetRest' })
   }
 
   /**
