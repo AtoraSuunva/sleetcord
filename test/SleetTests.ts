@@ -193,6 +193,12 @@ const autocompleteVegetable = new SleetSlashSubcommand(
   },
 )
 
+// VALID
+// command
+// |
+// |__ subcommand
+// |
+// |__ subcommand
 export const autocompleteFood = new SleetSlashCommand({
   name: 'food',
   description: 'Autocomplete to fruits and vegetables',
@@ -319,6 +325,16 @@ export const userGroup = new SleetSlashCommandGroup(
   },
 )
 
+// VALID
+// command
+// |
+// |__ subcommand-group
+//     |
+//     |__ subcommand
+// |
+// |__ subcommand-group
+//     |
+//     |__ subcommand
 export const userPermissionsCommand = new SleetSlashCommand(
   {
     name: 'permissions',

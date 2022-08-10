@@ -29,8 +29,7 @@ type BaseCommandBody = Omit<
 interface SleetSlashCommandBody extends BaseCommandBody {
   options?:
     | (APIApplicationCommandOption | SleetAutocompleteableOption)[]
-    | SleetSlashSubcommand[]
-    | SleetSlashCommandGroup[]
+    | (SleetSlashSubcommand | SleetSlashCommandGroup)[]
 }
 
 interface SleetSlashCommandBodyJSON
@@ -45,7 +44,7 @@ interface SleetSlashCommandBodyAutocompleteable
 
 interface SleetSlashCommandBodyWithSubcommands
   extends Omit<SleetSlashCommandBody, 'options'> {
-  options?: SleetSlashSubcommand[] | SleetSlashCommandGroup[]
+  options?: (SleetSlashSubcommand | SleetSlashCommandGroup)[]
 }
 
 interface ParsedSlashCommandOptions {
