@@ -6,7 +6,9 @@ Sleetcord is an interaction "router" and set of helpers to make building a Disco
 
 Sleetcord aims to act more like a helpful "layer" between you and Discord structures, without trying to impose any kind of file structure "magic" or requirements
 
-**NOTE:** Sleetcord is still currently a WIP, it's usable but might be missing features or have odd bugs or edge cases
+> **NOTE:** ⚠️ Sleetcord is still currently a WIP, it's usable but might be missing features or have odd bugs or edge cases
+
+> ⚠️ While sleetcord is publically available, documentation is (and likely will always be) lacking. You are free to use it and submit requests, but this is mainly for my own personal use.
 
 ## Usage
 
@@ -85,8 +87,5 @@ sleetClient.login()
 
 - More helpers?
   - Probably just based on what common things I need later on, that are very common or core to sleet
-
-- A way to lock commands to just 1+ guild?
-  - guilds: ['213', '213']...
 
 - Also better docs at some point?
