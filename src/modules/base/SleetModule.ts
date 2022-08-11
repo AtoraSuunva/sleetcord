@@ -36,7 +36,7 @@ export class SleetModule<
    * @param options The options for this module
    * @param handlers Event handlers for Sleet to register
    */
-  constructor(public options: SleetModuleOptions, public handlers: Handlers) {
+  constructor(options: SleetModuleOptions, public handlers: Handlers) {
     this.name = options.name
   }
 }

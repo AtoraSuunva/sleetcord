@@ -8,13 +8,16 @@ import {
   User,
   UserContextMenuCommandInteraction,
 } from 'discord.js'
-import { SleetCommand } from '../base/SleetCommand.js'
+import { SleetCommand, SleetCommandExtras } from '../base/SleetCommand.js'
 import { RunnableEventHandlers, SleetContext } from '../events.js'
 
-type UserApplicationCommandJSONBody = Omit<
+type BaseUserCommandBody = Omit<
   RESTPostAPIContextMenuApplicationCommandsJSONBody,
-  'type'
-> & {
+  'type' | keyof SleetCommandExtras
+> &
+  SleetCommandExtras
+
+interface SleetUserCommandBody extends BaseUserCommandBody {
   type?: ApplicationCommandType.User
 }
 
@@ -39,12 +42,9 @@ export class SleetUserCommand extends SleetCommand<
   [User, InteractionMember],
   UserCommandHandlers
 > {
-  constructor(
-    body: UserApplicationCommandJSONBody,
-    handlers: UserCommandHandlers,
-  ) {
+  constructor(body: SleetUserCommandBody, handlers: UserCommandHandlers) {
     body.type = ApplicationCommandType.User
-    super(body, handlers)
+    super(body as RESTPostAPIContextMenuApplicationCommandsJSONBody, handlers)
   }
 
   override run(

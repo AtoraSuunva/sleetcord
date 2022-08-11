@@ -24,7 +24,20 @@ export type SleetCommandExtras = {
     | PermissionResolvable[]
     | PermissionsAsString
     | null
+
+  /**
+   * Locks a command to only be **registered** in a guild if the guild ID is specified.
+   *
+   * Note that this does **nothing at runtime**, it only prevents `SleetClient#putCommands` from registering it globally or in an unspecified guild.
+   *
+   * It's still entirely possible to forcefully register a command outside of a specified guild by using `overrideGuildCheck` or a manual API call, if you want/need runtime checks, do them yourself.
+   *
+   * No specified option means the command is available in all guilds. An empty array means the command is not available anywhere unless forcefully registered
+   */
+  registerOnlyInGuilds?: string[]
 }
+export type SleetCommandBody = RESTPostAPIApplicationCommandsJSONBody
+export type SleetCommandExtendedBody = SleetCommandBody & SleetCommandExtras
 
 /**
  * A command usable by the Sleet client. This one handles any generic "command" that comes in,
@@ -47,14 +60,21 @@ export class SleetCommand<
   A,
   Handlers
 > {
-  constructor(
-    public override body: RESTPostAPIApplicationCommandsJSONBody,
-    handlers: Handlers,
-  ) {
+  public registerOnlyInGuilds?: string[]
+
+  constructor(body: SleetCommandBody, handlers: Handlers)
+  constructor(body: SleetCommandExtendedBody, handlers: Handlers) {
+    const { default_member_permissions, registerOnlyInGuilds } = body
+
     body.default_member_permissions = permissionsToStringBitfield(
-      body.default_member_permissions ?? null,
+      default_member_permissions ?? null,
     )
+    delete body.registerOnlyInGuilds
 
     super(body, handlers)
+
+    if (registerOnlyInGuilds) {
+      this.registerOnlyInGuilds = registerOnlyInGuilds
+    }
   }
 }

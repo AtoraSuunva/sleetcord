@@ -51,6 +51,10 @@ interface PutCommandOptions {
   commands?: SleetCommand[]
   /** The guild to PUT to, if any */
   guildId?: string
+  /** Override the `guilds` ID lock on commands. Warning, this may publish commands you don't want published */
+  overrideGuildCheck?: boolean
+  /** Registers "guild-restricted" commands (via `registerOnlyInGuilds`) in the specified guilds. Note, this will do several HTTP requests at once, based on the number of guilds specified (once per each guild ID) */
+  registerGuildRestrictedCommands?: boolean
 }
 
 type SleetModuleEventKey = keyof SleetModuleEventHandlers
@@ -207,21 +211,64 @@ export class SleetClient extends EventEmitter {
    * @returns The response from Discord
    */
   async putCommands(options: PutCommandOptions = {}): Promise<unknown> {
-    const { commands, guildId } = options
-    const toAdd =
+    const {
+      commands,
+      guildId,
+      overrideGuildCheck = false,
+      registerGuildRestrictedCommands,
+    } = options
+
+    const sleetCommands =
       commands || Array.from(this.modules.values()).filter(isSleetCommand)
 
+    let toAdd: SleetCommand[]
+
+    if (overrideGuildCheck) {
+      toAdd = sleetCommands
+    } else if (guildId) {
+      toAdd = sleetCommands.filter(
+        (c) =>
+          !c.registerOnlyInGuilds || c.registerOnlyInGuilds.includes(guildId),
+      )
+    } else {
+      toAdd = sleetCommands.filter((c) => !c.registerOnlyInGuilds)
+    }
+
+    const promises: Promise<unknown>[] = []
+
+    if (registerGuildRestrictedCommands) {
+      // Map<guildId, commands>
+      const toRegister = new Map<string, SleetCommand[]>()
+
+      for (const command of sleetCommands) {
+        if (!command.registerOnlyInGuilds) continue
+
+        for (const guildId of command.registerOnlyInGuilds) {
+          const commands = toRegister.get(guildId) ?? []
+          commands.push(command)
+          toRegister.set(guildId, commands)
+        }
+      }
+
+      for (const [guildId, commands] of toRegister) {
+        promises.push(this.putCommands({ commands, guildId }))
+      }
+    }
+
     this.#logger.debug(
-      'Putting commands to api: %o',
+      'Putting commands (%s) to api: %o',
+      guildId ? `in ${guildId}` : 'globally',
       toAdd.map((c) => c.name),
     )
     const body = toAdd.map((command) => command.body)
 
     if (guildId) {
-      return this.rest.putGuildCommands(body, guildId)
+      promises.push(this.rest.putGuildCommands(body, guildId))
     } else {
-      return this.rest.putCommands(body)
+      promises.push(this.rest.putCommands(body))
     }
+
+    return Promise.all(promises)
   }
 
   /**

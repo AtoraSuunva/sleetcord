@@ -108,6 +108,7 @@ export class SleetSlashCommand
   ) {
     const { json, subcommands, groups, autocomplete } =
       parseSlashCommandOptions(body.options)
+    // TODO: probably copy this instead of modifying it in-place. Same issue of knowing which properties to copy as removing the cast
     body.type = ApplicationCommandType.ChatInput
     body.options = json
 
@@ -125,6 +126,8 @@ export class SleetSlashCommand
     if (!handlers.run) handlers.run = noop
 
     super(
+      // TODO: cast can be avoided by copying everything into a new object of the correct type
+      // is it worth the effort of maintaining which properties to copy?
       body as RESTPostAPIChatInputApplicationCommandsJSONBody,
       handlers as SlashEventHandlers,
     )

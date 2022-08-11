@@ -31,6 +31,12 @@ import { count_members } from './util/count_members.js'
 import { restore_embeds } from './util/restore_embeds.js'
 import { GatewayIntentBits } from 'discord.js'
 import { unban } from './mod/unban.js'
+import { blacklist } from './command-nesting-mix.js'
+import {
+  secretMessageCommand,
+  secretSlashCommand,
+  secretUserCommand,
+} from './guild-locked.js'
 
 const TOKEN = env.get('TOKEN').required().asString()
 const APPLICATION_ID = env.get('APPLICATION_ID').required().asString()
@@ -90,10 +96,17 @@ sleetClient.addModules([
   messageCommand,
   userCommand,
   userPermissionsCommand,
+  blacklist,
+
+  secretSlashCommand,
+  secretMessageCommand,
+  secretUserCommand,
 ])
 
 // const TEST_GUILD_ID = env.get('TEST_GUILD_ID').required().asString()
 // sleetClient.putCommands({ guildId: TEST_GUILD_ID, commands: [] })
 
-sleetClient.putCommands()
+sleetClient.putCommands({
+  registerGuildRestrictedCommands: true,
+})
 sleetClient.login()

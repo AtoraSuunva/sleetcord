@@ -6,13 +6,13 @@ import { Awaitable, MessageContextMenuCommandInteraction } from 'discord.js'
 import { SleetCommand, SleetCommandExtras } from '../base/SleetCommand.js'
 import { RunnableEventHandlers, SleetContext } from '../events.js'
 
-type BaseCommandBody = Omit<
+type BaseMessageCommandBody = Omit<
   RESTPostAPIContextMenuApplicationCommandsJSONBody,
   'type' | keyof SleetCommandExtras
 > &
   SleetCommandExtras
 
-interface SleetMessageCommandBody extends BaseCommandBody {
+interface SleetMessageCommandBody extends BaseMessageCommandBody {
   type?: ApplicationCommandType.Message
 }
 
