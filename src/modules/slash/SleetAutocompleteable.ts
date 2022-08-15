@@ -13,11 +13,15 @@ import { SleetSlashCommandGroup } from './SleetSlashCommandGroup.js'
 
 export type AutocompleteableType = string | number
 
+export interface AutocompleteArguments<T> {
+  context: SleetContext
+  interaction: AutocompleteInteraction
+  name: string
+  value: T
+}
+
 export type AutocompleteHandler<T extends AutocompleteableType> = (
-  this: SleetContext,
-  interaction: AutocompleteInteraction,
-  name: string,
-  value: T,
+  args: AutocompleteArguments<T>,
 ) => Awaitable<APIApplicationCommandOptionChoice<T>[]>
 
 type APIApplicationAutocompleteableOption =
@@ -135,19 +139,19 @@ export async function autocomplete(
     // So we need to do this weird redundant check for typescript to be happy
     // without us casting to 'any'
     if (isStringType) {
-      response = await autocompleteHandler.autocomplete.call(
+      response = await autocompleteHandler.autocomplete.call(context, {
         context,
         interaction,
         name,
         value,
-      )
+      })
     } else if (isNumberType) {
-      response = await autocompleteHandler.autocomplete.call(
+      response = await autocompleteHandler.autocomplete.call(context, {
         context,
         interaction,
         name,
         value,
-      )
+      })
     }
 
     if (response) return interaction.respond(response)

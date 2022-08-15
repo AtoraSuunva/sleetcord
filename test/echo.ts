@@ -6,11 +6,7 @@ import {
   AutocompleteHandler,
 } from '../src/index.js'
 
-const messageAutocomplete: AutocompleteHandler<string> = (
-  _interaction,
-  _name,
-  value,
-) => [
+const messageAutocomplete: AutocompleteHandler<string> = ({ value }) => [
   {
     name: value,
     value: `${value}!`,

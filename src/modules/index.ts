@@ -7,6 +7,7 @@ export { SleetSlashCommand } from './slash/SleetSlashCommand.js'
 export { SleetSlashSubcommand } from './slash/SleetSlashSubcommand.js'
 export type {
   AutocompleteHandler,
+  AutocompleteArguments,
   AutocompleteableType,
 } from './slash/SleetAutocompleteable.js'
 export { SleetSlashCommandGroup } from './slash/SleetSlashCommandGroup.js'
