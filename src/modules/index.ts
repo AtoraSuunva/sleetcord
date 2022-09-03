@@ -11,4 +11,10 @@ export type {
   AutocompleteableType,
 } from './slash/SleetAutocompleteable.js'
 export { SleetSlashCommandGroup } from './slash/SleetSlashCommandGroup.js'
-export type { SleetContext } from './events.js'
+export type {
+  SleetContext,
+  SleetModuleEventHandlers,
+  SlashEventHandlers,
+  ApplicationInteraction,
+  SleetEvent,
+} from './events.js'
