@@ -3,14 +3,10 @@ import {
   ApplicationCommandType,
   AutocompleteInteraction,
   Awaitable,
-  ChatInputCommandInteraction,
   Client,
   ClientOptions,
-  CommandInteraction,
   Interaction,
   InteractionType,
-  MessageContextMenuCommandInteraction,
-  UserContextMenuCommandInteraction,
 } from 'discord.js'
 import { SleetRest } from './SleetRest.js'
 import { PreRunError } from './errors/PreRunError.js'
@@ -20,6 +16,7 @@ import { SleetSlashCommand } from './modules/slash/SleetSlashCommand.js'
 import { SleetUserCommand } from './modules/context-menu/SleetUserCommand.js'
 import { SleetMessageCommand } from './modules/context-menu/SleetMessageCommand.js'
 import {
+  ApplicationInteraction,
   isDiscordEvent,
   isSleetEvent,
   isSpecialEvent,
@@ -62,11 +59,6 @@ type SleetModuleEventRegistration = [
   SleetModuleEventKey,
   SleetModuleEventHandlers[SleetModuleEventKey],
 ]
-
-type ApplicationInteraction =
-  | ChatInputCommandInteraction
-  | MessageContextMenuCommandInteraction
-  | UserContextMenuCommandInteraction
 
 function isSleetCommand(value: unknown): value is SleetCommand {
   return value instanceof SleetCommand
@@ -341,7 +333,7 @@ export class SleetClient extends EventEmitter {
         )
       }
     } catch (e: unknown) {
-      this.#handleInteractionError(interaction, module, e)
+      this.#handleApplicationInteractionError(interaction, module, e)
     }
   }
 
@@ -367,6 +359,7 @@ export class SleetClient extends EventEmitter {
     module: SleetModule,
     error: unknown,
   ) {
+    this.emit('autocompleteInteractionError', module, interaction, error)
     this.#logger.error(
       error,
       'Error handling autocomplete for module "%s" on interaction %o',
@@ -385,8 +378,8 @@ export class SleetClient extends EventEmitter {
     }
   }
 
-  #handleInteractionError(
-    interaction: CommandInteraction,
+  #handleApplicationInteractionError(
+    interaction: ApplicationInteraction,
     module: SleetModule,
     error: unknown,
   ) {
@@ -394,6 +387,7 @@ export class SleetClient extends EventEmitter {
       const content = `:warning: ${error.message}`
       conditionalReply(interaction, content)
     } else {
+      this.emit('applicationInteractionError', module, interaction, error)
       this.#logger.error(
         error,
         'Error running module "%s" on interaction %o',
@@ -406,7 +400,10 @@ export class SleetClient extends EventEmitter {
   }
 }
 
-function conditionalReply(interaction: CommandInteraction, content: string) {
+async function conditionalReply(
+  interaction: ApplicationInteraction,
+  content: string,
+) {
   // TODO: if you do
   // const defer = interaction.deferReply()
   // [error here!!]
@@ -417,8 +414,16 @@ function conditionalReply(interaction: CommandInteraction, content: string) {
   // Possible solutions:
   //  - Listen to apiRequest/apiResponse, mark as "awaiting defer"/"deferred"
   //  - try catch wait
+
   if (interaction.deferred) {
-    interaction.editReply(content)
+    try {
+      await interaction.editReply(content)
+    } catch {
+      // Wait a second for the deferral
+      setTimeout(() => {
+        interaction.editReply(content)
+      }, 1000)
+    }
   } else {
     interaction.reply({
       content,

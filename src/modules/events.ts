@@ -7,9 +7,16 @@ import {
   ClientEvents,
   CommandInteraction,
   Events,
+  MessageContextMenuCommandInteraction,
+  UserContextMenuCommandInteraction,
 } from 'discord.js'
 import { SleetClient } from '../SleetClient.js'
 import { SleetModule } from './base/SleetModule.js'
+
+export type ApplicationInteraction =
+  | ChatInputCommandInteraction
+  | MessageContextMenuCommandInteraction
+  | UserContextMenuCommandInteraction
 
 export type SleetContext = {
   sleet: SleetClient
@@ -59,6 +66,8 @@ export const SleetEventsList: SleetEvent[] = [
   'unload',
   'loadModule',
   'unloadModule',
+  'autocompleteInteractionError',
+  'applicationInteractionError',
 ]
 
 /**
@@ -82,6 +91,18 @@ export interface SleetModuleEventHandlers extends Partial<ClientEventHandlers> {
   unload?: (this: SleetContext) => Awaitable<unknown>
   loadModule?: (this: SleetContext, module: SleetModule) => Awaitable<unknown>
   unloadModule?: (this: SleetContext, module: SleetModule) => Awaitable<unknown>
+  autocompleteInteractionError?: (
+    this: SleetContext,
+    module: SleetModule,
+    interaction: AutocompleteInteraction,
+    error: unknown,
+  ) => Awaitable<unknown>
+  applicationInteractionError?: (
+    this: SleetContext,
+    module: SleetModule,
+    interaction: ApplicationInteraction,
+    error: unknown,
+  ) => Awaitable<unknown>
 }
 
 export type SpecialEvent = Exclude<

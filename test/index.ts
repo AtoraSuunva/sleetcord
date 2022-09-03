@@ -103,9 +103,6 @@ sleetClient.addModules([
   secretUserCommand,
 ])
 
-// const TEST_GUILD_ID = env.get('TEST_GUILD_ID').required().asString()
-// sleetClient.putCommands({ guildId: TEST_GUILD_ID, commands: [] })
-
 sleetClient.putCommands({
   registerGuildRestrictedCommands: true,
 })
