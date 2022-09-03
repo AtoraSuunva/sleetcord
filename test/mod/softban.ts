@@ -7,7 +7,7 @@ import {
   User,
 } from 'discord.js'
 import {
-  botHasPermissions,
+  botHasPermissionsGuard,
   formatUser,
   getGuild,
   getUsers,
@@ -69,7 +69,7 @@ interface ActionResult {
 }
 
 async function runSoftban(interaction: ChatInputCommandInteraction) {
-  await botHasPermissions(interaction, ['BanMembers'])
+  await botHasPermissionsGuard(interaction, ['BanMembers'])
 
   const users = await getUsers(interaction, 'users', true)
   const deleteMessages = interaction.options.getInteger('delete_messages') ?? 1

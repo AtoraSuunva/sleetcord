@@ -3,8 +3,8 @@ import {
   autocompleteForStrings,
   getChannel,
   getMember,
-  hasPermissions,
-  inGuild,
+  hasPermissionsGuard,
+  inGuildGuard,
   PreRunError,
   SleetMessageCommand,
   SleetModule,
@@ -252,7 +252,7 @@ export const userGetCommand = new SleetSlashSubcommand(
       // and should respond to the interaction!!
 
       console.log('Running `/permissions user get` subcommand handler...')
-      hasPermissions(interaction, ['ManageRoles'])
+      hasPermissionsGuard(interaction, ['ManageRoles'])
       await interaction.deferReply()
 
       const member = await getMember(interaction, 'user', true)
@@ -296,7 +296,7 @@ export const userEditCommand = new SleetSlashSubcommand(
       // Then individual commands can also have their own permission checking
       // and should respond to the interaction!!
       console.log('Editing for user...')
-      hasPermissions(interaction, ['ManageRoles'])
+      hasPermissionsGuard(interaction, ['ManageRoles'])
       interaction.reply('Imagine this actually edited permissions')
     },
   },
@@ -339,14 +339,15 @@ export const userPermissionsCommand = new SleetSlashCommand(
   {
     name: 'permissions',
     description: 'Get or edit permissions for a user or role',
+    dm_permission: false,
     options: [userGroup],
   },
   {
     run: (interaction) => {
       // You can run any checks or do any logging that runs before any subcommand groups are executed here
       // Throw an error to prevent any further execution
-      // Here we call the `inGuild()` guard to stop executing this command if we aren't in a guild
-      inGuild(interaction)
+      // Here we call the `inGuildGuard()` guard to stop executing this command if we aren't in a guild
+      inGuildGuard(interaction)
       console.log('Running base `/permissions` command handler...')
     },
   },

@@ -5,11 +5,11 @@ import {
   User,
 } from 'discord.js'
 import {
-  botHasPermissions,
+  botHasPermissionsGuard,
   formatUser,
   getGuild,
   getUsers,
-  inGuild,
+  inGuildGuard,
   SleetSlashCommand,
 } from '../../src/index.js'
 
@@ -52,8 +52,8 @@ interface UnbanFail extends UnbanSucess {
 }
 
 async function runUnban(interaction: ChatInputCommandInteraction) {
-  inGuild(interaction)
-  await botHasPermissions(interaction, ['BanMembers'])
+  inGuildGuard(interaction)
+  await botHasPermissionsGuard(interaction, ['BanMembers'])
 
   const guild = await getGuild(interaction, true)
   const users = await getUsers(interaction, 'users', true)

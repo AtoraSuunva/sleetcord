@@ -6,7 +6,7 @@ import {
 import { PreRunError } from '../errors/PreRunError.js'
 import { getGuild } from '../index.js'
 
-export function hasPermissions(
+export function hasPermissionsGuard(
   interaction: Interaction,
   requiredPermissions: PermissionResolvable[],
 ) {
@@ -22,7 +22,7 @@ export function hasPermissions(
   }
 }
 
-export async function botHasPermissions(
+export async function botHasPermissionsGuard(
   interaction: CommandInteraction,
   requiredPermissions: PermissionResolvable[],
 ) {

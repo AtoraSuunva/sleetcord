@@ -1,3 +1,6 @@
-export { hasPermissions, botHasPermissions } from './hasPermissions.js'
-export { inGuild } from './inGuild.js'
-export { isOwner } from './isOwner.js'
+export {
+  hasPermissionsGuard,
+  botHasPermissionsGuard,
+} from './hasPermissions.js'
+export { inGuildGuard } from './inGuild.js'
+export { isOwnerGuard, isOwner } from './isOwner.js'

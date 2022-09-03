@@ -3,7 +3,7 @@ import { ChatInputCommandInteraction } from 'discord.js'
 import {
   SleetSlashCommand,
   getTextBasedChannel,
-  inGuild,
+  inGuildGuard,
 } from '../../src/index.js'
 
 export const send = new SleetSlashCommand(
@@ -32,7 +32,7 @@ export const send = new SleetSlashCommand(
 )
 
 async function runSend(interaction: ChatInputCommandInteraction) {
-  inGuild(interaction)
+  inGuildGuard(interaction)
 
   const message = interaction.options.getString('message', true)
   const channel =

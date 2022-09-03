@@ -10,10 +10,10 @@ import {
   User,
 } from 'discord.js'
 import {
-  botHasPermissions,
+  botHasPermissionsGuard,
   getMentionables,
   getTextBasedChannel,
-  inGuild,
+  inGuildGuard,
   Mentionable,
   PreRunError,
   SleetSlashCommand,
@@ -105,8 +105,8 @@ const MAX_FETCH_MESSAGES = 100
  * @param interaction The interaction to use
  */
 async function runPurge(interaction: ChatInputCommandInteraction) {
-  inGuild(interaction)
-  await botHasPermissions(interaction, [
+  inGuildGuard(interaction)
+  await botHasPermissionsGuard(interaction, [
     'ViewChannel',
     'ManageMessages',
     'ReadMessageHistory',

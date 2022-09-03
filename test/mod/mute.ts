@@ -3,7 +3,7 @@ import { ChatInputCommandInteraction, GuildMember, Role } from 'discord.js'
 import {
   formatUser,
   getMembers,
-  inGuild,
+  inGuildGuard,
   SleetSlashCommand,
 } from '../../src/index.js'
 
@@ -97,7 +97,7 @@ async function runMute(
   interaction: ChatInputCommandInteraction,
   action: MuteAction,
 ): Promise<unknown> {
-  inGuild(interaction)
+  inGuildGuard(interaction)
 
   const capitalAction = action === 'mute' ? 'Muted' : 'Unmuted'
 

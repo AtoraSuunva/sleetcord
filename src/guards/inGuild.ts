@@ -14,39 +14,39 @@ import { PreRunError } from '../errors/PreRunError.js'
 
 type InGuildCacheType = 'cached' | 'raw'
 
-export function inGuild(
+export function inGuildGuard(
   interaction: ButtonInteraction,
 ): asserts interaction is ButtonInteraction<InGuildCacheType>
-export function inGuild(
+export function inGuildGuard(
   interaction: SelectMenuInteraction,
 ): asserts interaction is SelectMenuInteraction<InGuildCacheType>
-export function inGuild(
+export function inGuildGuard(
   interaction: MessageComponentInteraction,
 ): asserts interaction is MessageComponentInteraction<InGuildCacheType>
 
-export function inGuild(
+export function inGuildGuard(
   interaction: MessageContextMenuCommandInteraction,
 ): asserts interaction is MessageContextMenuCommandInteraction<InGuildCacheType>
-export function inGuild(
+export function inGuildGuard(
   interaction: UserContextMenuCommandInteraction,
 ): asserts interaction is UserContextMenuCommandInteraction<InGuildCacheType>
-export function inGuild(
+export function inGuildGuard(
   interaction: ContextMenuCommandInteraction,
 ): asserts interaction is ContextMenuCommandInteraction<InGuildCacheType>
 
-export function inGuild(
+export function inGuildGuard(
   interaction: ChatInputCommandInteraction,
 ): asserts interaction is ChatInputCommandInteraction<InGuildCacheType>
 
-export function inGuild(
+export function inGuildGuard(
   interaction: CommandInteraction,
 ): asserts interaction is CommandInteraction<InGuildCacheType>
 
-export function inGuild(
+export function inGuildGuard(
   interaction: AutocompleteInteraction,
 ): asserts interaction is AutocompleteInteraction<InGuildCacheType>
 
-export function inGuild(
+export function inGuildGuard(
   interaction: BaseInteraction,
 ): asserts interaction is BaseInteraction<InGuildCacheType> {
   if (!interaction.inGuild()) {

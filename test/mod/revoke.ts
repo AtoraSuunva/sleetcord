@@ -8,11 +8,11 @@ import {
   ChatInputCommandInteraction,
 } from 'discord.js'
 import {
-  botHasPermissions,
+  botHasPermissionsGuard,
   formatUser,
   getGuild,
   getUser,
-  inGuild,
+  inGuildGuard,
   SleetSlashCommand,
 } from '../../src/index.js'
 
@@ -40,8 +40,8 @@ export const revoke = new SleetSlashCommand(
 async function runRevoke(
   interaction: ChatInputCommandInteraction,
 ): Promise<unknown> {
-  inGuild(interaction)
-  await botHasPermissions(interaction, ['ManageGuild'])
+  inGuildGuard(interaction)
+  await botHasPermissionsGuard(interaction, ['ManageGuild'])
 
   await interaction.deferReply()
 
