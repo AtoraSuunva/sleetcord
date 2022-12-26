@@ -339,7 +339,7 @@ export async function getTextBasedChannel(
   const channel = interaction.options.getChannel(name, required)
   if (channel === null) return null
 
-  if ('messages' in channel && channel.messages instanceof MessageManager) {
+  if ('messages' in channel && channel.messages instanceof MessageManager && 'send' in channel) {
     return channel
   }
 
