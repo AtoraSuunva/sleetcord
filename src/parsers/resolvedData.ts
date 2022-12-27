@@ -7,7 +7,6 @@ import {
   GuildBasedChannel,
   GuildMember,
   GuildTextBasedChannel,
-  MessageManager,
   Role,
   User,
 } from 'discord.js'
@@ -336,10 +335,17 @@ export async function getTextBasedChannel(
   }
 
   // TODO: check if this fetched cached threads correctly?
-  const channel = interaction.options.getChannel(name, required)
+  let channel = interaction.options.getChannel(name, required)
+
+  // We got APIInteractionDataResolvedChannel 😔
+  if (channel && !('guild' in channel)) {
+    const guild = await getGuild(interaction, true)
+    channel = await guild.channels.fetch(channel.id)
+  }
+
   if (channel === null) return null
 
-  if ('messages' in channel && channel.messages instanceof MessageManager && 'send' in channel) {
+  if ('messages' in channel && channel.isTextBased()) {
     return channel
   }
 
