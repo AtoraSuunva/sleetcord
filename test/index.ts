@@ -9,6 +9,7 @@ import {
   userCommand,
   userPermissionsCommand,
   readyLogModule,
+  parentModule,
 } from './SleetTests.js'
 import { echo } from './echo.js'
 import { mute, unmute } from './mod/mute.js'
@@ -20,13 +21,11 @@ import { info } from './misc/info.js'
 import { minesweeper } from './misc/minesweeper.js'
 import { stats } from './misc/stats.js'
 import { banlog } from './mod/banlog.js'
-import { lookup } from './mod/lookup.js'
 import { softban } from './mod/softban.js'
 import { quote } from './util/quote.js'
 import { unedit } from './mod/unedit.js'
 import { autoreply } from './secret/autoreply.js'
 import { send } from './secret/send.js'
-import { extract } from './util/extract.js'
 import { count_members } from './util/count_members.js'
 import { restore_embeds } from './util/restore_embeds.js'
 import { GatewayIntentBits } from 'discord.js'
@@ -67,7 +66,6 @@ sleetClient.addModules([
   purge,
   revoke,
   banlog,
-  lookup,
   unedit,
 
   // misc
@@ -79,7 +77,6 @@ sleetClient.addModules([
 
   // util
   quote,
-  extract,
   count_members,
   restore_embeds,
 
@@ -97,6 +94,7 @@ sleetClient.addModules([
   userCommand,
   userPermissionsCommand,
   blacklist,
+  parentModule,
 
   secretSlashCommand,
   secretMessageCommand,

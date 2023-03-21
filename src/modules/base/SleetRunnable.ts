@@ -21,8 +21,8 @@ export class SleetRunnable<
   A extends unknown[] = [],
   Handlers extends RunnableEventHandlers<I, A> = RunnableEventHandlers<I, A>,
 > extends SleetModule<Handlers> {
-  constructor(public body: B, handlers: Handlers) {
-    super(body, handlers)
+  constructor(public body: B, handlers: Handlers, modules: SleetModule[] = []) {
+    super(body, handlers, modules)
   }
 
   public run(

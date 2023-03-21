@@ -88,15 +88,48 @@ export interface SleetModuleEventHandlers extends Partial<ClientEventHandlers> {
    * from an external source
    */
   load?: (this: SleetContext) => Awaitable<unknown>
+  /**
+   * Event emitted when a SleetClient unloads this module, can be used to clean up
+   */
   unload?: (this: SleetContext) => Awaitable<unknown>
-  loadModule?: (this: SleetContext, module: SleetModule) => Awaitable<unknown>
-  unloadModule?: (this: SleetContext, module: SleetModule) => Awaitable<unknown>
+  /**
+   * Event emitted when a SleetClient loads any new module
+   * @param module The module that was loaded
+   * @param qualifiedName The qualified name of the module, for child modules it's `parent/child` (nesting deeper if necessary)
+   */
+  loadModule?: (
+    this: SleetContext,
+    module: SleetModule,
+    qualifiedName: string,
+  ) => Awaitable<unknown>
+  /**
+   * Event emitted when a SleetClient unloads any module
+   * @param module The module that was unloaded
+   * @param qualifiedName The qualified name of the module, for child modules it's `parent/child` (nesting deeper if necessary)
+   */
+  unloadModule?: (
+    this: SleetContext,
+    module: SleetModule,
+    qualifiedName: string,
+  ) => Awaitable<unknown>
+  /**
+   * Event emitted when an autocomplete interaction errors out
+   * @param module The module that was run
+   * @param interaction The interaction that was handled
+   * @param error The error that was thrown
+   */
   autocompleteInteractionError?: (
     this: SleetContext,
     module: SleetModule,
     interaction: AutocompleteInteraction,
     error: unknown,
   ) => Awaitable<unknown>
+  /**
+   * Event emitted when an application interaction errors out
+   * @param module The module that was run
+   * @param interaction The interaction that was handled
+   * @param error The error that was thrown
+   */
   applicationInteractionError?: (
     this: SleetContext,
     module: SleetModule,

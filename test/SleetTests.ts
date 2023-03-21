@@ -352,3 +352,32 @@ export const userPermissionsCommand = new SleetSlashCommand(
     },
   },
 )
+
+const childModule = new SleetModule(
+  {
+    name: 'Child Module',
+  },
+  {
+    messageCreate: (message) => {
+      console.log(
+        'wow the child module saw an event incredible',
+        message.content,
+      )
+    },
+  },
+)
+
+export const parentModule = new SleetModule(
+  {
+    name: 'Parent Module',
+  },
+  {
+    messageCreate: (message) => {
+      console.log(
+        'wow the parent module saw an event incredible',
+        message.content,
+      )
+    },
+  },
+  [childModule],
+)

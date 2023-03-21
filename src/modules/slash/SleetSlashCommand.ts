@@ -19,6 +19,7 @@ import {
 } from './SleetAutocompleteable.js'
 import { SleetSlashSubcommand } from './SleetSlashSubcommand.js'
 import { SleetSlashCommandGroup } from './SleetSlashCommandGroup.js'
+import { SleetModule } from '../index.js'
 
 type BaseCommandBody = Omit<
   RESTPostAPIChatInputApplicationCommandsJSONBody,
@@ -96,15 +97,18 @@ export class SleetSlashCommand
   constructor(
     body: SleetSlashCommandBodyWithSubcommands,
     handlers?: NoRunSlashEventHandlers,
+    modules?: SleetModule[],
   )
   constructor(
     body: SleetSlashCommandBodyAutocompleteable,
     handlers: SlashEventHandlers,
+    modules?: SleetModule[],
   )
   constructor(body: SleetSlashCommandBodyJSON, handlers: SlashEventHandlers)
   constructor(
     body: SleetSlashCommandBody,
     handlers: NoRunSlashEventHandlers = {},
+    modules: SleetModule[] = [],
   ) {
     const { json, subcommands, groups, autocomplete } =
       parseSlashCommandOptions(body.options)
@@ -130,6 +134,7 @@ export class SleetSlashCommand
       // is it worth the effort of maintaining which properties to copy?
       body as RESTPostAPIChatInputApplicationCommandsJSONBody,
       handlers as SlashEventHandlers,
+      modules,
     )
 
     this.subcommands = subcommands

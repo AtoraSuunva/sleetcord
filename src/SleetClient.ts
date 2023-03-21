@@ -104,21 +104,35 @@ export class SleetClient extends EventEmitter {
   /**
    * Adds a set of modules to Sleet, which will handle incoming events using their handlers.
    *
+   * Modules are keyed by their name, so identically named modules will overwrite each other
+   *
    * {@link SleetCommand} is a special module that can also handle incoming interactions, and will be routed automatically by Sleet.
+   *
+   * Will also recursively add any child modules, namespacing them (`parent/child`) to avoid conflicts between "different parent name, same child name" modules.
+   *
+   * You *can* add a child module individually, but you might end up with the same module loaded multiple
+   * because of Sleet's auto namespacing (if you load the child individually and the parent of that child).
+   *
    * @param modules The modules to add
    * @returns This SleetClient for chaining
    */
-  addModules(modules: SleetModule[]): this {
+  addModules(modules: SleetModule[], namePrefix = ''): this {
     this.#logger.debug(
       'Adding modules: %o',
-      modules.map((m) => m.name),
+      modules.map((m) => `${namePrefix}${m.name}`),
     )
 
     for (const module of modules) {
+      let name = `${namePrefix}${module.name}`
+
       this.#registerEventsFor(module)
-      this.modules.set(module.name, module)
+      this.modules.set(name, module)
       module.handlers.load?.call(this.context)
-      this.emit('loadModule', module)
+      this.emit('loadModule', module, name)
+
+      for (const child of module.modules) {
+        this.addModules([child], `${name}/`)
+      }
     }
 
     return this
@@ -127,20 +141,29 @@ export class SleetClient extends EventEmitter {
   /**
    * Removes a set of modules from Sleet, they will no longer handle incoming
    * events/interactions
+   *
+   * Will also remove any child modules. You *cannot* remove a child module individually
+   * (while keeping the parent) without also specifying the proper `namePrefix` (normally `parent/` to result in `parent/child`).
    * @param modules The modules to remove
    * @returns This SleetClient for chaining
    */
-  removeModules(modules: SleetModule[]): this {
+  removeModules(modules: SleetModule[], namePrefix = ''): this {
     this.#logger.debug(
       'Removing modules: %o',
-      modules.map((m) => m.name),
+      modules.map((m) => `${namePrefix}${m.name}`),
     )
 
     for (const module of modules) {
+      let name = `${namePrefix}${module.name}`
+
       this.#unregisterEventsFor(module)
-      this.modules.delete(module.name)
+      this.modules.delete(name)
       module.handlers.unload?.call(this.context)
-      this.emit('unloadModule', module)
+      this.emit('unloadModule', module, name)
+
+      for (const child of module.modules) {
+        this.addModules([child], `${name}/`)
+      }
     }
 
     return this
@@ -198,7 +221,7 @@ export class SleetClient extends EventEmitter {
    * This **WILL** overwrite ALL commands, either globally (guildId undefined)
    * or for a specific guild (guildId defined)
    *
-   * Use this **only** when you want to fully all sync commands
+   * Use this **only** when you want to fully sync all commands
    * @param options Options for the PUT
    * @returns The response from Discord
    */

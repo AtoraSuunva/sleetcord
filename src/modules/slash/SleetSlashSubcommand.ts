@@ -12,6 +12,7 @@ import {
   SleetAutocompleteable,
   SleetAutocompleteableOption,
 } from './SleetAutocompleteable.js'
+import { SleetModule } from '../index.js'
 
 export interface SleetSlashSubcommandBody
   extends Omit<APIApplicationCommandSubcommandOption, 'type' | 'options'> {
@@ -59,12 +60,16 @@ export class SleetSlashSubcommand
 {
   public autocompleteHandlers: Map<string, SleetAutocompleteableOption>
 
-  constructor(body: SleetSlashSubcommandBody, handlers: SlashEventHandlers) {
+  constructor(
+    body: SleetSlashSubcommandBody,
+    handlers: SlashEventHandlers,
+    modules: SleetModule[] = [],
+  ) {
     const { json, autocomplete } = parseSlashSubcommandOptions(body.options)
     body.type = ApplicationCommandOptionType.Subcommand
     body.options = json
 
-    super(body as APIApplicationCommandSubcommandOption, handlers)
+    super(body as APIApplicationCommandSubcommandOption, handlers, modules)
 
     this.autocompleteHandlers = autocomplete
   }

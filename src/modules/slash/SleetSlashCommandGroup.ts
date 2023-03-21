@@ -17,6 +17,7 @@ import {
   SleetAutocompleteableOption,
 } from './SleetAutocompleteable.js'
 import { SleetSlashSubcommand } from './SleetSlashSubcommand.js'
+import { SleetModule } from '../index.js'
 
 export interface SleetSlashCommandGroupBody
   extends Omit<APIApplicationCommandSubcommandGroupOption, 'options' | 'type'> {
@@ -64,6 +65,7 @@ export class SleetSlashCommandGroup
   constructor(
     body: SleetSlashCommandGroupBody,
     handlers: NoRunSlashEventHandlers = {},
+    modules: SleetModule[] = [],
   ) {
     const { json, subcommands } = parseSlashCommandGroupOptions(body)
 
@@ -74,6 +76,7 @@ export class SleetSlashCommandGroup
     super(
       body as APIApplicationCommandSubcommandGroupOption,
       handlers as SlashEventHandlers,
+      modules,
     )
 
     this.subcommands = subcommands

@@ -5,6 +5,7 @@ import {
 import { Awaitable, MessageContextMenuCommandInteraction } from 'discord.js'
 import { SleetCommand, SleetCommandExtras } from '../base/SleetCommand.js'
 import { RunnableEventHandlers, SleetContext } from '../events.js'
+import { SleetModule } from '../index.js'
 
 type BaseMessageCommandBody = Omit<
   RESTPostAPIContextMenuApplicationCommandsJSONBody,
@@ -35,9 +36,18 @@ export class SleetMessageCommand extends SleetCommand<
   [InteractionMessage],
   MessageCommandHandlers
 > {
-  constructor(body: SleetMessageCommandBody, handlers: MessageCommandHandlers) {
+  constructor(
+    body: SleetMessageCommandBody,
+    handlers: MessageCommandHandlers,
+    modules: SleetModule[] = [],
+  ) {
     body.type = ApplicationCommandType.Message
-    super(body as RESTPostAPIContextMenuApplicationCommandsJSONBody, handlers)
+
+    super(
+      body as RESTPostAPIContextMenuApplicationCommandsJSONBody,
+      handlers,
+      modules,
+    )
   }
 
   override run(
