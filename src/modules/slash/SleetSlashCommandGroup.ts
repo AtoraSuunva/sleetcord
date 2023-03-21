@@ -76,7 +76,7 @@ export class SleetSlashCommandGroup
     super(
       body as APIApplicationCommandSubcommandGroupOption,
       handlers as SlashEventHandlers,
-      modules,
+      [...subcommands.values(), ...modules],
     )
 
     this.subcommands = subcommands

@@ -10,6 +10,7 @@ import {
   userPermissionsCommand,
   readyLogModule,
   parentModule,
+  parentSlashCommand,
 } from './SleetTests.js'
 import { echo } from './echo.js'
 import { mute, unmute } from './mod/mute.js'
@@ -95,6 +96,7 @@ sleetClient.addModules([
   userPermissionsCommand,
   blacklist,
   parentModule,
+  parentSlashCommand,
 
   secretSlashCommand,
   secretMessageCommand,

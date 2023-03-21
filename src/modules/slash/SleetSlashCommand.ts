@@ -134,7 +134,7 @@ export class SleetSlashCommand
       // is it worth the effort of maintaining which properties to copy?
       body as RESTPostAPIChatInputApplicationCommandsJSONBody,
       handlers as SlashEventHandlers,
-      modules,
+      [...subcommands.values(), ...groups.values(), ...modules],
     )
 
     this.subcommands = subcommands

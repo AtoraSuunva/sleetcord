@@ -381,3 +381,44 @@ export const parentModule = new SleetModule(
   },
   [childModule],
 )
+
+const childSlashCommand = new SleetSlashSubcommand(
+  {
+    name: 'child',
+    description: 'Child slash command',
+  },
+  {
+    run: (interaction) => {
+      interaction.reply('Child slash command')
+    },
+    messageCreate: (message) => {
+      console.log('child slash msg:', message.content)
+    },
+  },
+)
+
+const childSlashCommandGroup = new SleetSlashCommandGroup(
+  {
+    name: 'group',
+    description: 'Child slash command group',
+    options: [childSlashCommand],
+  },
+  {
+    messageCreate: (message) => {
+      console.log('child slash group msg:', message.content)
+    },
+  },
+)
+
+export const parentSlashCommand = new SleetSlashCommand(
+  {
+    name: 'parent',
+    description: 'Parent slash command',
+    options: [childSlashCommandGroup],
+  },
+  {
+    messageCreate: (message) => {
+      console.log('parent slash msg:', message.content)
+    },
+  },
+)
