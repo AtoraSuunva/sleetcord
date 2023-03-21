@@ -123,7 +123,7 @@ export class SleetClient extends EventEmitter {
     )
 
     for (const module of modules) {
-      let name = `${namePrefix}${module.name}`
+      const name = `${namePrefix}${module.name}`
 
       this.#registerEventsFor(module)
       this.modules.set(name, module)
@@ -154,7 +154,7 @@ export class SleetClient extends EventEmitter {
     )
 
     for (const module of modules) {
-      let name = `${namePrefix}${module.name}`
+      const name = `${namePrefix}${module.name}`
 
       this.#unregisterEventsFor(module)
       this.modules.delete(name)

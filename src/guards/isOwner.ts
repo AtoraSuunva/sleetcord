@@ -20,7 +20,7 @@ export async function isOwnerGuard(interaction: Interaction) {
  * @returns If the user is the bot owner or team member
  */
 export async function isOwner(user: User): Promise<boolean> {
-  if (!!user.client.application?.owner) {
+  if (user.client.application?.owner) {
     await user.client.application?.fetch()
   }
 
