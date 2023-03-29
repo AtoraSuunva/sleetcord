@@ -75,6 +75,7 @@ export class SleetClient extends EventEmitter {
   client: Client
   rest: SleetRest
   modules = new Map<string, SleetModule>()
+  commands = new Map<string, SleetCommand>()
   registeredEvents = new Map<SleetModule, SleetModuleEventRegistration[]>()
   context: SleetContext
 
@@ -130,6 +131,18 @@ export class SleetClient extends EventEmitter {
       module.handlers.load?.call(this.context)
       this.emit('loadModule', module, name)
 
+      if (isSleetCommand(module)) {
+        // Don't prefix this, the name is required to resolve commands correctly
+        // You can't have overlapping command names anyway
+        // (Theoretically you could, but you can't reply twice to an interaction
+        // so it would create some pretty bad bugs)
+        if (this.commands.has(name)) {
+          this.#logger.warn('Overwriting existing command with name %s', name)
+        }
+
+        this.commands.set(name, module)
+      }
+
       for (const child of module.modules) {
         this.addModules([child], `${name}/`)
       }
@@ -161,6 +174,10 @@ export class SleetClient extends EventEmitter {
       module.handlers.unload?.call(this.context)
       this.emit('unloadModule', module, name)
 
+      if (isSleetCommand(module)) {
+        this.commands.delete(name)
+      }
+
       for (const child of module.modules) {
         this.addModules([child], `${name}/`)
       }
@@ -190,6 +207,12 @@ export class SleetClient extends EventEmitter {
     }
 
     this.registeredEvents.set(module, events)
+
+    if (module.modules) {
+      for (const child of module.modules) {
+        this.#registerEventsFor(child)
+      }
+    }
   }
 
   #unregisterEventsFor(module: SleetModule) {
@@ -213,6 +236,12 @@ export class SleetClient extends EventEmitter {
     }
 
     this.registeredEvents.delete(module)
+
+    if (module.modules) {
+      for (const child of module.modules) {
+        this.#unregisterEventsFor(child)
+      }
+    }
   }
 
   /**
@@ -233,8 +262,7 @@ export class SleetClient extends EventEmitter {
       registerGuildRestrictedCommands,
     } = options
 
-    const sleetCommands =
-      commands || Array.from(this.modules.values()).filter(isSleetCommand)
+    const sleetCommands = commands || Array.from(this.commands.values())
 
     let toAdd: SleetCommand[]
 
@@ -316,7 +344,7 @@ export class SleetClient extends EventEmitter {
   }
 
   async #handleApplicationInteraction(interaction: ApplicationInteraction) {
-    const module = this.modules.get(interaction.commandName)
+    const module = this.commands.get(interaction.commandName)
 
     if (!(module instanceof SleetCommand)) {
       this.#logger.error(
@@ -361,7 +389,7 @@ export class SleetClient extends EventEmitter {
   }
 
   async #handleAutocompleteInteraction(interaction: AutocompleteInteraction) {
-    const module = this.modules.get(interaction.commandName)
+    const module = this.commands.get(interaction.commandName)
 
     if (!module) {
       this.#logger.error('No module found for %s', interaction.commandName)
