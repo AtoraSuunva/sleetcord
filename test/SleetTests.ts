@@ -13,6 +13,7 @@ import {
   SleetSlashSubcommand,
   SleetUserCommand,
 } from '../src/index.js'
+import { runningModuleStore } from '../src/SleetClient.js'
 
 export const readyLogModule = new SleetModule(
   {
@@ -367,6 +368,19 @@ const childModule = new SleetModule(
   },
 )
 
+const moduleChildSlashCommand = new SleetSlashCommand(
+  {
+    name: 'child_slash_command',
+    description: 'Child slash command',
+  },
+  {
+    run: (interaction) => {
+      const module = runningModuleStore.getStore()
+      interaction.reply(`Child slash command running from ${module?.name}`)
+    },
+  },
+)
+
 export const parentModule = new SleetModule(
   {
     name: 'Parent Module',
@@ -379,7 +393,7 @@ export const parentModule = new SleetModule(
       )
     },
   },
-  [childModule],
+  [childModule, moduleChildSlashCommand],
 )
 
 const childSlashCommand = new SleetSlashSubcommand(

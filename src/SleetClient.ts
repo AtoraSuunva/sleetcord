@@ -24,6 +24,7 @@ import {
   SleetModuleEventHandlers,
 } from './modules/events.js'
 import EventEmitter from 'events'
+import { AsyncLocalStorage } from 'async_hooks'
 
 /**
  * Sleet-specific options
@@ -63,6 +64,9 @@ type SleetModuleEventRegistration = [
 function isSleetCommand(value: unknown): value is SleetCommand {
   return value instanceof SleetCommand
 }
+
+export const runningModuleStore: AsyncLocalStorage<SleetModule> =
+  new AsyncLocalStorage()
 
 /**
  * A command handler built around Discord.js, the SleetClient handles passing
@@ -124,28 +128,24 @@ export class SleetClient extends EventEmitter {
     )
 
     for (const module of modules) {
-      const name = `${namePrefix}${module.name}`
-
+      const prefixedName = `${namePrefix}${module.name}`
       this.#registerEventsFor(module)
-      this.modules.set(name, module)
-      module.handlers.load?.call(this.context)
-      this.emit('loadModule', module, name)
+      this.modules.set(prefixedName, module)
 
       if (isSleetCommand(module)) {
-        // Don't prefix this, the name is required to resolve commands correctly
-        // You can't have overlapping command names anyway
-        // (Theoretically you could, but you can't reply twice to an interaction
-        // so it would create some pretty bad bugs)
-        if (this.commands.has(name)) {
+        if (this.commands.has(module.name)) {
           this.#logger.warn('Overwriting existing command with name %s', name)
         }
 
-        this.commands.set(name, module)
+        this.commands.set(module.name, module)
       }
 
       for (const child of module.modules) {
-        this.addModules([child], `${name}/`)
+        this.addModules([child], `${prefixedName}/`)
       }
+
+      module.handlers.load?.call(this.context)
+      this.emit('loadModule', module)
     }
 
     return this
@@ -167,20 +167,20 @@ export class SleetClient extends EventEmitter {
     )
 
     for (const module of modules) {
-      const name = `${namePrefix}${module.name}`
-
+      const prefixedName = `${namePrefix}${module.name}`
       this.#unregisterEventsFor(module)
-      this.modules.delete(name)
-      module.handlers.unload?.call(this.context)
-      this.emit('unloadModule', module, name)
+      this.modules.delete(prefixedName)
 
       if (isSleetCommand(module)) {
-        this.commands.delete(name)
+        this.commands.delete(module.name)
       }
 
       for (const child of module.modules) {
-        this.addModules([child], `${name}/`)
+        this.removeModules([child], `${prefixedName}/`)
       }
+
+      module.handlers.unload?.call(this.context)
+      this.emit('unloadModule', module)
     }
 
     return this
@@ -207,12 +207,6 @@ export class SleetClient extends EventEmitter {
     }
 
     this.registeredEvents.set(module, events)
-
-    if (module.modules) {
-      for (const child of module.modules) {
-        this.#registerEventsFor(child)
-      }
-    }
   }
 
   #unregisterEventsFor(module: SleetModule) {
@@ -236,12 +230,6 @@ export class SleetClient extends EventEmitter {
     }
 
     this.registeredEvents.delete(module)
-
-    if (module.modules) {
-      for (const child of module.modules) {
-        this.#unregisterEventsFor(child)
-      }
-    }
   }
 
   /**
@@ -359,33 +347,35 @@ export class SleetClient extends EventEmitter {
       return
     }
 
-    try {
-      // Make sure the module can run the incoming type of interaction
-      if (
-        interaction.commandType === ApplicationCommandType.ChatInput &&
-        module instanceof SleetSlashCommand
-      ) {
-        await module.run(this.context, interaction)
-      } else if (
-        interaction.commandType === ApplicationCommandType.User &&
-        module instanceof SleetUserCommand
-      ) {
-        await module.run(this.context, interaction)
-      } else if (
-        interaction.commandType === ApplicationCommandType.Message &&
-        module instanceof SleetMessageCommand
-      ) {
-        await module.run(this.context, interaction)
-      } else {
-        this.#logger.error(
-          'Module "%s" could not handle incoming interaction: %o',
-          interaction.commandName,
-          interaction,
-        )
+    runningModuleStore.run(module, async () => {
+      try {
+        // Make sure the module can run the incoming type of interaction
+        if (
+          interaction.commandType === ApplicationCommandType.ChatInput &&
+          module instanceof SleetSlashCommand
+        ) {
+          await module.run(this.context, interaction)
+        } else if (
+          interaction.commandType === ApplicationCommandType.User &&
+          module instanceof SleetUserCommand
+        ) {
+          await module.run(this.context, interaction)
+        } else if (
+          interaction.commandType === ApplicationCommandType.Message &&
+          module instanceof SleetMessageCommand
+        ) {
+          await module.run(this.context, interaction)
+        } else {
+          this.#logger.error(
+            'Module "%s" could not handle incoming interaction: %o',
+            interaction.commandName,
+            interaction,
+          )
+        }
+      } catch (e: unknown) {
+        this.#handleApplicationInteractionError(interaction, module, e)
       }
-    } catch (e: unknown) {
-      this.#handleApplicationInteractionError(interaction, module, e)
-    }
+    })
   }
 
   async #handleAutocompleteInteraction(interaction: AutocompleteInteraction) {
@@ -396,13 +386,15 @@ export class SleetClient extends EventEmitter {
       return
     }
 
-    try {
-      if (module instanceof SleetSlashCommand) {
-        await module.autocomplete(this.context, interaction)
+    runningModuleStore.run(module, async () => {
+      try {
+        if (module instanceof SleetSlashCommand) {
+          await module.autocomplete(this.context, interaction)
+        }
+      } catch (e: unknown) {
+        this.#handleAutocompleteInteractionError(interaction, module, e)
       }
-    } catch (e: unknown) {
-      this.#handleAutocompleteInteractionError(interaction, module, e)
-    }
+    })
   }
 
   #handleAutocompleteInteractionError(
