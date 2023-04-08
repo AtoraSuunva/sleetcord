@@ -360,8 +360,10 @@ const childModule = new SleetModule(
   },
   {
     messageCreate: (message) => {
+      const module = runningModuleStore.getStore()
+
       console.log(
-        'wow the child module saw an event incredible',
+        `wow the child module saw an event incredible (from ${module?.name})`,
         message.content,
       )
     },

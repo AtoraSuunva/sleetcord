@@ -191,10 +191,12 @@ export class SleetClient extends EventEmitter {
 
     for (const [event, handler] of Object.entries(module.handlers)) {
       this.#logger.debug(`Registering event '${event}' for '${module.name}'`)
-      const eventHandler = handler.bind(this.context)
+      const boundEvent = handler.bind(this.context)
+      const eventHandler = (...args: unknown[]) =>
+        runningModuleStore.run(module, boundEvent, ...args)
 
       if (isDiscordEvent(event)) {
-        this.client.on(event, eventHandler)
+        this.client.on(event, eventHandler as unknown as () => Awaitable<void>)
       } else if (isSleetEvent(event)) {
         this.on(event, eventHandler)
       } else if (!isSpecialEvent(event)) {
