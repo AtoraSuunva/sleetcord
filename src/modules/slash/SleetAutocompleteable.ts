@@ -40,7 +40,7 @@ type GetAutocompleteableOptionType<
   : never
 
 type AutocompleteableOption<T extends APIApplicationAutocompleteableOption> =
-  T & {
+  Omit<T, 'autocomplete'> & {
     autocomplete: AutocompleteHandler<GetAutocompleteableOptionType<T>>
     choices?: []
   }

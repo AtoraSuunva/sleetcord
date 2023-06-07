@@ -15,12 +15,13 @@ import {
 import { SleetModule } from '../index.js'
 
 export interface SleetSlashSubcommandBody
-  extends Omit<APIApplicationCommandSubcommandOption, 'type'> {
+  extends Omit<APIApplicationCommandSubcommandOption, 'type' | 'options'> {
   type?: ApplicationCommandOptionType.Subcommand
   options?: (APIApplicationCommandBasicOption | SleetAutocompleteableOption)[]
 }
 
-export interface SleetSlashSubcommandBodyJSON extends SleetSlashSubcommandBody {
+export interface SleetSlashSubcommandBodyJSON
+  extends Omit<SleetSlashSubcommandBody, 'options'> {
   options?: APIApplicationCommandBasicOption[]
 }
 

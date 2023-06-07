@@ -33,15 +33,18 @@ interface SleetSlashCommandBody extends BaseCommandBody {
     | (SleetSlashSubcommand | SleetSlashCommandGroup)[]
 }
 
-interface SleetSlashCommandBodyJSON extends SleetSlashCommandBody {
+interface SleetSlashCommandBodyJSON
+  extends Omit<SleetSlashCommandBody, 'options'> {
   options?: APIApplicationCommandOption[]
 }
 
-interface SleetSlashCommandBodyAutocompleteable extends SleetSlashCommandBody {
+interface SleetSlashCommandBodyAutocompleteable
+  extends Omit<SleetSlashCommandBody, 'options'> {
   options?: (APIApplicationCommandOption | SleetAutocompleteableOption)[]
 }
 
-interface SleetSlashCommandBodyWithSubcommands extends SleetSlashCommandBody {
+interface SleetSlashCommandBodyWithSubcommands
+  extends Omit<SleetSlashCommandBody, 'options'> {
   options?: (SleetSlashSubcommand | SleetSlashCommandGroup)[]
 }
 
