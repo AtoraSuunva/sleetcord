@@ -33,18 +33,15 @@ interface SleetSlashCommandBody extends BaseCommandBody {
     | (SleetSlashSubcommand | SleetSlashCommandGroup)[]
 }
 
-interface SleetSlashCommandBodyJSON
-  extends Omit<SleetSlashCommandBody, 'options'> {
+interface SleetSlashCommandBodyJSON extends SleetSlashCommandBody {
   options?: APIApplicationCommandOption[]
 }
 
-interface SleetSlashCommandBodyAutocompleteable
-  extends Omit<SleetSlashCommandBody, 'options'> {
+interface SleetSlashCommandBodyAutocompleteable extends SleetSlashCommandBody {
   options?: (APIApplicationCommandOption | SleetAutocompleteableOption)[]
 }
 
-interface SleetSlashCommandBodyWithSubcommands
-  extends Omit<SleetSlashCommandBody, 'options'> {
+interface SleetSlashCommandBodyWithSubcommands extends SleetSlashCommandBody {
   options?: (SleetSlashSubcommand | SleetSlashCommandGroup)[]
 }
 
@@ -75,9 +72,7 @@ function parseSlashCommandOptions(
         autocomplete.set(option.name, option)
         json.push({
           ...option,
-          // After updating typescript I started to get "Type 'true' is not assignable to type 'false'" error here
-          // I don't know why typescript isn't correctly inferring the type here anymore, so I am using a dark magic cast
-          autocomplete: true as false,
+          autocomplete: true,
         })
       } else {
         json.push(option)
