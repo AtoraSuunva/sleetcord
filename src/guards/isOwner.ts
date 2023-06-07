@@ -9,7 +9,7 @@ import { PreRunError } from '../errors/PreRunError.js'
  * @returns If the interaction came from the owner of the bot
  */
 export async function isOwnerGuard(interaction: Interaction) {
-  if (!isOwner(interaction.user)) {
+  if (!(await isOwner(interaction.user))) {
     throw new Error('Only the bot owner or team member can do that')
   }
 }
@@ -20,13 +20,13 @@ export async function isOwnerGuard(interaction: Interaction) {
  * @returns If the user is the bot owner or team member
  */
 export async function isOwner(user: User): Promise<boolean> {
-  if (user.client.application?.owner) {
-    await user.client.application?.fetch()
+  if (!user.client.application.owner) {
+    await user.client.application.fetch()
   }
 
-  const owner = user.client.application?.owner
+  const owner = user.client.application.owner
 
-  if (owner === null || owner === undefined) {
+  if (owner === null) {
     throw new PreRunError('Failed to fetch application')
   }
 

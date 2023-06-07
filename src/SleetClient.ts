@@ -65,8 +65,7 @@ function isSleetCommand(value: unknown): value is SleetCommand {
   return value instanceof SleetCommand
 }
 
-export const runningModuleStore: AsyncLocalStorage<SleetModule> =
-  new AsyncLocalStorage()
+export const runningModuleStore = new AsyncLocalStorage<SleetModule>()
 
 /**
  * A command handler built around Discord.js, the SleetClient handles passing
@@ -190,10 +189,16 @@ export class SleetClient extends EventEmitter {
     const events = this.registeredEvents.get(module) ?? []
 
     for (const [event, handler] of Object.entries(module.handlers)) {
+      if (!handler) continue
+
       this.#logger.debug(`Registering event '${event}' for '${module.name}'`)
-      const boundEvent = handler.bind(this.context)
+      const boundEvent = (handler as () => unknown).bind(this.context)
+      // Since we have many different types of handlers taking many different types of arguments, and
+      // no real use in handling type errors here (since we don't know which events are called until
+      // runtime and TS doesn't do runtime validation), we opt-out of compile-time validation here
+      // by just throwing unknowns everywhere until typescript says its okay
       const eventHandler = (...args: unknown[]) =>
-        runningModuleStore.run(module, boundEvent, ...args)
+        runningModuleStore.run<unknown, unknown[]>(module, boundEvent, ...args)
 
       if (isDiscordEvent(event)) {
         this.client.on(event, eventHandler as unknown as () => Awaitable<void>)
@@ -201,7 +206,7 @@ export class SleetClient extends EventEmitter {
         this.on(event, eventHandler)
       } else if (!isSpecialEvent(event)) {
         throw new Error(
-          `Unknown event '${event}' while processing ${module.name}`,
+          `Unknown event '${String(event)}' while processing ${module.name}`,
         )
       }
 
@@ -219,14 +224,14 @@ export class SleetClient extends EventEmitter {
       if (!eventHandler) continue
 
       if (isDiscordEvent(event)) {
-        // Casts otherwise typescript does some crazy type inferrence that
+        // Casts otherwise typescript does some crazy type inference that
         // makes it both error and lag like mad
         this.client.off(event, eventHandler as unknown as () => Awaitable<void>)
       } else if (isSleetEvent(event)) {
         this.off(event, eventHandler)
       } else if (!isSpecialEvent(event)) {
         throw new Error(
-          `Unknown event '${event}' while processing ${module.name}`,
+          `Unknown event '${String(event)}' while processing ${module.name}`,
         )
       }
     }
@@ -252,7 +257,7 @@ export class SleetClient extends EventEmitter {
       registerGuildRestrictedCommands,
     } = options
 
-    const sleetCommands = commands || Array.from(this.commands.values())
+    const sleetCommands = commands ?? Array.from(this.commands.values())
 
     let toAdd: SleetCommand[]
 
@@ -307,13 +312,12 @@ export class SleetClient extends EventEmitter {
   /**
    * Starts the login process to Discord, you should register all commands
    * *before* logging in
-   * @returns This SleetClient for chaining
+   * @returns The token used to login if successful
    */
-  login(): this {
+  login() {
     this.#logger.debug('Logging in')
-    this.client.login(this.options.token)
     this.client.once('ready', () => void this.client.application?.fetch())
-    return this
+    return this.client.login(this.options.token)
   }
 
   /**
@@ -325,16 +329,21 @@ export class SleetClient extends EventEmitter {
     this.#logger.debug('Handling interaction: %o', interaction)
 
     if (interaction.type === InteractionType.ApplicationCommand) {
-      this.#handleApplicationInteraction(interaction)
+      return this.#handleApplicationInteraction(interaction)
     } else if (
       interaction.type === InteractionType.ApplicationCommandAutocomplete
     ) {
-      this.#handleAutocompleteInteraction(interaction)
+      return this.#handleAutocompleteInteraction(interaction)
     }
   }
 
   async #handleApplicationInteraction(interaction: ApplicationInteraction) {
     const module = this.commands.get(interaction.commandName)
+
+    if (!module) {
+      this.#logger.error('No module found for %s', interaction.commandName)
+      return
+    }
 
     if (!(module instanceof SleetCommand)) {
       this.#logger.error(
@@ -344,12 +353,7 @@ export class SleetClient extends EventEmitter {
       return
     }
 
-    if (!module) {
-      this.#logger.error('No module found for %s', interaction.commandName)
-      return
-    }
-
-    runningModuleStore.run(module, async () => {
+    return runningModuleStore.run(module, async () => {
       try {
         // Make sure the module can run the incoming type of interaction
         if (
@@ -375,7 +379,7 @@ export class SleetClient extends EventEmitter {
           )
         }
       } catch (e: unknown) {
-        this.#handleApplicationInteractionError(interaction, module, e)
+        await this.#handleApplicationInteractionError(interaction, module, e)
       }
     })
   }
@@ -388,7 +392,7 @@ export class SleetClient extends EventEmitter {
       return
     }
 
-    runningModuleStore.run(module, async () => {
+    return runningModuleStore.run(module, async () => {
       try {
         if (module instanceof SleetSlashCommand) {
           await module.autocomplete(this.context, interaction)
@@ -419,7 +423,7 @@ export class SleetClient extends EventEmitter {
     ]
 
     if (!interaction.responded) {
-      interaction.respond(response)
+      void interaction.respond(response)
     }
   }
 
@@ -430,7 +434,7 @@ export class SleetClient extends EventEmitter {
   ) {
     if (error instanceof PreRunError) {
       const content = `:warning: ${error.message}`
-      conditionalReply(interaction, content)
+      return conditionalReply(interaction, content)
     } else {
       this.emit('applicationInteractionError', module, interaction, error)
       this.#logger.error(
@@ -439,8 +443,10 @@ export class SleetClient extends EventEmitter {
         module.name,
         interaction,
       )
-      const content = `:warning: An unexpected error occurred while running this command, please try again later.\n${error}`
-      conditionalReply(interaction, content)
+      const content = `:warning: An unexpected error occurred while running this command, please try again later.\n${String(
+        error,
+      )}`
+      return conditionalReply(interaction, content)
     }
   }
 }
@@ -466,11 +472,11 @@ async function conditionalReply(
     } catch {
       // Wait a second for the deferral
       setTimeout(() => {
-        interaction.editReply(content)
+        void interaction.editReply(content)
       }, 1000)
     }
   } else {
-    interaction.reply({
+    void interaction.reply({
       content,
       ephemeral: true,
     })

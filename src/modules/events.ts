@@ -18,7 +18,7 @@ export type ApplicationInteraction =
   | MessageContextMenuCommandInteraction
   | UserContextMenuCommandInteraction
 
-export type SleetContext = {
+export interface SleetContext {
   sleet: SleetClient
   client: Client
 }
@@ -173,7 +173,7 @@ export interface RunnableEventHandlers<
  * slash commands (autocomplete!)
  */
 export interface SlashEventHandlers
-  extends RunnableEventHandlers<ChatInputCommandInteraction, []> {
+  extends RunnableEventHandlers<ChatInputCommandInteraction> {
   autocomplete?:
     | ((
         this: SleetContext,

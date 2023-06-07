@@ -75,7 +75,9 @@ function parseSlashCommandOptions(
         autocomplete.set(option.name, option)
         json.push({
           ...option,
-          autocomplete: true,
+          // After updating typescript I started to get "Type 'true' is not assignable to type 'false'" error here
+          // I don't know why typescript isn't correctly inferring the type here anymore, so I am using a dark magic cast
+          autocomplete: true as false,
         })
       } else {
         json.push(option)
@@ -174,6 +176,8 @@ export class SleetSlashCommand
         )
       }
     }
+
+    return
   }
 
   public autocomplete: SleetAutocompleteable['autocomplete'] =

@@ -9,7 +9,7 @@ import { SleetModule } from './SleetModule.js'
 /**
  * Extra types added to all sleet commands, usually used to add additional "functionality" to commands like accepting one type of input and automatically converting it to what the api wants
  */
-export type SleetCommandExtras = {
+export interface SleetCommandExtras {
   /**
    * The default permissions for this command, sent during creation
    *

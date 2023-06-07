@@ -46,7 +46,7 @@ export const isLikelyID = (str: string): boolean => idRegexFull.test(str)
  * IDs are only matched if they're bounded by whitespace or the string start/end, so:
  *
  * ```js
- * getAllIds('74768773940256768 <@205164225625194496> 200723772427337729asdsa')
+ * getAllIds('74768773940256768 <@205164225625194496> 200723772427337729foo')
  * // Returns ['74768773940256768']
  * ```
  * @param str To string to check for potential IDs
@@ -145,7 +145,7 @@ export async function getMembers(
  * Try to fetch a user from a "possible" user ID
  * @param client The client to fetch data from
  * @param uid The (potential) ID of the user to fetch
- * @returns The user if successfully fetched, otherwise null if an error occured or the user doesn't exist
+ * @returns The user if successfully fetched, otherwise null if an error occurred or the user doesn't exist
  */
 export async function tryFetchUser(
   client: Client,
@@ -162,7 +162,7 @@ export async function tryFetchUser(
  * Try to fetch a member from a "possible" user ID and guild
  * @param guild The guild to fetch data from
  * @param uid The (potential) ID of the member to fetch
- * @returns The member if successfully fetched, otherwise null if an error occured or there's no member with that ID in the guild
+ * @returns The member if successfully fetched, otherwise null if an error occurred or there's no member with that ID in the guild
  */
 export async function tryFetchMember(
   guild: Guild,
@@ -214,21 +214,21 @@ export async function getGuild(
  * @param name The name of the options to resolve data for
  * @param required Is the option required? If missing, an error will be thrown if true, null will be returned if false
  */
-export async function getUser(
+export function getUser(
   interaction: CommandInteraction,
   name: string,
   required: true,
-): Promise<User>
-export async function getUser(
+): User
+export function getUser(
   interaction: CommandInteraction,
   name: string,
   required?: boolean,
-): Promise<User | null>
-export async function getUser(
+): User | null
+export function getUser(
   interaction: CommandInteraction,
   name: string,
   required = false,
-): Promise<User | null> {
+): User | null {
   return interaction.options.getUser(name, required)
 }
 
@@ -424,7 +424,7 @@ export async function getRoles(
   const rolePromises =
     interaction.options.resolved?.roles
       ?.filter((role) => {
-        if (role === null || !string.includes(`<@&${role.id}>`)) return false
+        if (!string.includes(`<@&${role.id}>`)) return false
         return true
       })
       .map((role) => {

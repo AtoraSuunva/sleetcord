@@ -2,7 +2,7 @@ import { Awaitable, CommandInteraction } from 'discord.js'
 import { RunnableEventHandlers, SleetContext } from '../events.js'
 import { SleetModule } from './SleetModule.js'
 
-export type NamedBody = {
+export interface NamedBody {
   name: string
 }
 

@@ -41,7 +41,7 @@ function parseSlashSubcommandOptions(
       autocomplete.set(option.name, option)
       json.push({
         ...option,
-        autocomplete: true,
+        autocomplete: true as false,
       })
     } else {
       json.push(option)

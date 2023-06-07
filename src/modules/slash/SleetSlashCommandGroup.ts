@@ -42,7 +42,7 @@ function parseSlashCommandGroupOptions(
       json.push(option.body)
     } else {
       throw new Error(
-        `Invalid option '${option}' for subcommand group '${body.name}'`,
+        `Invalid option '${option.name}' for subcommand group '${body.name}'`,
       )
     }
   }
@@ -58,9 +58,8 @@ export class SleetSlashCommandGroup
   implements SleetAutocompleteable
 {
   public subcommands: Map<string, SleetSlashSubcommand>
-  // TODO: maybe actually implement this, but i dont feel like it
-  public autocompleteHandlers: Map<string, SleetAutocompleteableOption> =
-    new Map()
+  // TODO: maybe actually implement this, but i don't feel like it
+  public autocompleteHandlers = new Map<string, SleetAutocompleteableOption>()
 
   constructor(
     body: SleetSlashCommandGroupBody,
@@ -103,6 +102,8 @@ export class SleetSlashCommandGroup
         )
       }
     }
+
+    return
   }
 
   public autocomplete: SleetAutocompleteable['autocomplete'] =
