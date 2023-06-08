@@ -1,16 +1,18 @@
 import { escapeMarkdown, GuildMember, User } from 'discord.js'
 
 export interface FormatUserOptions {
-  /** Show the user's ID after their tag */
+  /** Show the user's ID after their tag (default: true) */
   id?: boolean
-  /** Show the username in bold */
+  /** Show the username in bold (default: true) */
   markdown?: boolean
-  /** Mention the user at the end of the formatted string */
+  /** Mention the user at the end of the formatted string (default: false) */
   mention?: boolean
-  /** Insert a left-to-right mark after the username */
+  /** Insert a left-to-right mark after the username (default: true) */
   bidirectional?: boolean
-  /** Show the user's global name + username */
+  /** Show the user's global name + username (default: true) */
   globalName?: boolean
+  /** Escape the user's username/global name (default: true) */
+  escape?: boolean
 }
 
 /**
@@ -36,6 +38,7 @@ export function formatUser(
     markdown = true,
     mention = false,
     bidirectional = true,
+    escape = true,
   }: FormatUserOptions = {},
 ): string {
   const user = userLike instanceof GuildMember ? userLike.user : userLike
@@ -43,7 +46,13 @@ export function formatUser(
   const formatted: string[] = []
 
   if (markdown) formatted.push('**')
-  formatted.push(escapeMarkdown(user.username))
+
+  if (escape) {
+    formatted.push(escapeMarkdown(user.username))
+  } else {
+    formatted.push(user.username)
+  }
+
   if (markdown) formatted.push('**')
   if (bidirectional) formatted.push('\u{200e}')
   if (user.discriminator !== '0') formatted.push(`#${user.discriminator}`)
