@@ -68,6 +68,8 @@ export const SleetEventsList: SleetEvent[] = [
   'unloadModule',
   'autocompleteInteractionError',
   'applicationInteractionError',
+  'sleetWarn',
+  'sleetDebug',
 ]
 
 /**
@@ -142,7 +144,7 @@ export interface SleetModuleEventHandlers extends Partial<ClientEventHandlers> {
    * @param message The warning message
    * @param data Any data associated with the warning
    */
-  sleetWarning?: (
+  sleetWarn?: (
     this: SleetContext,
     message: string,
     data: unknown,
