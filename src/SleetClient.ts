@@ -283,7 +283,7 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter {
       'sleetDebug',
       `Putting commands (${
         guildId ? `in ${guildId}` : 'globally'
-      }) to api: ${toAdd.map((c) => c.name)}`,
+      }) to api: ${toAdd.map((c) => c.name).join(', ')}`,
     )
     const body = toAdd.map((command) => command.body)
 
