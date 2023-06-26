@@ -1,4 +1,3 @@
-import { pino, Logger } from 'pino'
 import {
   ApplicationCommandType,
   AutocompleteInteraction,
@@ -41,7 +40,6 @@ interface SleetOptions {
 interface SleetClientOptions {
   sleet: SleetOptions
   client: ClientOptions
-  logger?: Parameters<typeof pino>[number]
 }
 
 interface PutCommandOptions {
@@ -71,11 +69,9 @@ export const runningModuleStore = new AsyncLocalStorage<SleetModule>()
  * A command handler built around Discord.js, the SleetClient handles passing
  * interactions to commands and registering them
  */
-export class SleetClient extends EventEmitter {
-  baseLogger: Logger
-  #logger: Logger
+export class SleetClient<Ready extends boolean = boolean> extends EventEmitter {
   options: SleetOptions
-  client: Client
+  client: Client<Ready>
   rest: SleetRest
   modules = new Map<string, SleetModule>()
   commands = new Map<string, SleetCommand>()
@@ -84,9 +80,6 @@ export class SleetClient extends EventEmitter {
 
   constructor(options: SleetClientOptions) {
     super()
-    this.baseLogger = pino(options.logger)
-    this.#logger = this.baseLogger.child({ name: 'SleetClient' })
-    this.#logger.debug('Creating new SleetClient')
     this.options = options.sleet
 
     this.client = new Client(options.client)
@@ -94,7 +87,6 @@ export class SleetClient extends EventEmitter {
     this.rest = new SleetRest({
       token: options.sleet.token,
       applicationId: options.sleet.applicationId,
-      logger: this.baseLogger,
     })
 
     this.context = {
@@ -121,11 +113,6 @@ export class SleetClient extends EventEmitter {
    * @returns This SleetClient for chaining
    */
   addModules(modules: SleetModule[], namePrefix = ''): this {
-    this.#logger.debug(
-      'Adding modules: %o',
-      modules.map((m) => `${namePrefix}${m.name}`),
-    )
-
     for (const module of modules) {
       const prefixedName = `${namePrefix}${module.name}`
       this.#registerEventsFor(module)
@@ -133,7 +120,7 @@ export class SleetClient extends EventEmitter {
 
       if (isSleetCommand(module)) {
         if (this.commands.has(module.name)) {
-          this.#logger.warn('Overwriting existing command with name %s', name)
+          this.emit('sleetWarning', 'Overwriting existing module', module)
         }
 
         this.commands.set(module.name, module)
@@ -160,11 +147,6 @@ export class SleetClient extends EventEmitter {
    * @returns This SleetClient for chaining
    */
   removeModules(modules: SleetModule[], namePrefix = ''): this {
-    this.#logger.debug(
-      'Removing modules: %o',
-      modules.map((m) => `${namePrefix}${m.name}`),
-    )
-
     for (const module of modules) {
       const prefixedName = `${namePrefix}${module.name}`
       this.#unregisterEventsFor(module)
@@ -191,7 +173,11 @@ export class SleetClient extends EventEmitter {
     for (const [event, handler] of Object.entries(module.handlers)) {
       if (!handler) continue
 
-      this.#logger.debug(`Registering event '${event}' for '${module.name}'`)
+      this.emit(
+        'sleetDebug',
+        `Registering event '${event}' for '${module.name}'`,
+      )
+
       const boundEvent = (handler as () => unknown).bind(this.context)
       // Since we have many different types of handlers taking many different types of arguments, and
       // no real use in handling type errors here (since we don't know which events are called until
@@ -293,10 +279,11 @@ export class SleetClient extends EventEmitter {
       }
     }
 
-    this.#logger.debug(
-      'Putting commands (%s) to api: %o',
-      guildId ? `in ${guildId}` : 'globally',
-      toAdd.map((c) => c.name),
+    this.emit(
+      'sleetDebug',
+      `Putting commands (${
+        guildId ? `in ${guildId}` : 'globally'
+      }) to api: ${toAdd.map((c) => c.name)}`,
     )
     const body = toAdd.map((command) => command.body)
 
@@ -315,7 +302,6 @@ export class SleetClient extends EventEmitter {
    * @returns The token used to login if successful
    */
   login() {
-    this.#logger.debug('Logging in')
     this.client.once('ready', () => void this.client.application?.fetch())
     return this.client.login(this.options.token)
   }
@@ -326,8 +312,6 @@ export class SleetClient extends EventEmitter {
    * @returns Nothing
    */
   async #interactionCreate(interaction: Interaction): Promise<void> {
-    this.#logger.debug('Handling interaction: %o', interaction)
-
     if (interaction.type === InteractionType.ApplicationCommand) {
       return this.#handleApplicationInteraction(interaction)
     } else if (
@@ -341,13 +325,18 @@ export class SleetClient extends EventEmitter {
     const module = this.commands.get(interaction.commandName)
 
     if (!module) {
-      this.#logger.error('No module found for %s', interaction.commandName)
+      this.emit(
+        'sleetWarning',
+        'No module registered for this interaction',
+        interaction,
+      )
       return
     }
 
     if (!(module instanceof SleetCommand)) {
-      this.#logger.error(
-        'Module "%s" is not a SleetCommand, but has registered interactions',
+      this.emit(
+        'sleetWarning',
+        'Module is not a SleetCommand, but has registered interactions',
         interaction.commandName,
       )
       return
@@ -372,9 +361,9 @@ export class SleetClient extends EventEmitter {
         ) {
           await module.run(this.context, interaction)
         } else {
-          this.#logger.error(
-            'Module "%s" could not handle incoming interaction: %o',
-            interaction.commandName,
+          this.emit(
+            'sleetWarning',
+            'Module could not handle incoming interaction',
             interaction,
           )
         }
@@ -388,7 +377,11 @@ export class SleetClient extends EventEmitter {
     const module = this.commands.get(interaction.commandName)
 
     if (!module) {
-      this.#logger.error('No module found for %s', interaction.commandName)
+      this.emit(
+        'sleetWarning',
+        'No module registered for this interaction',
+        interaction,
+      )
       return
     }
 
@@ -409,12 +402,7 @@ export class SleetClient extends EventEmitter {
     error: unknown,
   ) {
     this.emit('autocompleteInteractionError', module, interaction, error)
-    this.#logger.error(
-      error,
-      'Error handling autocomplete for module "%s" on interaction %o',
-      module.name,
-      interaction,
-    )
+
     const response = [
       {
         name: `An error occurred while handling autocomplete for ${module.name}`,
@@ -437,12 +425,6 @@ export class SleetClient extends EventEmitter {
       return conditionalReply(interaction, content)
     } else {
       this.emit('applicationInteractionError', module, interaction, error)
-      this.#logger.error(
-        error,
-        'Error running module "%s" on interaction %o',
-        module.name,
-        interaction,
-      )
       const content = `:warning: An unexpected error occurred while running this command, please try again later.\n${String(
         error,
       )}`

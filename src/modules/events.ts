@@ -136,6 +136,27 @@ export interface SleetModuleEventHandlers extends Partial<ClientEventHandlers> {
     interaction: ApplicationInteraction,
     error: unknown,
   ) => Awaitable<unknown>
+  /**
+   * Event emitted when Sleet encounters a warning, something that isn't fatal,
+   * but might be indicative of a bug or misconfiguration
+   * @param message The warning message
+   * @param data Any data associated with the warning
+   */
+  sleetWarning?: (
+    this: SleetContext,
+    message: string,
+    data: unknown,
+  ) => Awaitable<unknown>
+  /**
+   * Debug message from Sleet, usually just logging what it's doing
+   * @param message The debug message
+   * @param data Any data associated with the message
+   */
+  sleetDebug?: (
+    this: SleetContext,
+    message: string,
+    data: unknown,
+  ) => Awaitable<unknown>
 }
 
 export type SpecialEvent = Exclude<

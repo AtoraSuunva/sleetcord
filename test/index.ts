@@ -37,15 +37,9 @@ import {
   secretSlashCommand,
   secretUserCommand,
 } from './guild-locked.js'
-import { LoggerOptions } from 'pino'
 
 const TOKEN = env.get('TOKEN').required().asString()
 const APPLICATION_ID = env.get('APPLICATION_ID').required().asString()
-const NODE_ENV = env.get('NODE_ENV').required().asString()
-
-const loggerOptions: LoggerOptions = {
-  level: NODE_ENV === 'development' ? 'debug' : 'info',
-}
 
 const sleetClient = new SleetClient({
   sleet: {
@@ -61,7 +55,6 @@ const sleetClient = new SleetClient({
       GatewayIntentBits.GuildMessageReactions,
     ],
   },
-  logger: loggerOptions,
 })
 
 sleetClient.addModules([
