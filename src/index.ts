@@ -1,4 +1,4 @@
-export { SleetClient } from './SleetClient.js'
+export * from './SleetClient.js'
 export * from './errors/index.js'
 export * from './guards/index.js'
 export * from './modules/index.js'

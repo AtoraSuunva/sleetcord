@@ -63,6 +63,9 @@ function isSleetCommand(value: unknown): value is SleetCommand {
   return value instanceof SleetCommand
 }
 
+/**
+ * AsyncLocalStorage for the currently running module, in this current async context
+ */
 export const runningModuleStore = new AsyncLocalStorage<SleetModule>()
 
 /**
@@ -93,6 +96,8 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter {
       sleet: this,
       client: this.client,
     }
+
+    this.emit('fooo')
 
     this.client.on('interactionCreate', this.#interactionCreate.bind(this))
   }
@@ -343,6 +348,7 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter {
     }
 
     return runningModuleStore.run(module, async () => {
+      this.emit('runModule', module, interaction)
       try {
         // Make sure the module can run the incoming type of interaction
         if (

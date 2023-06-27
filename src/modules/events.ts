@@ -66,6 +66,7 @@ export const SleetEventsList: SleetEvent[] = [
   'unload',
   'loadModule',
   'unloadModule',
+  'runModule',
   'autocompleteInteractionError',
   'applicationInteractionError',
   'sleetWarn',
@@ -115,6 +116,16 @@ export interface SleetModuleEventHandlers extends Partial<ClientEventHandlers> {
     qualifiedName: string,
   ) => Awaitable<unknown>
   /**
+   * Event emitted when a module handles an interaction
+   * @param module The module that was run
+   * @param interaction The interaction that was handled
+   */
+  runModule?: (
+    this: SleetContext,
+    module: SleetModule,
+    interaction: ApplicationInteraction,
+  ) => Awaitable<unknown>
+  /**
    * Event emitted when an autocomplete interaction errors out
    * @param module The module that was run
    * @param interaction The interaction that was handled
@@ -159,6 +170,12 @@ export interface SleetModuleEventHandlers extends Partial<ClientEventHandlers> {
     message: string,
     data: unknown,
   ) => Awaitable<unknown>
+}
+
+export type SleetEvents = {
+  [P in keyof SleetModuleEventHandlers]: Parameters<
+    NonNullable<SleetModuleEventHandlers[P]>
+  >
 }
 
 export type SpecialEvent = Exclude<
