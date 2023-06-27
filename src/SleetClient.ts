@@ -367,7 +367,7 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter {
             interaction,
           )
         }
-      } catch (e: unknown) {
+      } catch (e) {
         await this.#handleApplicationInteractionError(interaction, module, e)
       }
     })
@@ -390,13 +390,13 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter {
         if (module instanceof SleetSlashCommand) {
           await module.autocomplete(this.context, interaction)
         }
-      } catch (e: unknown) {
-        this.#handleAutocompleteInteractionError(interaction, module, e)
+      } catch (e) {
+        await this.#handleAutocompleteInteractionError(interaction, module, e)
       }
     })
   }
 
-  #handleAutocompleteInteractionError(
+  async #handleAutocompleteInteractionError(
     interaction: AutocompleteInteraction,
     module: SleetModule,
     error: unknown,
@@ -411,24 +411,32 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter {
     ]
 
     if (!interaction.responded) {
-      void interaction.respond(response)
+      try {
+        await interaction.respond(response)
+      } catch (e) {
+        this.emit('sleetError', 'Error while handling autocomplete error', e)
+      }
     }
   }
 
-  #handleApplicationInteractionError(
+  async #handleApplicationInteractionError(
     interaction: ApplicationInteraction,
     module: SleetModule,
     error: unknown,
   ) {
-    if (error instanceof PreRunError) {
-      const content = `:warning: ${error.message}`
-      return conditionalReply(interaction, content)
-    } else {
-      this.emit('applicationInteractionError', module, interaction, error)
-      const content = `:warning: An unexpected error occurred while running this command, please try again later.\n${String(
-        error,
-      )}`
-      return conditionalReply(interaction, content)
+    try {
+      if (error instanceof PreRunError) {
+        const content = `:warning: ${error.message}`
+        await conditionalReply(interaction, content)
+      } else {
+        this.emit('applicationInteractionError', module, interaction, error)
+        const content = `:warning: An unexpected error occurred while running this command, please try again later.\n${String(
+          error,
+        )}`
+        await conditionalReply(interaction, content)
+      }
+    } catch (e) {
+      this.emit('sleetError', 'Error while handling interaction error', e)
     }
   }
 }
