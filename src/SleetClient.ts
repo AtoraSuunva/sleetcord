@@ -202,8 +202,10 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
       // no real use in handling type errors here (since we don't know which events are called until
       // runtime and TS doesn't do runtime validation), we opt-out of compile-time validation here
       // by just throwing unknowns everywhere until typescript says its okay
-      const eventHandler = (...args: unknown[]) =>
+      const eventHandler = (...args: unknown[]) => {
+        this.emit('eventHandled', event, module, ...args)
         runningModuleStore.run<unknown, unknown[]>(module, boundEvent, ...args)
+      }
 
       if (isDiscordEvent(event)) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any

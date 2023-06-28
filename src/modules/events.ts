@@ -70,6 +70,7 @@ export const SleetEventsList: SleetEvent[] = [
   'loadModule',
   'unloadModule',
   'runModule',
+  'eventHandled',
   'autocompleteInteractionError',
   'applicationInteractionError',
   'sleetError',
@@ -120,7 +121,7 @@ export interface SleetModuleEventHandlers extends Partial<ClientEventHandlers> {
     qualifiedName: string,
   ) => ListenerResult
   /**
-   * Event emitted when a module handles an interaction
+   * Event emitted when a module runs (via the run handler)
    * @param module The module that was run
    * @param interaction The interaction that was handled
    */
@@ -128,6 +129,18 @@ export interface SleetModuleEventHandlers extends Partial<ClientEventHandlers> {
     this: SleetContext,
     module: SleetModule,
     interaction: ApplicationInteraction,
+  ) => ListenerResult
+  /**
+   * Event emitted when a module handles an event
+   * @param module The module that handled the Interaction
+   * @param event The event that was handled
+   * @param args The arguments of that event
+   */
+  eventHandled?: (
+    this: SleetContext,
+    event: string,
+    module: SleetModule,
+    ...args: unknown[]
   ) => ListenerResult
   /**
    * Event emitted when an autocomplete interaction errors out
