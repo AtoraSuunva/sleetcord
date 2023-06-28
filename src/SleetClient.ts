@@ -1,7 +1,6 @@
 import {
   ApplicationCommandType,
   AutocompleteInteraction,
-  Awaitable,
   Client,
   ClientOptions,
   Interaction,
@@ -19,10 +18,11 @@ import {
   isDiscordEvent,
   isSleetEvent,
   isSpecialEvent,
+  ListenerResult,
   SleetContext,
   SleetModuleEventHandlers,
 } from './modules/events.js'
-import EventEmitter from 'events'
+import { EventEmitter } from 'tseep'
 import { AsyncLocalStorage } from 'async_hooks'
 
 /**
@@ -72,7 +72,9 @@ export const runningModuleStore = new AsyncLocalStorage<SleetModule>()
  * A command handler built around Discord.js, the SleetClient handles passing
  * interactions to commands and registering them
  */
-export class SleetClient<Ready extends boolean = boolean> extends EventEmitter {
+export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
+  Required<SleetModuleEventHandlers>
+> {
   options: SleetOptions
   client: Client<Ready>
   rest: SleetRest
@@ -97,8 +99,6 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter {
       client: this.client,
     }
 
-    this.emit('fooo')
-
     this.client.on('interactionCreate', this.#interactionCreate.bind(this))
   }
 
@@ -119,24 +119,31 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter {
    */
   addModules(modules: SleetModule[], namePrefix = ''): this {
     for (const module of modules) {
-      const prefixedName = `${namePrefix}${module.name}`
+      const qualifiedName = `${namePrefix}${module.name}`
       this.#registerEventsFor(module)
-      this.modules.set(prefixedName, module)
+      this.modules.set(qualifiedName, module)
 
       if (isSleetCommand(module)) {
         if (this.commands.has(module.name)) {
-          this.emit('sleetWarning', 'Overwriting existing module', module)
+          this.emit('sleetWarn', 'Overwriting existing module', module)
         }
 
         this.commands.set(module.name, module)
       }
 
       for (const child of module.modules) {
-        this.addModules([child], `${prefixedName}/`)
+        this.addModules([child], `${qualifiedName}/`)
       }
 
-      module.handlers.load?.call(this.context)
-      this.emit('loadModule', module)
+      void (async () => {
+        try {
+          await module.handlers.load?.call(this.context)
+          this.emit('loadModule', module, qualifiedName)
+        } catch (e) {
+          const err = e instanceof Error ? e : new Error(String(e))
+          this.emit('sleetError', `Module ${module.name} failed to load`, err)
+        }
+      })()
     }
 
     return this
@@ -153,20 +160,27 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter {
    */
   removeModules(modules: SleetModule[], namePrefix = ''): this {
     for (const module of modules) {
-      const prefixedName = `${namePrefix}${module.name}`
+      const qualifiedName = `${namePrefix}${module.name}`
       this.#unregisterEventsFor(module)
-      this.modules.delete(prefixedName)
+      this.modules.delete(qualifiedName)
 
       if (isSleetCommand(module)) {
         this.commands.delete(module.name)
       }
 
       for (const child of module.modules) {
-        this.removeModules([child], `${prefixedName}/`)
+        this.removeModules([child], `${qualifiedName}/`)
       }
 
-      module.handlers.unload?.call(this.context)
-      this.emit('unloadModule', module)
+      void (async () => {
+        try {
+          await module.handlers.unload?.call(this.context)
+          this.emit('unloadModule', module, qualifiedName)
+        } catch (e) {
+          const err = e instanceof Error ? e : new Error(String(e))
+          this.emit('sleetError', `Module ${module.name} failed to load`, err)
+        }
+      })()
     }
 
     return this
@@ -192,16 +206,21 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter {
         runningModuleStore.run<unknown, unknown[]>(module, boundEvent, ...args)
 
       if (isDiscordEvent(event)) {
-        this.client.on(event, eventHandler as unknown as () => Awaitable<void>)
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any
+        this.client.on(event, eventHandler as any)
       } else if (isSleetEvent(event)) {
-        this.on(event, eventHandler)
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any
+        this.on(event, eventHandler as any)
       } else if (!isSpecialEvent(event)) {
         throw new Error(
           `Unknown event '${String(event)}' while processing ${module.name}`,
         )
       }
 
-      events.push([event as keyof SleetModuleEventHandlers, eventHandler])
+      events.push([
+        event as keyof SleetModuleEventHandlers,
+        eventHandler as unknown as () => ListenerResult,
+      ])
     }
 
     this.registeredEvents.set(module, events)
@@ -217,9 +236,11 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter {
       if (isDiscordEvent(event)) {
         // Casts otherwise typescript does some crazy type inference that
         // makes it both error and lag like mad
-        this.client.off(event, eventHandler as unknown as () => Awaitable<void>)
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any
+        this.client.off(event, eventHandler as any)
       } else if (isSleetEvent(event)) {
-        this.off(event, eventHandler)
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any
+        this.off(event, eventHandler as any)
       } else if (!isSpecialEvent(event)) {
         throw new Error(
           `Unknown event '${String(event)}' while processing ${module.name}`,
@@ -331,7 +352,7 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter {
 
     if (!module) {
       this.emit(
-        'sleetWarning',
+        'sleetWarn',
         'No module registered for this interaction',
         interaction,
       )
@@ -340,7 +361,7 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter {
 
     if (!(module instanceof SleetCommand)) {
       this.emit(
-        'sleetWarning',
+        'sleetWarn',
         'Module is not a SleetCommand, but has registered interactions',
         interaction.commandName,
       )
@@ -368,7 +389,7 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter {
           await module.run(this.context, interaction)
         } else {
           this.emit(
-            'sleetWarning',
+            'sleetWarn',
             'Module could not handle incoming interaction',
             interaction,
           )
@@ -384,7 +405,7 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter {
 
     if (!module) {
       this.emit(
-        'sleetWarning',
+        'sleetWarn',
         'No module registered for this interaction',
         interaction,
       )
@@ -420,7 +441,8 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter {
       try {
         await interaction.respond(response)
       } catch (e) {
-        this.emit('sleetError', 'Error while handling autocomplete error', e)
+        const err = e instanceof Error ? e : new Error(String(e))
+        this.emit('sleetError', 'Error while handling autocomplete error', err)
       }
     }
   }
@@ -442,7 +464,8 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter {
         await conditionalReply(interaction, content)
       }
     } catch (e) {
-      this.emit('sleetError', 'Error while handling interaction error', e)
+      const err = e instanceof Error ? e : new Error(String(e))
+      this.emit('sleetError', 'Error while handling interaction error', err)
     }
   }
 }

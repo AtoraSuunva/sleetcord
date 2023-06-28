@@ -10,7 +10,7 @@ import { PreRunError } from '../errors/PreRunError.js'
  */
 export async function isOwnerGuard(interaction: Interaction) {
   if (!(await isOwner(interaction.user))) {
-    throw new Error('Only the bot owner or team member can do that')
+    throw new Error('Only the bot owner or a team member can do that')
   }
 }
 

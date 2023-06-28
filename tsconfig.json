@@ -1,5 +1,6 @@
 {
-  "include": ["./src/**/*"],
+  "include": ["src"],
+  "exclude": ["**/node_modules", "**/.*/"],
   "ts-node": {
     "transpileOnly": true,
     "transpiler": "ts-node/transpilers/swc-experimental",
@@ -40,6 +41,7 @@
     "exactOptionalPropertyTypes": true,
 
     /* Completeness */
+    "skipDefaultLibCheck": true,
     "skipLibCheck": true
   }
 }

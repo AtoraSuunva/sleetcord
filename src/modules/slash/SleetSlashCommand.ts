@@ -21,11 +21,12 @@ import { SleetSlashSubcommand } from './SleetSlashSubcommand.js'
 import { SleetSlashCommandGroup } from './SleetSlashCommandGroup.js'
 import { SleetModule } from '../index.js'
 
-type BaseCommandBody = Omit<
-  RESTPostAPIChatInputApplicationCommandsJSONBody,
-  'options' | keyof SleetCommandExtras
-> &
-  SleetCommandExtras
+interface BaseCommandBody
+  extends Omit<
+      RESTPostAPIChatInputApplicationCommandsJSONBody,
+      'options' | keyof SleetCommandExtras
+    >,
+    SleetCommandExtras {}
 
 interface SleetSlashCommandBody extends BaseCommandBody {
   options?:

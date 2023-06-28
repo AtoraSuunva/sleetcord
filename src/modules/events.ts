@@ -42,6 +42,9 @@ export function isDiscordEvent(event: string): event is DiscordEvent {
   return DiscordEventsList.includes(event as unknown as Events)
 }
 
+// eslint-disable-next-line @typescript-eslint/no-invalid-void-type
+export type ListenerResult = Promise<unknown> | void
+
 /**
  * A mapping of 'event name' => Handler arguments for attaching listeners to Discord.js events
  */
@@ -49,7 +52,7 @@ export type ClientEventHandlers = {
   [Event in keyof ClientEvents]: (
     this: SleetContext,
     ...args: ClientEvents[Event]
-  ) => Awaitable<unknown>
+  ) => ListenerResult
 }
 
 /** A type of every possible sleet event key */
@@ -69,6 +72,7 @@ export const SleetEventsList: SleetEvent[] = [
   'runModule',
   'autocompleteInteractionError',
   'applicationInteractionError',
+  'sleetError',
   'sleetWarn',
   'sleetDebug',
 ]
@@ -90,11 +94,11 @@ export interface SleetModuleEventHandlers extends Partial<ClientEventHandlers> {
    * Event emitted when a SleetClient loads this module, can be used to fetch data
    * from an external source
    */
-  load?: (this: SleetContext) => Awaitable<unknown>
+  load?: (this: SleetContext) => ListenerResult
   /**
    * Event emitted when a SleetClient unloads this module, can be used to clean up
    */
-  unload?: (this: SleetContext) => Awaitable<unknown>
+  unload?: (this: SleetContext) => ListenerResult
   /**
    * Event emitted when a SleetClient loads any new module
    * @param module The module that was loaded
@@ -104,7 +108,7 @@ export interface SleetModuleEventHandlers extends Partial<ClientEventHandlers> {
     this: SleetContext,
     module: SleetModule,
     qualifiedName: string,
-  ) => Awaitable<unknown>
+  ) => ListenerResult
   /**
    * Event emitted when a SleetClient unloads any module
    * @param module The module that was unloaded
@@ -114,7 +118,7 @@ export interface SleetModuleEventHandlers extends Partial<ClientEventHandlers> {
     this: SleetContext,
     module: SleetModule,
     qualifiedName: string,
-  ) => Awaitable<unknown>
+  ) => ListenerResult
   /**
    * Event emitted when a module handles an interaction
    * @param module The module that was run
@@ -124,7 +128,7 @@ export interface SleetModuleEventHandlers extends Partial<ClientEventHandlers> {
     this: SleetContext,
     module: SleetModule,
     interaction: ApplicationInteraction,
-  ) => Awaitable<unknown>
+  ) => ListenerResult
   /**
    * Event emitted when an autocomplete interaction errors out
    * @param module The module that was run
@@ -136,7 +140,7 @@ export interface SleetModuleEventHandlers extends Partial<ClientEventHandlers> {
     module: SleetModule,
     interaction: AutocompleteInteraction,
     error: unknown,
-  ) => Awaitable<unknown>
+  ) => ListenerResult
   /**
    * Event emitted when an application interaction errors out
    * @param module The module that was run
@@ -148,7 +152,18 @@ export interface SleetModuleEventHandlers extends Partial<ClientEventHandlers> {
     module: SleetModule,
     interaction: ApplicationInteraction,
     error: unknown,
-  ) => Awaitable<unknown>
+  ) => ListenerResult
+  /**
+   * Event emitted when Sleet encounters an error, Sleet can usually recover,
+   * but this means something bad has happened
+   * @param message The error message
+   * @param error The error Sleet encountered
+   */
+  sleetError?: (
+    this: SleetContext,
+    message: string,
+    error: Error,
+  ) => ListenerResult
   /**
    * Event emitted when Sleet encounters a warning, something that isn't fatal,
    * but might be indicative of a bug or misconfiguration
@@ -158,8 +173,8 @@ export interface SleetModuleEventHandlers extends Partial<ClientEventHandlers> {
   sleetWarn?: (
     this: SleetContext,
     message: string,
-    data: unknown,
-  ) => Awaitable<unknown>
+    data?: unknown,
+  ) => ListenerResult
   /**
    * Debug message from Sleet, usually just logging what it's doing
    * @param message The debug message
@@ -168,14 +183,8 @@ export interface SleetModuleEventHandlers extends Partial<ClientEventHandlers> {
   sleetDebug?: (
     this: SleetContext,
     message: string,
-    data: unknown,
-  ) => Awaitable<unknown>
-}
-
-export type SleetEvents = {
-  [P in keyof SleetModuleEventHandlers]: Parameters<
-    NonNullable<SleetModuleEventHandlers[P]>
-  >
+    data?: unknown,
+  ) => ListenerResult
 }
 
 export type SpecialEvent = Exclude<
