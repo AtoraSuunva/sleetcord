@@ -189,7 +189,10 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
   #registerEventsFor(module: SleetModule) {
     const events = this.registeredEvents.get(module) ?? []
 
-    for (const [event, handler] of Object.entries(module.handlers)) {
+    for (const [event, handler] of Object.entries(module.handlers) as [
+      string,
+      SleetModuleEventHandlers[keyof SleetModuleEventHandlers],
+    ][]) {
       if (!handler) continue
 
       this.emit(
@@ -197,14 +200,25 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
         `Registering event '${event}' for '${module.name}'`,
       )
 
-      const boundEvent = (handler as () => unknown).bind(this.context)
+      const boundEvent = handler.bind(this.context)
+      // For tseep to properly handle the event, we need to know how many arguments it takes
+      // since tseep does optimization based on the number of arguments
+      // but because we wrap the event handler (to add the module context), tseep can't automatically
+      // determine the number of arguments
+      const argsNum = handler.length
+
       // Since we have many different types of handlers taking many different types of arguments, and
       // no real use in handling type errors here (since we don't know which events are called until
       // runtime and TS doesn't do runtime validation), we opt-out of compile-time validation here
       // by just throwing unknowns everywhere until typescript says its okay
       const eventHandler = (...args: unknown[]) => {
         this.emit('eventHandled', event, module, ...args)
-        runningModuleStore.run<unknown, unknown[]>(module, boundEvent, ...args)
+        runningModuleStore.run<unknown, unknown[]>(
+          module,
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any
+          boundEvent as any,
+          ...args,
+        )
       }
 
       if (isDiscordEvent(event)) {
@@ -212,7 +226,7 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
         this.client.on(event, eventHandler as any)
       } else if (isSleetEvent(event)) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any
-        this.on(event, eventHandler as any)
+        this.addListener(event, eventHandler as any, argsNum)
       } else if (!isSpecialEvent(event)) {
         throw new Error(
           `Unknown event '${String(event)}' while processing ${module.name}`,
