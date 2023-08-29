@@ -1,5 +1,10 @@
 import { escapeMarkdown, GuildMember, User } from 'discord.js'
 
+/**
+ * Left-to-Right mark, changes rendered text direction
+ */
+const LRM_MARK = `\u{200e}`
+
 export interface FormatUserOptions {
   /** Show the user's ID after their tag (default: true) */
   id?: boolean
@@ -16,15 +21,16 @@ export interface FormatUserOptions {
 }
 
 /**
- * Formats a user in following way:
+ * Formats a user in the following way:
  *
- * Old tag/bot usernames:
- *   `**Username**#1234 (id)`
+ * **No global name**: `username↦ (id) <@user>`
  *
- * New usernames:
- *   `Global Name [**username**] (id)`
+ * **With global name**: `Global Name↦ [username↦] (id) <@user>`
  *
- * A Left-to-Right mark is inserted after the username to prevent RTL usernames from messing up the rest of the string
+ * Username is either old-style `**username**#discriminator` or new-style `**username**`
+ *
+ * Left-to-Right marks (denoted by `↦`) are inserted prevent RTL characters from messing up the rest of the string
+ *
  * @param userLike A User or GuildMember to format
  * @param params How to format the user
  * @returns A formatted string for the user
@@ -40,33 +46,27 @@ export function formatUser(
   }: FormatUserOptions = {},
 ): string {
   const user = userLike instanceof GuildMember ? userLike.user : userLike
-
   const formatted: string[] = []
-
   const username = escape ? escapeMarkdown(user.username) : user.username
 
   if (user.globalName) {
-    // New system
     const globalName = escape
       ? escapeMarkdown(user.globalName)
       : user.globalName
 
     formatted.push(globalName)
-    if (bidirectional) formatted.push('\u{200e}')
-
+    if (bidirectional) formatted.push(LRM_MARK)
     formatted.push(' [')
-    if (markdown) formatted.push('**')
-    formatted.push(username)
-    if (markdown) formatted.push('**')
-    if (bidirectional) formatted.push('\u{200e}')
+  }
+
+  if (markdown) formatted.push('**')
+  formatted.push(username)
+  if (markdown) formatted.push('**')
+  if (bidirectional) formatted.push(LRM_MARK)
+  if (user.discriminator !== '0') formatted.push(`#${user.discriminator}`)
+
+  if (user.globalName) {
     formatted.push(']')
-  } else {
-    // Old system
-    if (markdown) formatted.push('**')
-    formatted.push(username)
-    if (markdown) formatted.push('**')
-    if (bidirectional) formatted.push('\u{200e}')
-    if (user.discriminator !== '0') formatted.push(`#${user.discriminator}`)
   }
 
   if (id) formatted.push(` (${user.id})`)
