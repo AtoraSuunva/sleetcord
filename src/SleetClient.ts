@@ -30,7 +30,7 @@ import {
 import { EventEmitter } from 'tseep'
 import { AsyncLocalStorage } from 'async_hooks'
 
-type ModuleRunner<R = unknown> = (
+export type ModuleRunner<R = unknown> = (
   module: SleetModule,
   callback: (...args: unknown[]) => Awaitable<R>,
   event: EventDetails,
