@@ -23,6 +23,9 @@ export interface SleetContext {
   client: Client
 }
 
+// eslint-disable-next-line @typescript-eslint/no-invalid-void-type
+export type ListenerResult<T = unknown> = Promise<T> | void
+
 /** A type of every possible Discord event key */
 type DiscordEvent = keyof ClientEvents
 
@@ -42,22 +45,9 @@ export function isDiscordEvent(event: string): event is DiscordEvent {
   return DiscordEventsList.includes(event as unknown as Events)
 }
 
-// eslint-disable-next-line @typescript-eslint/no-invalid-void-type
-export type ListenerResult = Promise<unknown> | void
-
-/**
- * A mapping of 'event name' => Handler arguments for attaching listeners to Discord.js events
- */
-export type ClientEventHandlers = {
-  [Event in keyof ClientEvents]: (
-    this: SleetContext,
-    ...args: ClientEvents[Event]
-  ) => ListenerResult
-}
-
 /** A type of every possible sleet event key */
 export type SleetEvent = Exclude<
-  keyof SleetModuleEventHandlers,
+  keyof BaseSleetModuleEventHandlers,
   keyof ClientEvents
 >
 
@@ -71,6 +61,7 @@ export const SleetEventsList: SleetEvent[] = [
   'unloadModule',
   'runModule',
   'eventHandled',
+  'eventSkipped',
   'autocompleteInteractionError',
   'applicationInteractionError',
   'sleetError',
@@ -88,9 +79,73 @@ export function isSleetEvent(event: string): event is SleetEvent {
 }
 
 /**
+ * Events that modules can handle, but aren't Discord.js or Sleet "global" events
+ *
+ * These are directed events only sent to a specific module (and possibly it's sub-modules),
+ * or events that sleet treats more like callbacks and needs the return value
+ */
+export type SpecialEvent = Exclude<
+  | keyof RunnableEventHandlers<CommandInteraction>
+  | keyof SlashEventHandlers
+  | keyof SleetExtensions,
+  keyof BaseSleetModuleEventHandlers
+>
+
+/**
+ * An array of all "events" that aren't hooked directly into discord.js' or Sleet's event emitters,
+ * and instead require some special processing
+ */
+export const SpecialEventsList: SpecialEvent[] = [
+  'run',
+  'autocomplete',
+  'shouldSkipEvent',
+]
+
+/**
+ * Checks if a string is a valid Special Event
+ * @param event The key to checks
+ * @returns If the key is a valid Special event
+ */
+export function isSpecialEvent(event: string): event is SpecialEvent {
+  return SpecialEventsList.includes(event as unknown as SpecialEvent)
+}
+
+/**
+ * A mapping of 'event name' => Handler arguments for attaching listeners to Sleet events
+ */
+export type SleetModuleEventHandlerArgs = Required<{
+  [Event in keyof BaseSleetModuleEventHandlers]: Parameters<
+    NonNullable<BaseSleetModuleEventHandlers[Event]>
+  >
+}>
+
+/**
+ * A type of every possible event name + arguments pairing
+ */
+export type EventDetails = NonNullable<
+  {
+    [Event in keyof BaseSleetModuleEventHandlers]: {
+      name: Event
+      arguments: SleetModuleEventHandlerArgs[Event]
+    }
+  }[keyof BaseSleetModuleEventHandlers]
+>
+
+/**
+ * A mapping of 'event name' => Handler arguments for attaching listeners to Discord.js events
+ */
+export type ClientEventHandlers = {
+  [Event in keyof ClientEvents]: (
+    this: SleetContext,
+    ...args: ClientEvents[Event]
+  ) => ListenerResult
+}
+
+/**
  * All possible event handlers a command can have, both for Sleet events and Discord.js events
  */
-export interface SleetModuleEventHandlers extends Partial<ClientEventHandlers> {
+export interface BaseSleetModuleEventHandlers
+  extends Partial<ClientEventHandlers> {
   /**
    * Event emitted when a SleetClient loads this module, can be used to fetch data
    * from an external source
@@ -132,15 +187,26 @@ export interface SleetModuleEventHandlers extends Partial<ClientEventHandlers> {
   ) => ListenerResult
   /**
    * Event emitted when a module handles an event
-   * @param module The module that handled the Interaction
-   * @param event The event that was handled
-   * @param args The arguments of that event
+   * @param eventDetails The event that was handled
+   * @param module The module that handled the interaction
    */
   eventHandled?: (
     this: SleetContext,
-    event: string,
+    eventDetails: EventDetails,
     module: SleetModule,
-    ...args: unknown[]
+  ) => ListenerResult
+  /**
+   * Event emitted when an event that a module would've handled was skipped since
+   * `shouldHandleEvent` returned `false` on some other module
+   * @param eventDetails The event that was handled
+   * @param skippedModule The module that would've handled the interaction
+   * @param skippedBy The module that caused the skipping
+   */
+  eventSkipped?: (
+    this: SleetContext,
+    eventDetails: EventDetails,
+    skippedModule: SleetModule,
+    skippedBy: SleetModule,
   ) => ListenerResult
   /**
    * Event emitted when an autocomplete interaction errors out
@@ -200,25 +266,28 @@ export interface SleetModuleEventHandlers extends Partial<ClientEventHandlers> {
   ) => ListenerResult
 }
 
-export type SpecialEvent = Exclude<
-  keyof RunnableEventHandlers<CommandInteraction> | keyof SlashEventHandlers,
-  keyof SleetModuleEventHandlers
->
-
-/**
- * An array of all "events" that aren't hooked directly into discord.js' or Sleet's event emitters,
- * and instead require some special processing
- */
-export const SpecialEventsList: SpecialEvent[] = ['run', 'autocomplete']
-
-/**
- * Checks if a string is a valid Special Event
- * @param event The key to checks
- * @returns If the key is a valid Special event
- */
-export function isSpecialEvent(event: string): event is SpecialEvent {
-  return SpecialEventsList.includes(event as unknown as SpecialEvent)
+interface SkipReason {
+  reason: string
+  ephemeral?: boolean
 }
+
+export interface SleetExtensions {
+  /**
+   * Decides if a module should handle an event or not. If this returns `false`,
+   * the module is skipped for that event. Can be used to disable modules for certain guilds,
+   * certain users, or bot-wide ratelimiting.
+   * @param eventDetails The details of the event that will be handled
+   * @param module The module that will be run
+   */
+  shouldSkipEvent?: (
+    this: SleetContext,
+    eventDetails: EventDetails,
+    module: SleetModule,
+  ) => Awaitable<SkipReason | undefined>
+}
+
+export type SleetModuleEventHandlers = BaseSleetModuleEventHandlers &
+  SleetExtensions
 
 /**
  * Event handlers for Sleet events, Discord.js Events, and runnable modules
@@ -226,7 +295,7 @@ export function isSpecialEvent(event: string): event is SpecialEvent {
 export interface RunnableEventHandlers<
   I extends CommandInteraction,
   A extends unknown[] = [],
-> extends SleetModuleEventHandlers {
+> extends BaseSleetModuleEventHandlers {
   run: (this: SleetContext, interaction: I, ...args: A) => Awaitable<unknown>
 }
 

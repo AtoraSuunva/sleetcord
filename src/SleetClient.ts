@@ -15,11 +15,13 @@ import { SleetUserCommand } from './modules/context-menu/SleetUserCommand.js'
 import { SleetMessageCommand } from './modules/context-menu/SleetMessageCommand.js'
 import {
   ApplicationInteraction,
+  BaseSleetModuleEventHandlers,
+  EventDetails,
   isDiscordEvent,
   isSleetEvent,
   isSpecialEvent,
-  ListenerResult,
   SleetContext,
+  SleetExtensions,
   SleetModuleEventHandlers,
 } from './modules/events.js'
 import { EventEmitter } from 'tseep'
@@ -73,14 +75,20 @@ export const runningModuleStore = new AsyncLocalStorage<SleetModule>()
  * interactions to commands and registering them
  */
 export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
-  Required<SleetModuleEventHandlers>
+  Required<BaseSleetModuleEventHandlers>
 > {
   options: SleetOptions
   client: Client<Ready>
   rest: SleetRest
+  // Map<qualifiedName, module>
   modules = new Map<string, SleetModule>()
+  // Map<commandName, command>
   commands = new Map<string, SleetCommand>()
+  // Map<module, [event, handler][]>
   registeredEvents = new Map<SleetModule, SleetModuleEventRegistration[]>()
+  // Set<SleetModule that has shouldHandleEvent handler>
+  // Defined this way because of https://github.com/microsoft/TypeScript/issues/42873
+  shouldSkipHandlers: Set<SleetModule<Required<SleetExtensions>>> = new Set()
   context: SleetContext
 
   constructor(options: SleetClientOptions) {
@@ -190,7 +198,7 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
     const events = this.registeredEvents.get(module) ?? []
 
     for (const [event, handler] of Object.entries(module.handlers) as [
-      string,
+      keyof SleetModuleEventHandlers,
       SleetModuleEventHandlers[keyof SleetModuleEventHandlers],
     ][]) {
       if (!handler) continue
@@ -199,6 +207,18 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
         'sleetDebug',
         `Registering event '${event}' for '${module.name}'`,
       )
+
+      if (
+        event === 'shouldSkipEvent' &&
+        typeof module.handlers.shouldSkipEvent === 'function'
+      ) {
+        // This is a special case, since we don't use any event emitters for this
+        // We need to call each one and track the return value
+        this.shouldSkipHandlers.add(
+          module as SleetModule<Required<SleetExtensions>>,
+        )
+        continue
+      }
 
       const boundEvent = handler.bind(this.context)
       // For tseep to properly handle the event, we need to know how many arguments it takes
@@ -211,8 +231,34 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
       // no real use in handling type errors here (since we don't know which events are called until
       // runtime and TS doesn't do runtime validation), we opt-out of compile-time validation here
       // by just throwing unknowns everywhere until typescript says its okay
-      const eventHandler = (...args: unknown[]) => {
-        this.emit('eventHandled', event, module, ...args)
+      const eventHandler = async (...args: unknown[]) => {
+        const eventDetails: EventDetails = {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
+          name: event as any,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
+          arguments: args as any,
+        }
+
+        for (const skipper of this.shouldSkipHandlers.values()) {
+          const res = await runningModuleStore.run(
+            skipper,
+            skipper.handlers.shouldSkipEvent,
+            eventDetails,
+            module,
+          )
+
+          if (res) {
+            this.emit('eventSkipped', eventDetails, module, skipper)
+            return
+          }
+        }
+
+        // Conditional since we don't want to emit eventHandled for eventHandled
+        // This causes a cool call stack size exceeded
+        if (event !== 'eventHandled') {
+          this.emit('eventHandled', eventDetails, module)
+        }
+
         runningModuleStore.run<unknown, unknown[]>(
           module,
           // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any
@@ -226,17 +272,14 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
         this.client.on(event, eventHandler as any)
       } else if (isSleetEvent(event)) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any
-        this.addListener(event, eventHandler as any, argsNum)
+        this.addListener(event, eventHandler as any, argsNum as any)
       } else if (!isSpecialEvent(event)) {
         throw new Error(
           `Unknown event '${String(event)}' while processing ${module.name}`,
         )
       }
 
-      events.push([
-        event as keyof SleetModuleEventHandlers,
-        eventHandler as unknown as () => ListenerResult,
-      ])
+      events.push([event, eventHandler])
     }
 
     this.registeredEvents.set(module, events)

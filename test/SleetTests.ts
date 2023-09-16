@@ -51,9 +51,9 @@ export const slashCommand = new SleetSlashCommand(
     ],
   },
   {
-    run: (interaction) => {
+    run: async (interaction) => {
       const message = interaction.options.getString('message', true)
-      interaction.reply(message)
+      await interaction.reply(message)
     },
   },
 )
@@ -73,7 +73,7 @@ export const pingCommand = new SleetSlashCommand(
       const wsPing = this.client.ws.ping
       const apiPing = reply.createdTimestamp - interaction.createdTimestamp
       const content = `Pong! **WS**: ${wsPing}ms, **API**: ${apiPing}ms`
-      interaction.editReply(content)
+      await interaction.editReply(content)
     },
   },
 )
@@ -143,9 +143,9 @@ export const autocompleteCommand = new SleetSlashCommand(
     ],
   },
   {
-    run: (interaction) => {
+    run: async (interaction) => {
       const fruit = interaction.options.getString('fruit', true)
-      interaction.reply(`You picked ${fruit}!`)
+      await interaction.reply(`You picked ${fruit}!`)
     },
   },
 )
@@ -165,9 +165,9 @@ const autocompleteFruit = new SleetSlashSubcommand(
     ],
   },
   {
-    run: (interaction) => {
+    run: async (interaction) => {
       const fruit = interaction.options.getString('fruit', true)
-      interaction.reply(`You picked ${fruit}!`)
+      await interaction.reply(`You picked ${fruit}!`)
     },
   },
 )
@@ -187,9 +187,9 @@ const autocompleteVegetable = new SleetSlashSubcommand(
     ],
   },
   {
-    run: (interaction) => {
+    run: async (interaction) => {
       const vegetable = interaction.options.getString('vegetable', true)
-      interaction.reply(`You picked ${vegetable}!`)
+      await interaction.reply(`You picked ${vegetable}!`)
     },
   },
 )
@@ -264,10 +264,11 @@ export const userGetCommand = new SleetSlashSubcommand(
 
       const permString = permissions.toArray().join(', ')
 
-      interaction.editReply(
+      await interaction.editReply(
         `In ${
-          channel ? `${channel}` : 'this guild'
-        }, ${member} has permissions:\n${permString}`,
+          // eslint-disable-next-line @typescript-eslint/no-base-to-string
+          channel ? channel.toString() : 'this guild'
+        }, ${member.toString()} has permissions:\n${permString}`,
       )
     },
   },
@@ -298,7 +299,7 @@ export const userEditCommand = new SleetSlashSubcommand(
       // and should respond to the interaction!!
       console.log('Editing for user...')
       hasPermissionsGuard(interaction, ['ManageRoles'])
-      interaction.reply('Imagine this actually edited permissions')
+      await interaction.reply('Imagine this actually edited permissions')
     },
   },
 )
@@ -363,7 +364,7 @@ const childModule = new SleetModule(
       const module = runningModuleStore.getStore()
 
       console.log(
-        `wow the child module saw an event incredible (from ${module?.name})`,
+        `the child module saw an event (from ${module?.name})`,
         message.content,
       )
     },
@@ -376,9 +377,11 @@ const moduleChildSlashCommand = new SleetSlashCommand(
     description: 'Child slash command',
   },
   {
-    run: (interaction) => {
+    run: async (interaction) => {
       const module = runningModuleStore.getStore()
-      interaction.reply(`Child slash command running from ${module?.name}`)
+      await interaction.reply(
+        `Child slash command running from ${module?.name}`,
+      )
     },
   },
 )
@@ -389,10 +392,7 @@ export const parentModule = new SleetModule(
   },
   {
     messageCreate: (message) => {
-      console.log(
-        'wow the parent module saw an event incredible',
-        message.content,
-      )
+      console.log('the parent module saw an event', message.content)
     },
   },
   [childModule, moduleChildSlashCommand],
@@ -404,8 +404,8 @@ const childSlashCommand = new SleetSlashSubcommand(
     description: 'Child slash command',
   },
   {
-    run: (interaction) => {
-      interaction.reply('Child slash command')
+    run: async (interaction) => {
+      await interaction.reply('Child slash command')
     },
     messageCreate: (message) => {
       console.log('child slash msg:', message.content)
@@ -436,5 +436,45 @@ export const parentSlashCommand = new SleetSlashCommand(
     messageCreate: (message) => {
       console.log('parent slash msg:', message.content)
     },
+  },
+)
+
+export const eventLogger = new SleetModule(
+  {
+    name: 'eventLogger',
+  },
+  {
+    eventHandled(eventDetails, module) {
+      console.log(
+        `- Event ${eventDetails.name} handled by module ${module.name}`,
+      )
+
+      if (eventDetails.name === 'messageCreate') {
+        console.log('  -> Message content:', eventDetails.arguments[0].content)
+      }
+    },
+  },
+)
+
+export const moduleFilter = new SleetModule(
+  {
+    name: 'moduleFilter',
+  },
+  {
+    shouldSkipEvent(eventDetails, module) {
+      if (eventDetails.name === 'messageCreate') {
+        console.log('checking messageCreate for', module.name)
+        if (eventDetails.arguments[0].content === '!ignore-this') {
+          return {
+            reason: 'Message content was "!ignore-this"',
+          }
+        }
+      }
+
+      return
+    },
+    eventSkipped(eventDetails, module, skipper) {
+      console.log(`Event '${eventDetails.name}' for '${module.name}' was skipped by '${skipper.name}'`)
+    }
   },
 )

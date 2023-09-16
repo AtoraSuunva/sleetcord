@@ -11,6 +11,8 @@ import {
   readyLogModule,
   parentModule,
   parentSlashCommand,
+  moduleFilter,
+  eventLogger,
 } from './SleetTests.js'
 import { echo } from './echo.js'
 import { mute, unmute } from './mod/mute.js'
@@ -97,13 +99,15 @@ sleetClient.addModules([
   blacklist,
   parentModule,
   parentSlashCommand,
+  eventLogger,
+  moduleFilter,
 
   secretSlashCommand,
   secretMessageCommand,
   secretUserCommand,
 ])
 
-sleetClient.putCommands({
+await sleetClient.putCommands({
   registerGuildRestrictedCommands: true,
 })
-sleetClient.login()
+await sleetClient.login()
