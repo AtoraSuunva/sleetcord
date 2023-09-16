@@ -131,6 +131,8 @@ export type EventDetails = NonNullable<
   }[keyof BaseSleetModuleEventHandlers]
 >
 
+export type EventArguments = EventDetails['arguments']
+
 /**
  * A mapping of 'event name' => Handler arguments for attaching listeners to Discord.js events
  */

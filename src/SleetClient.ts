@@ -1,6 +1,7 @@
 import {
   ApplicationCommandType,
   AutocompleteInteraction,
+  Awaitable,
   Client,
   ClientOptions,
   Interaction,
@@ -16,6 +17,7 @@ import { SleetMessageCommand } from './modules/context-menu/SleetMessageCommand.
 import {
   ApplicationInteraction,
   BaseSleetModuleEventHandlers,
+  EventArguments,
   EventDetails,
   isDiscordEvent,
   isSleetEvent,
@@ -28,12 +30,41 @@ import {
 import { EventEmitter } from 'tseep'
 import { AsyncLocalStorage } from 'async_hooks'
 
+type ModuleRunner<R = unknown> = (
+  module: SleetModule,
+  callback: (...args: unknown[]) => Awaitable<R>,
+  event: EventDetails,
+) => Awaitable<R>
+
+const defaultModuleRunner: ModuleRunner = (_module, callback, event) =>
+  callback(...event.arguments)
+
 /**
  * Sleet-specific options
  */
 interface SleetOptions {
+  /** The bot's token */
   token: string
+  /** The bot's application ID */
   applicationId: string
+  /**
+   * Use a custom runner to wrap around all module event runs, useful for adding tracing via transactions or spans
+   *
+   * If you don't call the `callback`, the module will NOT run, the required arguments to the `callback` are in the `event` object as `event.arguments`
+   *
+   * For most cases, you will use something like the following:
+   * @example
+   * function moduleRunner(module, callback, event) {
+   *   const span = tracer.startSpan(`module.${module.name}.${event.name}`)
+   *
+   *   try {
+   *     return callback(...event.arguments)
+   *   } finally {
+   *     span.finish()
+   *   }
+   * }
+   */
+  moduleRunner?: ModuleRunner
 }
 
 /**
@@ -91,10 +122,12 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
   // Defined this way because of https://github.com/microsoft/TypeScript/issues/42873
   shouldSkipHandlers: Set<SleetModule<Required<SleetExtensions>>> = new Set()
   context: SleetContext
+  moduleRunner: ModuleRunner
 
   constructor(options: SleetClientOptions) {
     super()
     this.options = options.sleet
+    this.moduleRunner = options.sleet.moduleRunner ?? defaultModuleRunner
 
     this.client = new Client(options.client)
 
@@ -240,7 +273,7 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
       // no real use in handling type errors here (since we don't know which events are called until
       // runtime and TS doesn't do runtime validation), we opt-out of compile-time validation here
       // by just throwing unknowns everywhere until typescript says its okay
-      const eventHandler = async (...args: unknown[]) => {
+      const eventHandler = async (...args: EventArguments) => {
         const eventDetails: EventDetails = {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
           name: event as any,
@@ -258,11 +291,16 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
           this.emit('eventHandled', eventDetails, module)
         }
 
-        runningModuleStore.run<unknown, unknown[]>(
+        this.moduleRunner(
           module,
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any
-          boundEvent as any,
-          ...args,
+          (...args) =>
+            runningModuleStore.run<Promise<unknown>, unknown[]>(
+              module,
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any
+              boundEvent as any,
+              ...args,
+            ),
+          eventDetails,
         )
       }
 
@@ -405,11 +443,11 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
    */
   async #interactionCreate(interaction: Interaction): Promise<void> {
     if (interaction.type === InteractionType.ApplicationCommand) {
-      return this.#handleApplicationInteraction(interaction)
+      return this.#handleApplicationInteraction(interaction).then(() => {})
     } else if (
       interaction.type === InteractionType.ApplicationCommandAutocomplete
     ) {
-      return this.#handleAutocompleteInteraction(interaction)
+      return this.#handleAutocompleteInteraction(interaction).then(() => {})
     }
   }
 
@@ -436,13 +474,12 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
       return
     }
 
-    const skipReason = await this.#shouldSkipEvent(
-      {
-        name: 'interactionCreate',
-        arguments: [interaction],
-      },
-      module,
-    )
+    const eventDetails: EventDetails = {
+      name: 'interactionCreate',
+      arguments: [interaction],
+    }
+
+    const skipReason = await this.#shouldSkipEvent(eventDetails, module)
 
     if (skipReason) {
       await interaction.reply({
@@ -452,36 +489,45 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
       return
     }
 
-    return runningModuleStore.run(module, async () => {
-      this.emit('runModule', module, interaction)
-      try {
-        // Make sure the module can run the incoming type of interaction
-        if (
-          interaction.commandType === ApplicationCommandType.ChatInput &&
-          module instanceof SleetSlashCommand
-        ) {
-          await module.run(this.context, interaction)
-        } else if (
-          interaction.commandType === ApplicationCommandType.User &&
-          module instanceof SleetUserCommand
-        ) {
-          await module.run(this.context, interaction)
-        } else if (
-          interaction.commandType === ApplicationCommandType.Message &&
-          module instanceof SleetMessageCommand
-        ) {
-          await module.run(this.context, interaction)
-        } else {
-          this.emit(
-            'sleetWarn',
-            'Module could not handle incoming interaction',
-            interaction,
-          )
-        }
-      } catch (e) {
-        await this.#handleApplicationInteractionError(interaction, module, e)
-      }
-    })
+    return this.moduleRunner(
+      module,
+      () =>
+        runningModuleStore.run(module, async () => {
+          this.emit('runModule', module, interaction)
+          try {
+            // Make sure the module can run the incoming type of interaction
+            if (
+              interaction.commandType === ApplicationCommandType.ChatInput &&
+              module instanceof SleetSlashCommand
+            ) {
+              await module.run(this.context, interaction)
+            } else if (
+              interaction.commandType === ApplicationCommandType.User &&
+              module instanceof SleetUserCommand
+            ) {
+              await module.run(this.context, interaction)
+            } else if (
+              interaction.commandType === ApplicationCommandType.Message &&
+              module instanceof SleetMessageCommand
+            ) {
+              await module.run(this.context, interaction)
+            } else {
+              this.emit(
+                'sleetWarn',
+                'Module could not handle incoming interaction',
+                interaction,
+              )
+            }
+          } catch (e) {
+            await this.#handleApplicationInteractionError(
+              interaction,
+              module,
+              e,
+            )
+          }
+        }),
+      eventDetails,
+    )
   }
 
   async #handleAutocompleteInteraction(interaction: AutocompleteInteraction) {
@@ -519,13 +565,12 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
       return
     }
 
-    const skipReason = await this.#shouldSkipEvent(
-      {
-        name: 'interactionCreate',
-        arguments: [interaction],
-      },
-      module,
-    )
+    const eventDetails: EventDetails = {
+      name: 'interactionCreate',
+      arguments: [interaction],
+    }
+
+    const skipReason = await this.#shouldSkipEvent(eventDetails, module)
 
     if (skipReason) {
       await interaction.respond([
@@ -537,15 +582,24 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
       return
     }
 
-    return runningModuleStore.run(module, async () => {
-      try {
-        if (module instanceof SleetSlashCommand) {
-          await module.autocomplete(this.context, interaction)
-        }
-      } catch (e) {
-        await this.#handleAutocompleteInteractionError(interaction, module, e)
-      }
-    })
+    return this.moduleRunner(
+      module,
+      () =>
+        runningModuleStore.run(module, async () => {
+          try {
+            if (module instanceof SleetSlashCommand) {
+              await module.autocomplete(this.context, interaction)
+            }
+          } catch (e) {
+            await this.#handleAutocompleteInteractionError(
+              interaction,
+              module,
+              e,
+            )
+          }
+        }),
+      eventDetails,
+    )
   }
 
   async #handleAutocompleteInteractionError(
@@ -609,11 +663,19 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
     module: SleetModule,
   ): Promise<ShouldSkipEventReturn> {
     for (const skipper of this.shouldSkipHandlers.values()) {
-      const reason = await runningModuleStore.run(
+      // TODO: this has the module being run (skipper), but not the module being checked (module)
+      const reason = await (
+        this.moduleRunner as ModuleRunner<ShouldSkipEventReturn>
+      )(
         skipper,
-        skipper.handlers.shouldSkipEvent,
+        () =>
+          runningModuleStore.run(
+            skipper,
+            skipper.handlers.shouldSkipEvent,
+            event,
+            module,
+          ),
         event,
-        module,
       )
 
       if (reason) {
