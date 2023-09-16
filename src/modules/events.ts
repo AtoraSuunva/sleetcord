@@ -201,12 +201,14 @@ export interface BaseSleetModuleEventHandlers
    * @param eventDetails The event that was handled
    * @param skippedModule The module that would've handled the interaction
    * @param skippedBy The module that caused the skipping
+   * @param reason The reason the event was skipped
    */
   eventSkipped?: (
     this: SleetContext,
     eventDetails: EventDetails,
     skippedModule: SleetModule,
     skippedBy: SleetModule,
+    reason: SkipReason,
   ) => ListenerResult
   /**
    * Event emitted when an autocomplete interaction errors out
@@ -266,8 +268,15 @@ export interface BaseSleetModuleEventHandlers
   ) => ListenerResult
 }
 
-interface SkipReason {
-  reason: string
+export interface SkipReason {
+  /**
+   * The reason the module was skipped (shown to the user)
+   */
+  message: string
+  /**
+   * If the message should be ephemeral (for interactions)
+   * @default false
+   */
   ephemeral?: boolean
 }
 
@@ -283,8 +292,12 @@ export interface SleetExtensions {
     this: SleetContext,
     eventDetails: EventDetails,
     module: SleetModule,
-  ) => Awaitable<SkipReason | undefined>
+  ) => Awaitable<SkipReason | false>
 }
+
+export type ShouldSkipEventReturn = Awaited<
+  ReturnType<NonNullable<SleetExtensions['shouldSkipEvent']>>
+>
 
 export type SleetModuleEventHandlers = BaseSleetModuleEventHandlers &
   SleetExtensions

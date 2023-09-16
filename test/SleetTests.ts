@@ -466,15 +466,33 @@ export const moduleFilter = new SleetModule(
         console.log('checking messageCreate for', module.name)
         if (eventDetails.arguments[0].content === '!ignore-this') {
           return {
-            reason: 'Message content was "!ignore-this"',
+            message: 'Message content was "!ignore-this"',
           }
         }
       }
 
-      return
+      if (eventDetails.name === 'interactionCreate') {
+        const interaction = eventDetails.arguments[0]
+
+        if (interaction.isChatInputCommand()) {
+          if (
+            interaction.options.data.some(
+              (d) => d.value?.toString().includes('!!!ignore!!!'),
+            )
+          ) {
+            return {
+              message: 'Command option value included "!!!ignore!!!"',
+            }
+          }
+        }
+      }
+
+      return false
     },
-    eventSkipped(eventDetails, module, skipper) {
-      console.log(`Event '${eventDetails.name}' for '${module.name}' was skipped by '${skipper.name}'`)
-    }
+    eventSkipped(eventDetails, module, skipper, reason) {
+      console.log(
+        `Event '${eventDetails.name}' for '${module.name}' was skipped by '${skipper.name}' for '${reason.message}'`,
+      )
+    },
   },
 )

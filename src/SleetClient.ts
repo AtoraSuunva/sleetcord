@@ -20,6 +20,7 @@ import {
   isDiscordEvent,
   isSleetEvent,
   isSpecialEvent,
+  ShouldSkipEventReturn,
   SleetContext,
   SleetExtensions,
   SleetModuleEventHandlers,
@@ -195,6 +196,14 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
   }
 
   #registerEventsFor(module: SleetModule) {
+    if (!(module instanceof SleetModule)) {
+      throw new Error(
+        `${String(
+          module,
+        )} is not a SleetModule, but was being registered for events`,
+      )
+    }
+
     const events = this.registeredEvents.get(module) ?? []
 
     for (const [event, handler] of Object.entries(module.handlers) as [
@@ -239,18 +248,8 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
           arguments: args as any,
         }
 
-        for (const skipper of this.shouldSkipHandlers.values()) {
-          const res = await runningModuleStore.run(
-            skipper,
-            skipper.handlers.shouldSkipEvent,
-            eventDetails,
-            module,
-          )
-
-          if (res) {
-            this.emit('eventSkipped', eventDetails, module, skipper)
-            return
-          }
+        if (await this.#shouldSkipEvent(eventDetails, module)) {
+          return
         }
 
         // Conditional since we don't want to emit eventHandled for eventHandled
@@ -286,6 +285,14 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
   }
 
   #unregisterEventsFor(module: SleetModule) {
+    if (!(module instanceof SleetModule)) {
+      throw new Error(
+        `${String(
+          module,
+        )} is not a SleetModule, but was being unregistered for events`,
+      )
+    }
+
     const events = this.registeredEvents.get(module)
     if (!events) return
 
@@ -421,9 +428,27 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
     if (!(module instanceof SleetCommand)) {
       this.emit(
         'sleetWarn',
-        'Module is not a SleetCommand, but has registered interactions',
+        `${String(
+          module,
+        )} is not a SleetCommand, but has registered interactions`,
         interaction.commandName,
       )
+      return
+    }
+
+    const skipReason = await this.#shouldSkipEvent(
+      {
+        name: 'interactionCreate',
+        arguments: [interaction],
+      },
+      module,
+    )
+
+    if (skipReason) {
+      await interaction.reply({
+        content: `This interaction was skipped for "${skipReason.message}"`,
+        ephemeral: skipReason.ephemeral ?? false,
+      })
       return
     }
 
@@ -468,6 +493,47 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
         'No module registered for this interaction',
         interaction,
       )
+      await interaction.respond([
+        {
+          name: 'No module registered for this interaction',
+          value: 'ERROR',
+        },
+      ])
+      return
+    }
+
+    if (!(module instanceof SleetCommand)) {
+      this.emit(
+        'sleetWarn',
+        `${String(
+          module,
+        )} is not a SleetCommand, but has registered interactions`,
+        interaction.commandName,
+      )
+      await interaction.respond([
+        {
+          name: 'Wrong module type for this interaction',
+          value: 'ERROR',
+        },
+      ])
+      return
+    }
+
+    const skipReason = await this.#shouldSkipEvent(
+      {
+        name: 'interactionCreate',
+        arguments: [interaction],
+      },
+      module,
+    )
+
+    if (skipReason) {
+      await interaction.respond([
+        {
+          name: `This interaction was skipped for "${skipReason.message}"`,
+          value: 'SKIPPED',
+        },
+      ])
       return
     }
 
@@ -526,6 +592,37 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
       const err = e instanceof Error ? e : new Error(String(e))
       this.emit('sleetError', 'Error while handling interaction error', err)
     }
+  }
+
+  /**
+   * Checks if an event and module pair should be skipped by any of the registered skip handlers
+   *
+   * This also handles emitting "eventSkipped" if the module should be skipped
+   *
+   * Only the first found skip reason is emitted and returned
+   * @param event The event to check
+   * @param module The module to check
+   * @returns A skip reason if the event should be skipped, false otherwise
+   */
+  async #shouldSkipEvent(
+    event: EventDetails,
+    module: SleetModule,
+  ): Promise<ShouldSkipEventReturn> {
+    for (const skipper of this.shouldSkipHandlers.values()) {
+      const reason = await runningModuleStore.run(
+        skipper,
+        skipper.handlers.shouldSkipEvent,
+        event,
+        module,
+      )
+
+      if (reason) {
+        this.emit('eventSkipped', event, module, skipper, reason)
+        return reason
+      }
+    }
+
+    return false
   }
 }
 
