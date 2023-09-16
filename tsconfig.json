@@ -3,7 +3,6 @@
   "exclude": ["**/node_modules", "**/.*/"],
   "ts-node": {
     "transpileOnly": true,
-    "transpiler": "ts-node/transpilers/swc-experimental",
     "files": true
   },
   "compilerOptions": {
