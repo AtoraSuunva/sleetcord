@@ -36,13 +36,13 @@ export type ModuleRunner<R = unknown> = (
   event: EventDetails,
 ) => Awaitable<R>
 
-const defaultModuleRunner: ModuleRunner = (_module, callback, event) =>
+export const defaultModuleRunner: ModuleRunner = (_module, callback, event) =>
   callback(...event.arguments)
 
 /**
  * Sleet-specific options
  */
-interface SleetOptions {
+export interface SleetOptions {
   /** The bot's token */
   token: string
   /** The bot's application ID */
@@ -71,7 +71,7 @@ interface SleetOptions {
  * SleetClient options, `sleet` are used by the handler, `client` are passed
  * to the Discord.js client
  */
-interface SleetClientOptions {
+export interface SleetClientOptions {
   sleet: SleetOptions
   client: ClientOptions
 }
