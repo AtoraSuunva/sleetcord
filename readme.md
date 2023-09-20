@@ -2,12 +2,15 @@
 
 > An interaction-first command handler for Discord.js
 
+![npm](https://img.shields.io/npm/v/sleetcord) ![GitHub](https://img.shields.io/github/license/AtoraSuunva/sleetcord.svg) ![Typescript typings](https://img.shields.io/npm/types/sleetcord)
+
 Sleetcord is an interaction "router" and set of helpers to make building a Discord.js bot using interactions easier
 
 Sleetcord aims to act more like a helpful "layer" between you and Discord structures, without trying to impose any kind of file structure "magic" or requirements
 
-> **NOTE:** ⚠️ Sleetcord is still currently a WIP, it's usable but might be missing features or have odd bugs or edge cases  
-> ⚠️ While sleetcord is publicly available, documentation is (and likely will always be) lacking. You are free to use it and submit requests, but this is mainly for my own personal use.
+More helpers are available in [sleetcord-common](https://github.com/AtoraSuunva/sleetcord-common)
+
+> **NOTE:** ⚠️ While sleetcord is publicly available (and on NPM), documentation is (and likely will always be) lacking. You are free to use it and submit requests, but this is mainly for my own personal use. You will likely be on your own for most support (Sorry! I have to maintain too many things at the same time already).
 
 ## Usage
 
@@ -76,15 +79,3 @@ sleetClient.addModules([echo])
 sleetClient.putCommands()
 sleetClient.login()
 ```
-
-## TODO:
-
-- Maybe live loading
-  - Not supported for modules though, will cause memory leaks right now (though acceptable for dev work?)
-
-- Add reload/put commands commands as helpful "base" commands -> separate packages?
-
-- More helpers?
-  - Probably just based on what common things I need later on, that are very common or core to sleet
-
-- Also better docs at some point?

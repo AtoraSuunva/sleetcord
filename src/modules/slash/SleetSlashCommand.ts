@@ -28,23 +28,23 @@ interface BaseCommandBody
     >,
     SleetCommandExtras {}
 
-interface SleetSlashCommandBody extends BaseCommandBody {
+export interface SleetSlashCommandBody extends BaseCommandBody {
   options?:
     | (APIApplicationCommandOption | SleetAutocompleteableOption)[]
     | (SleetSlashSubcommand | SleetSlashCommandGroup)[]
 }
 
-interface SleetSlashCommandBodyJSON
+export interface SleetSlashCommandBodyJSON
   extends Omit<SleetSlashCommandBody, 'options'> {
   options?: APIApplicationCommandOption[]
 }
 
-interface SleetSlashCommandBodyAutocompleteable
+export interface SleetSlashCommandBodyAutocompleteable
   extends Omit<SleetSlashCommandBody, 'options'> {
   options?: (APIApplicationCommandOption | SleetAutocompleteableOption)[]
 }
 
-interface SleetSlashCommandBodyWithSubcommands
+export interface SleetSlashCommandBodyWithSubcommands
   extends Omit<SleetSlashCommandBody, 'options'> {
   options?: (SleetSlashSubcommand | SleetSlashCommandGroup)[]
 }

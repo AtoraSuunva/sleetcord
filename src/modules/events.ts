@@ -27,7 +27,7 @@ export interface SleetContext {
 export type ListenerResult<T = unknown> = Promise<T> | void
 
 /** A type of every possible Discord event key */
-type DiscordEvent = keyof ClientEvents
+export type DiscordEvent = keyof ClientEvents
 
 /**
  * An array of all possible Discord Event keys

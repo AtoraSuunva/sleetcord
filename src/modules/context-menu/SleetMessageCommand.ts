@@ -13,7 +13,7 @@ type BaseMessageCommandBody = Omit<
 > &
   SleetCommandExtras
 
-interface SleetMessageCommandBody extends BaseMessageCommandBody {
+export interface SleetMessageCommandBody extends BaseMessageCommandBody {
   type?: ApplicationCommandType.Message
 }
 

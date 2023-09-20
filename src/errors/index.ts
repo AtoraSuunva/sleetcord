@@ -1,1 +1,2 @@
-export { PreRunError } from './PreRunError.js'
+export * from './PreRunError.js'
+export type * from './PreRunError.js'

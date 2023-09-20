@@ -24,12 +24,12 @@ export type AutocompleteHandler<T extends AutocompleteableType> = (
   args: AutocompleteArguments<T>,
 ) => Awaitable<APIApplicationCommandOptionChoice<T>[]>
 
-type APIApplicationAutocompleteableOption =
+export type APIApplicationAutocompleteableOption =
   | APIApplicationCommandStringOption
   | APIApplicationCommandIntegerOption
   | APIApplicationCommandNumberOption
 
-type GetAutocompleteableOptionType<
+export type GetAutocompleteableOptionType<
   T extends APIApplicationAutocompleteableOption,
 > = T['type'] extends ApplicationCommandOptionType.String
   ? string
@@ -39,19 +39,20 @@ type GetAutocompleteableOptionType<
   ? number
   : never
 
-type AutocompleteableOption<T extends APIApplicationAutocompleteableOption> =
-  Omit<T, 'autocomplete'> & {
-    autocomplete: AutocompleteHandler<GetAutocompleteableOptionType<T>>
-    choices?: []
-  }
+export type AutocompleteableOption<
+  T extends APIApplicationAutocompleteableOption,
+> = Omit<T, 'autocomplete'> & {
+  autocomplete: AutocompleteHandler<GetAutocompleteableOptionType<T>>
+  choices?: []
+}
 
-type AutocompleteableStringOption =
+export type AutocompleteableStringOption =
   AutocompleteableOption<APIApplicationCommandStringOption>
 
-type AutocompleteableIntegerOption =
+export type AutocompleteableIntegerOption =
   AutocompleteableOption<APIApplicationCommandIntegerOption>
 
-type AutocompleteableNumberOption =
+export type AutocompleteableNumberOption =
   AutocompleteableOption<APIApplicationCommandNumberOption>
 
 export type SleetAutocompleteableOption =
@@ -80,7 +81,7 @@ export function isAutocompleteableOption(
   return validType && typeof option.autocomplete === 'function'
 }
 
-type SleetAutocompleteableWithSubcommands = SleetAutocompleteable &
+export type SleetAutocompleteableWithSubcommands = SleetAutocompleteable &
   (SleetSlashCommand | SleetSlashCommandGroup)
 
 export async function autocompleteWithSubcommands(

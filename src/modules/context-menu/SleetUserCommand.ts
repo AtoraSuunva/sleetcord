@@ -17,7 +17,7 @@ type BaseUserCommandBody = Omit<
 > &
   SleetCommandExtras
 
-interface SleetUserCommandBody extends BaseUserCommandBody {
+export interface SleetUserCommandBody extends BaseUserCommandBody {
   type?: ApplicationCommandType.User
 }
 

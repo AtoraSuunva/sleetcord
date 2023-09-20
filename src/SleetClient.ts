@@ -76,7 +76,7 @@ export interface SleetClientOptions {
   client: ClientOptions
 }
 
-interface PutCommandOptions {
+export interface PutCommandOptions {
   /** The commands to PUT, if any (defaults to added commands) */
   commands?: SleetCommand[]
   /** The guild to PUT to, if any */
