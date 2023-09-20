@@ -1,6 +1,6 @@
 {
   "name": "sleetcord",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "An interaction-first command library for Discord.js",
   "license": "MIT",
   "author": "AtoraSuunva",
