@@ -4,7 +4,7 @@ import {
   ApplicationCommandOptionType,
 } from 'discord-api-types/v10'
 import { ChatInputCommandInteraction } from 'discord.js'
-import { noop } from '../../utils/funcs.js'
+import { noop } from '../../utils/functions.js'
 import { SleetRunnable } from '../base/SleetRunnable.js'
 import {
   NoRunSlashEventHandlers,

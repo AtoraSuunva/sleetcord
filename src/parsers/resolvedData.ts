@@ -11,7 +11,7 @@ import {
   User,
 } from 'discord.js'
 import { PreRunError } from '../errors/PreRunError.js'
-import { exists } from '../utils/funcs.js'
+import { exists } from '../utils/functions.js'
 
 /**
  * An error indication there was a problem trying to resolve some data from the interaction,

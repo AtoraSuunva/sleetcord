@@ -18,6 +18,9 @@ export type ApplicationInteraction =
   | MessageContextMenuCommandInteraction
   | UserContextMenuCommandInteraction
 
+/**
+ * Context provided to every sleet module as `this`
+ */
 export interface SleetContext {
   sleet: SleetClient
   client: Client
@@ -270,6 +273,9 @@ export interface BaseSleetModuleEventHandlers
   ) => ListenerResult
 }
 
+/**
+ * The reason a module was skipped
+ */
 export interface SkipReason {
   /**
    * The reason the module was skipped (shown to the user)
@@ -282,6 +288,11 @@ export interface SkipReason {
   ephemeral?: boolean
 }
 
+/**
+ * Extensions to the SleetModule interface
+ *
+ * Used for events that aren't _really_ events, as their return values are actually used and affect control flow
+ */
 export interface SleetExtensions {
   /**
    * Decides if a module should handle an event or not. If this returns `false`,

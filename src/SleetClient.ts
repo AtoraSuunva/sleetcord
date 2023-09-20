@@ -30,12 +30,36 @@ import {
 import { EventEmitter } from 'tseep'
 import { AsyncLocalStorage } from 'async_hooks'
 
+/**
+ * A module runner, used to wrap around all module event runs.
+ *
+ * The default implementation simply does `return callback(...event.arguments)`.
+ *
+ * Your own implementation can implement more complex logic like error-catching or tracing, but it's
+ * expected that you call AND return the value from `callback(...event.arguments)` at some point.
+ * The rest of sleetcord **WILL** break if you don't uphold this assumption, from events being missed,
+ * to other events not triggering, or even errors being thrown.
+ * @param module The module being run
+ * @param callback The callback to run the event handler on the module
+ * @param event The event being handled
+ * @returns The result of the callback being run
+ */
 export type ModuleRunner<R = unknown> = (
   module: SleetModule,
   callback: (...args: unknown[]) => Awaitable<R>,
   event: EventDetails,
 ) => Awaitable<R>
 
+/**
+ * A default module runner used if no implementation is provided. Simply calls `callback(...event.arguments)`.
+ *
+ * Useful if you want a conditional module runner, but falling back to the basic implementation using your own logic.
+ * ie. you have a module runner for error catching, but with an option to disable error catching
+ * @param _module The module being run
+ * @param callback The callback to run the event handler on the module
+ * @param event The event being handled
+ * @returns The result of the callback being run
+ */
 export const defaultModuleRunner: ModuleRunner = (_module, callback, event) =>
   callback(...event.arguments)
 
@@ -52,6 +76,13 @@ export interface SleetOptions {
    *
    * If you don't call the `callback`, the module will NOT run, the required arguments to the `callback` are in the `event` object as `event.arguments`
    *
+   * The default implementation simply does `return callback(...event.arguments)`.
+   *
+   * Your own implementation can implement more complex logic like error-catching or tracing, but it's
+   * expected that you call AND return the value from `callback(...event.arguments)` at some point.
+   * The rest of sleetcord **WILL** break if you don't uphold this assumption, from events being missed,
+   * to other events not triggering, or even errors being thrown.
+   *
    * For most cases, you will use something like the following:
    * @example
    * function moduleRunner(module, callback, event) {
@@ -67,12 +98,15 @@ export interface SleetOptions {
   moduleRunner?: ModuleRunner
 }
 
-/**
- * SleetClient options, `sleet` are used by the handler, `client` are passed
- * to the Discord.js client
- */
 export interface SleetClientOptions {
+  /**
+   * Options specific to and provided to SleetClient
+   */
   sleet: SleetOptions
+  /**
+   * Options specific to and provided to the Discord.js client
+   * @see https://old.discordjs.dev/#/docs/discord.js/main/typedef/ClientOptions
+   */
   client: ClientOptions
 }
 

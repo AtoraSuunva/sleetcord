@@ -1,8 +1,22 @@
 import { AutocompleteHandler } from '../modules/slash/SleetAutocompleteable.js'
 
 export interface StringAutocompleteHandlerOptions {
+  /**
+   * The array of strings to match against
+   */
   array: string[]
+  /**
+   * Whether or not to match case sensitively
+   * @default true
+   */
   caseSensitive?: boolean
+  /**
+   * A custom matcher function to use instead of the default
+   * @param arrayValue The value from the array
+   * @param autocompleteValue The value from the autocomplete request
+   * @returns If the array value be included in the autocomplete response
+   * @default arrayValue.includes(autocompleteValue)
+   */
   matcher?: (arrayValue: string, autocompleteValue: string) => boolean
 }
 

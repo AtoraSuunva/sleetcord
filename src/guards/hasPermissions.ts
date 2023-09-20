@@ -6,6 +6,12 @@ import {
 import { PreRunError } from '../errors/PreRunError.js'
 import { getGuild } from '../index.js'
 
+/**
+ * Checks if the member who initiated the interaction has the required permissions
+ * @param interaction The interaction to check
+ * @param requiredPermissions The permissions to check
+ * @throws {PreRunError} If the member doesn't have the required permissions, listing the missing permissions
+ */
 export function hasPermissionsGuard(
   interaction: Interaction,
   requiredPermissions: PermissionResolvable[],
@@ -22,6 +28,12 @@ export function hasPermissionsGuard(
   }
 }
 
+/**
+ * Checks if the bot has the required permissions
+ * @param interaction The interaction to check
+ * @param requiredPermissions The permissions to check
+ * @throws {PreRunError} If the bot doesn't have the required permissions, listing the missing permissions
+ */
 export async function botHasPermissionsGuard(
   interaction: CommandInteraction,
   requiredPermissions: PermissionResolvable[],

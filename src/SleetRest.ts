@@ -5,10 +5,17 @@ import {
 } from 'discord-api-types/v10'
 
 export interface SleetRestOptions {
+  /** The token for the bot */
   token: string
+  /** The application ID for the bot */
   applicationId: string
 }
 
+/**
+ * A simple wrapper around the Discord REST API
+ *
+ * This is used by SleetClient to register commands, you likely don't need to use this directly
+ */
 export class SleetRest {
   applicationId: string
   rest: REST

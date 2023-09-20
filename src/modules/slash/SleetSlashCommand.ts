@@ -4,7 +4,7 @@ import {
   RESTPostAPIChatInputApplicationCommandsJSONBody,
 } from 'discord-api-types/v10'
 import { ChatInputCommandInteraction } from 'discord.js'
-import { noop } from '../../utils/funcs.js'
+import { noop } from '../../utils/functions.js'
 import { SleetCommand, SleetCommandExtras } from '../base/SleetCommand.js'
 import {
   NoRunSlashEventHandlers,
