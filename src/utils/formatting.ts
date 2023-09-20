@@ -1,4 +1,9 @@
-import { escapeMarkdown, GuildMember, User } from 'discord.js'
+import {
+  escapeMarkdown,
+  EscapeMarkdownOptions,
+  GuildMember,
+  User,
+} from 'discord.js'
 
 /**
  * Left-to-Right mark, changes rendered text direction
@@ -47,11 +52,11 @@ export function formatUser(
 ): string {
   const user = userLike instanceof GuildMember ? userLike.user : userLike
   const formatted: string[] = []
-  const username = escape ? escapeMarkdown(user.username) : user.username
+  const username = escape ? escapeAllMarkdown(user.username) : user.username
 
   if (user.globalName) {
     const globalName = escape
-      ? escapeMarkdown(user.globalName)
+      ? escapeAllMarkdown(user.globalName)
       : user.globalName
 
     formatted.push(globalName)
@@ -73,4 +78,29 @@ export function formatUser(
   if (mention) formatted.push(` <@${user.id}>`)
 
   return formatted.join('')
+}
+
+/**
+ * A version of Discord.js' `escapeMarkdown` that escapes all markdown by default
+ *
+ * As of D.js v14.13.0 (sha 23e0ac5), the following markdown is not escaped by default:
+ * - headings
+ * - bulleted lists
+ * - numbered lists
+ * - masked links
+ * @param text The text to escape
+ * @param options Options for what markdown to escape in the string, default all
+ * @returns The string with markdown escaped
+ */
+export function escapeAllMarkdown(
+  text: string,
+  options?: EscapeMarkdownOptions,
+) {
+  return escapeMarkdown(text, {
+    heading: true,
+    bulletedList: true,
+    numberedList: true,
+    maskedLink: true,
+    ...options,
+  })
 }
