@@ -34,10 +34,10 @@ export type GetAutocompleteableOptionType<
 > = T['type'] extends ApplicationCommandOptionType.String
   ? string
   : T['type'] extends ApplicationCommandOptionType.Integer
-  ? number
-  : T['type'] extends ApplicationCommandOptionType.Number
-  ? number
-  : never
+    ? number
+    : T['type'] extends ApplicationCommandOptionType.Number
+      ? number
+      : never
 
 export type AutocompleteableOption<
   T extends APIApplicationAutocompleteableOption,
