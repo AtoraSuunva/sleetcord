@@ -1,6 +1,6 @@
 {
   "name": "sleetcord",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "An interaction-first command library for Discord.js",
   "license": "MIT",
   "author": "AtoraSuunva",
@@ -28,24 +28,24 @@
     "prepublishOnly": "pnpm lint && pnpm build"
   },
   "dependencies": {
-    "discord-api-types": "^0.37.65",
-    "tseep": "^1.1.3"
+    "discord-api-types": "^0.37.67",
+    "tseep": "^1.2.0"
   },
   "peerDependencies": {
     "discord.js": "^14.12.1"
   },
   "devDependencies": {
-    "@types/node": "^20.10.0",
-    "@typescript-eslint/eslint-plugin": "^6.13.1",
-    "@typescript-eslint/parser": "^6.13.1",
-    "dotenv": "^16.3.1",
+    "@types/node": "^20.11.7",
+    "@typescript-eslint/eslint-plugin": "^6.19.1",
+    "@typescript-eslint/parser": "^6.19.1",
+    "dotenv": "^16.4.1",
     "env-var": "^7.4.1",
-    "eslint": "^8.54.0",
-    "eslint-config-prettier": "^9.0.0",
-    "eslint-plugin-import": "^2.29.0",
-    "prettier": "3.1.0",
-    "ts-node": "^10.9.1",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-import": "^2.29.1",
+    "prettier": "3.2.4",
+    "ts-node": "^10.9.2",
     "tsup": "^8.0.1",
-    "typescript": "^5.3.2"
+    "typescript": "^5.3.3"
   }
 }
