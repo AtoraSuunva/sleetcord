@@ -50,9 +50,11 @@ export function formatUser(
     escape = true,
   }: FormatUserOptions = {},
 ): string {
+  // TODO: detect partial users and fetch them? can't do without changing function to be async, might break things...
   const user = userLike instanceof GuildMember ? userLike.user : userLike
   const formatted: string[] = []
-  const username = escape ? escapeAllMarkdown(user.username) : user.username
+  const username =
+    escape && user.username ? escapeAllMarkdown(user.username) : user.username
 
   if (user.globalName) {
     const globalName = escape
@@ -65,7 +67,7 @@ export function formatUser(
   }
 
   if (markdown) formatted.push('**')
-  formatted.push(username)
+  formatted.push(username ?? '<unknown>')
   if (markdown) formatted.push('**')
   if (bidirectional) formatted.push(LRM_MARK)
   if (user.discriminator !== '0') formatted.push(`#${user.discriminator}`)
