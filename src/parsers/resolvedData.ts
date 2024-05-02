@@ -11,7 +11,7 @@ import {
   User,
 } from 'discord.js'
 import { PreRunError } from '../errors/PreRunError.js'
-import { exists } from '../utils/functions.js'
+import { exists, partitionArray } from '../utils/functions.js'
 
 /**
  * An error indication there was a problem trying to resolve some data from the interaction,
@@ -58,7 +58,10 @@ export const getAllIDs = (str: string): string[] =>
 /**
  * Allows you to parse multiple users from a single string option (because the User option only accepts 1 user)
  *
- * Accepts user mentions (parsed from resolved data) or user IDs (fetched from Discord)
+ * Accepts user mentions (parsed from resolved data) or user IDs (fetched from Discord in batches of 1).
+ * Unless you *need* Users that aren't in the guild (or can't fetch members from a guild), it's recommended to use `getMembers` instead since it can resolve string IDs in batches of 100.
+ *
+ * Result is deduped.
  * @param interaction The interaction to resolve data for
  * @param name The name of the option to resolve data for
  * @param required Is the option required? If true and missing, an error will be thrown, otherwise null will be returned
@@ -91,13 +94,15 @@ export async function getUsers(
   const resolvedDataUsers =
     data?.toJSON().filter((v) => string.includes(v.id)) ?? []
 
-  return [...resolvedIDUsers, ...resolvedDataUsers]
+  return Array.from(new Set([...resolvedIDUsers, ...resolvedDataUsers]))
 }
 
 /**
  * Allows you to parse multiple members from a single string option (because the Member option only accepts 1 member)
  *
- * Accepts user mentions (parsed from resolved data) or user IDs (fetched from Discord)
+ * Accepts user mentions (parsed from resolved data) or user IDs (fetched from Discord in batches of 100)
+ *
+ * Result is deduped.
  * @param interaction The interaction to resolve data for
  * @param name The name of the option to resolve data for
  * @param required Is the option required? If missing, an error will be thrown if true, null will be returned if false
@@ -122,10 +127,15 @@ export async function getMembers(
   if (string === null) return null
 
   const guild = await getGuild(interaction, true)
-  const ids = getAllIDs(string)
-  const resolvedIDMembers = await Promise.all(
-    ids.map((uid) => tryFetchMember(guild, uid)),
-  ).then((res) => res.filter(exists))
+  const resolvedIDMembers = (
+    await Promise.all(
+      Array.from(partitionArray(getAllIDs(string), 100)).map((chunk) =>
+        guild.members
+          .fetch({ user: chunk })
+          .then((r) => Array.from(r.values())),
+      ),
+    )
+  ).flat()
 
   const data = interaction.options.resolved?.members
   const resolvedDataMembers =
@@ -133,12 +143,12 @@ export async function getMembers(
       ?.filter((m): m is GuildMember => {
         if (m === null) return false
         if (m instanceof GuildMember) return true
-        // TODO: how to resolve APIInteractionDataResolvedGuildMember into a GuildMember???
+        // APIInteractionDataResolvedGuildMember seems impossible to convert to GuildMember--there's no identifying details left
         return false
       })
       .toJSON() ?? []
 
-  return [...resolvedIDMembers, ...resolvedDataMembers]
+  return Array.from(new Set([...resolvedIDMembers, ...resolvedDataMembers]))
 }
 
 /**
