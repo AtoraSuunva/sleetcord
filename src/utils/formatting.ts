@@ -1,8 +1,8 @@
 import {
-  escapeMarkdown,
   EscapeMarkdownOptions,
   GuildMember,
   User,
+  escapeMarkdown,
 } from 'discord.js'
 
 /**

@@ -1,3 +1,4 @@
+import { AsyncLocalStorage } from 'async_hooks'
 import {
   ApplicationCommandType,
   AutocompleteInteraction,
@@ -7,6 +8,7 @@ import {
   Interaction,
   InteractionType,
 } from 'discord.js'
+import { EventEmitter } from 'tseep'
 import { SleetRest } from './SleetRest.js'
 import { PreRunError } from './errors/PreRunError.js'
 import { SleetCommand } from './modules/base/SleetCommand.js'
@@ -19,16 +21,14 @@ import {
   BaseSleetModuleEventHandlers,
   EventArguments,
   EventDetails,
-  isDiscordEvent,
-  isSleetEvent,
-  isSpecialEvent,
   ShouldSkipEventReturn,
   SleetContext,
   SleetExtensions,
   SleetModuleEventHandlers,
+  isDiscordEvent,
+  isSleetEvent,
+  isSpecialEvent,
 } from './modules/events.js'
-import { EventEmitter } from 'tseep'
-import { AsyncLocalStorage } from 'async_hooks'
 
 /**
  * A module runner, used to wrap around all module event runs.

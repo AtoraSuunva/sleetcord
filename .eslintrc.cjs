@@ -18,5 +18,6 @@ module.exports = {
   rules: {
     // Re-enable once fixed
     'import/no-unresolved': 'off',
+    'import/order': 'error',
   },
 }

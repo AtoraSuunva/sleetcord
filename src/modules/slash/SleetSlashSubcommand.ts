@@ -6,13 +6,13 @@ import {
 import { ChatInputCommandInteraction } from 'discord.js'
 import { SleetRunnable } from '../base/SleetRunnable.js'
 import { SlashEventHandlers } from '../events.js'
+import { SleetModule } from '../index.js'
 import {
-  autocomplete as sleetAutocomplete,
-  isAutocompleteableOption,
   SleetAutocompleteable,
   SleetAutocompleteableOption,
+  isAutocompleteableOption,
+  autocomplete as sleetAutocomplete,
 } from './SleetAutocompleteable.js'
-import { SleetModule } from '../index.js'
 
 export interface SleetSlashSubcommandBody
   extends Omit<APIApplicationCommandSubcommandOption, 'type' | 'options'> {

@@ -1,8 +1,9 @@
-import { REST } from 'discord.js'
 import {
   RESTPostAPIApplicationCommandsJSONBody,
   Routes,
 } from 'discord-api-types/v10'
+
+import { REST } from 'discord.js'
 
 export interface SleetRestOptions {
   /** The token for the bot */

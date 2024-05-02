@@ -11,13 +11,13 @@ import {
   SlashEventHandlers,
   SleetContext,
 } from '../events.js'
+import { SleetModule } from '../index.js'
 import {
-  autocompleteWithSubcommands,
   SleetAutocompleteable,
   SleetAutocompleteableOption,
+  autocompleteWithSubcommands,
 } from './SleetAutocompleteable.js'
 import { SleetSlashSubcommand } from './SleetSlashSubcommand.js'
-import { SleetModule } from '../index.js'
 
 export interface SleetSlashCommandGroupBody
   extends Omit<APIApplicationCommandSubcommandGroupOption, 'options' | 'type'> {

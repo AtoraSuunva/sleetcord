@@ -11,15 +11,15 @@ import {
   SlashEventHandlers,
   SleetContext,
 } from '../events.js'
+import { SleetModule } from '../index.js'
 import {
-  autocompleteWithSubcommands,
-  isAutocompleteableOption,
   SleetAutocompleteable,
   SleetAutocompleteableOption,
+  autocompleteWithSubcommands,
+  isAutocompleteableOption,
 } from './SleetAutocompleteable.js'
-import { SleetSlashSubcommand } from './SleetSlashSubcommand.js'
 import { SleetSlashCommandGroup } from './SleetSlashCommandGroup.js'
-import { SleetModule } from '../index.js'
+import { SleetSlashSubcommand } from './SleetSlashSubcommand.js'
 
 interface BaseCommandBody
   extends Omit<
