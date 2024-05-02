@@ -10,7 +10,8 @@ Sleetcord aims to act more like a helpful "layer" between you and Discord struct
 
 More helpers are available in [sleetcord-common](https://github.com/AtoraSuunva/sleetcord-common)
 
-> **NOTE:** ⚠️ While sleetcord is publicly available (and on NPM), documentation is (and likely will always be) lacking. You are free to use it and submit requests, but this is mainly for my own personal use. You will likely be on your own for most support (Sorry! I have to maintain too many things at the same time already).
+> [!WARNING]
+> While sleetcord is publicly available (and on NPM), documentation is (and likely will always be) lacking. You are free to use it and submit requests, but this is mainly for my own personal use. You will likely be on your own for most support (Sorry! I have to maintain too many things at the same time already).
 
 ## Usage
 
@@ -21,10 +22,10 @@ const echo = new SleetSlashCommand({
   name: 'echo',
   description: 'Echoes your message!',
   // An array of permission strings can be provided and they'll be automatically parsed into a bitfield
-  default_member_permissions: ['MANAGE_MESSAGES'],
+  default_member_permissions: ['ManageMessages'],
   options: [{
     name: 'message',
-    // You can use discord-api-types or the type number directly (ie. `3`)
+    // You can use discord-api-types or the type number directly (i.e. `3`)
     type: ApplicationCommandOptionType.String,
     description: 'The message to echo',
     required: true,
