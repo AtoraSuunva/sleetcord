@@ -49,11 +49,16 @@ export const isLikelyID = (str: string): boolean => idRegexFull.test(str)
  * getAllIds('74768773940256768 <@205164225625194496> 200723772427337729foo')
  * // Returns ['74768773940256768']
  * ```
+ *
+ * IDs are deduped in the output
  * @param str To string to check for potential IDs
  * @returns All potential IDs in the string
  */
 export const getAllIDs = (str: string): string[] =>
-  Array.from(str.matchAll(idRegexBounded), (m) => m.groups?.id).filter(exists)
+  Array.from(
+    // TODO: with iterator helpers we can avoid the array.from and pass an iterator to set directly (nodejs v22)
+    new Set(Array.from(str.matchAll(idRegexBounded), (m) => m.groups?.id)),
+  ).filter(exists)
 
 /**
  * Allows you to parse multiple users from a single string option (because the User option only accepts 1 user)
@@ -85,16 +90,21 @@ export async function getUsers(
   const string = interaction.options.getString(name, required)
   if (string === null) return null
 
-  const ids = getAllIDs(string)
-  const resolvedIDUsers = await Promise.all(
-    ids.map((uid) => tryFetchUser(interaction.client, uid)),
-  ).then((res) => res.filter(exists))
-
   const data = interaction.options.resolved?.users
   const resolvedDataUsers =
-    data?.toJSON().filter((v) => string.includes(v.id)) ?? []
+    data?.filter((v) => string.includes(v.id)).map((u) => u) ?? []
 
-  return Array.from(new Set([...resolvedIDUsers, ...resolvedDataUsers]))
+  const ids = getAllIDs(string)
+  const resolvedIDUsers = await Promise.all(
+    ids.map((uid) =>
+      // Only fetch data if the user isn't already resolved, this prevents dupes in the output and dupe fetches
+      resolvedDataUsers.some((u) => u.id === uid)
+        ? null
+        : tryFetchUser(interaction.client, uid),
+    ),
+  ).then((res) => res.filter(exists))
+
+  return [...resolvedIDUsers, ...resolvedDataUsers]
 }
 
 /**
@@ -126,10 +136,32 @@ export async function getMembers(
   const string = interaction.options.getString(name, required)
   if (string === null) return null
 
+  const unresolvedIds: string[] = []
+
+  const data = interaction.options.resolved?.members
+  const resolvedDataMembers =
+    data
+      ?.filter((m, k): m is GuildMember => {
+        // If the option doesn't include the member's ID it's probably resolved data for another option, ignore it
+        if (!string.includes(k)) return false
+        if (m === null) return false
+        if (m instanceof GuildMember) return true
+        // APIInteractionDataResolvedGuildMember means we couldn't get enough data to create a guild member
+        // We still have the IDs though, so we can queue them to be fetched later
+        unresolvedIds.push(k)
+        return false
+      })
+      .map((m) => m) ?? []
+
+  // Avoid fetching members again if we already have them from resolved data
+  const allIDs = Array.from(
+    new Set([...getAllIDs(string), ...unresolvedIds]),
+  ).filter((uid) => !resolvedDataMembers.some((m) => m.id === uid))
+
   const guild = await getGuild(interaction, true)
   const resolvedIDMembers = (
     await Promise.all(
-      Array.from(partitionArray(getAllIDs(string), 100)).map((chunk) =>
+      Array.from(partitionArray(allIDs, 100)).map((chunk) =>
         guild.members
           .fetch({ user: chunk })
           .then((r) => Array.from(r.values())),
@@ -137,18 +169,7 @@ export async function getMembers(
     )
   ).flat()
 
-  const data = interaction.options.resolved?.members
-  const resolvedDataMembers =
-    data
-      ?.filter((m): m is GuildMember => {
-        if (m === null) return false
-        if (m instanceof GuildMember) return true
-        // APIInteractionDataResolvedGuildMember seems impossible to convert to GuildMember--there's no identifying details left
-        return false
-      })
-      .toJSON() ?? []
-
-  return Array.from(new Set([...resolvedIDMembers, ...resolvedDataMembers]))
+  return [...resolvedIDMembers, ...resolvedDataMembers]
 }
 
 /**
