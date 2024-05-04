@@ -25,7 +25,7 @@ class ResolveDataError extends PreRunError {
 }
 
 /** ID regex but "bounded" to string start/end or whitespace, to get IDs not in <@id> format */
-const idRegexBounded = /(?:^|\s)(?<id>\d{16,19})(?:\s|$)/g
+const idRegexBounded = /(?:^|\s)(?<id>\d{16,19})(?=\s|$)/g
 /** ID regex that only matches if the entire string from start to end is likely an ID */
 const idRegexFull = /^\d{16,19}$/
 
