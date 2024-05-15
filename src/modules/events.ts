@@ -7,6 +7,7 @@ import {
   ClientEvents,
   CommandInteraction,
   Events,
+  GatewayDispatchPayload,
   MessageContextMenuCommandInteraction,
   UserContextMenuCommandInteraction,
 } from 'discord.js'
@@ -271,6 +272,14 @@ export interface BaseSleetModuleEventHandlers
     message: string,
     data?: unknown,
   ) => ListenerResult
+  /**
+   * Raw gateway payloads, as directly received from Discord
+   *
+   * @see https://discord.com/developers/docs/topics/gateway-events#receive-events
+   * @param data The raw data from the gateway
+   * @param shardId The shardId handling this gateway event
+   */
+  raw?: (data: GatewayDispatchPayload, shardId: number) => ListenerResult
 }
 
 /**
