@@ -1,13 +1,13 @@
 import { ApplicationCommandOptionType } from 'discord-api-types/v10'
 import {
-  Client,
-  Guild,
-  Message,
-  EmbedBuilder,
-  TextBasedChannel,
-  User,
   Channel,
   ChatInputCommandInteraction,
+  Client,
+  EmbedBuilder,
+  Guild,
+  Message,
+  TextBasedChannel,
+  User,
 } from 'discord.js'
 import { SleetSlashCommand } from '../../src/index.js'
 
@@ -43,7 +43,7 @@ async function handleMessageCreate(message: Message) {
       message.content,
     )
 
-    message.reply({
+    await message.reply({
       embeds: [embed],
       allowedMentions: { parse: [], repliedUser: false },
     })
@@ -61,9 +61,9 @@ async function runQuote(interaction: ChatInputCommandInteraction) {
       interaction.user,
       messageLink,
     )
-    interaction.reply({ embeds: [embed] })
+    await interaction.reply({ embeds: [embed] })
   } catch (e) {
-    interaction.reply({
+    await interaction.reply({
       ephemeral: true,
       content: e instanceof Error ? e.message : String(e),
     })

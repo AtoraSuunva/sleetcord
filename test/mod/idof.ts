@@ -1,9 +1,9 @@
 import { ApplicationCommandOptionType } from 'discord-api-types/v10'
 import { ChatInputCommandInteraction, codeBlock, Guild } from 'discord.js'
 import {
+  AutocompleteHandler,
   getGuild,
   SleetSlashCommand,
-  AutocompleteHandler,
 } from '../../src/index.js'
 
 const userAutocomplete: AutocompleteHandler<string> = async ({

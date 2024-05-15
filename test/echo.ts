@@ -1,9 +1,9 @@
 import { ApplicationCommandOptionType } from 'discord-api-types/v10'
 import { ChatInputCommandInteraction } from 'discord.js'
 import {
+  AutocompleteHandler,
   SleetSlashCommand,
   getUsers,
-  AutocompleteHandler,
 } from '../src/index.js'
 
 const messageAutocomplete: AutocompleteHandler<string> = ({ value }) => [
@@ -46,7 +46,7 @@ export const echo = new SleetSlashCommand(
         (await getUsers(interaction, 'allowed_mentions')) ?? []
       const users = allowedMentions.map((user) => user.id)
 
-      interaction.reply({
+      await interaction.reply({
         content: message,
         ephemeral,
         allowedMentions: {

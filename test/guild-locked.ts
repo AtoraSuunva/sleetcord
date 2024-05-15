@@ -20,8 +20,8 @@ export const secretSlashCommand = new SleetSlashCommand(
     description: 'Secret command, this should only be in 1 guild!!',
   },
   {
-    run: (interaction: ChatInputCommandInteraction) => {
-      interaction.reply('This command is secret!!')
+    run: async (interaction: ChatInputCommandInteraction) => {
+      await interaction.reply('This command is secret!!')
     },
   },
 )
@@ -32,8 +32,8 @@ export const secretMessageCommand = new SleetMessageCommand(
     registerOnlyInGuilds: ['211956704798048256'],
   },
   {
-    run: (interaction: MessageContextMenuCommandInteraction) => {
-      interaction.reply('This command is secret!!')
+    run: async (interaction: MessageContextMenuCommandInteraction) => {
+      await interaction.reply('This command is secret!!')
     },
   },
 )
@@ -44,8 +44,8 @@ export const secretUserCommand = new SleetUserCommand(
     registerOnlyInGuilds: ['211956704798048256'],
   },
   {
-    run: (interaction: UserContextMenuCommandInteraction) => {
-      interaction.reply('This command is secret!!')
+    run: async (interaction: UserContextMenuCommandInteraction) => {
+      await interaction.reply('This command is secret!!')
     },
   },
 )

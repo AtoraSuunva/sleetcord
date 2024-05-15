@@ -1,10 +1,10 @@
 import { ApplicationCommandOptionType } from 'discord-api-types/v10'
 import { ChatInputCommandInteraction, GuildMember, Role } from 'discord.js'
 import {
+  SleetSlashCommand,
   formatUser,
   getMembers,
   inGuildGuard,
-  SleetSlashCommand,
 } from '../../src/index.js'
 
 const mutedRoles = [
@@ -124,6 +124,7 @@ async function runMute(
 
   if (mutedRole.comparePositionTo(userHighestRole) > 0) {
     return interaction.reply({
+      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
       content: `Your highest role needs to be higher than ${mutedRole} to ${action}`,
       ephemeral: true,
     })
@@ -230,11 +231,11 @@ function unmuteAction(
 
 const storedMutes = new Map<string, string[]>()
 
-async function storeRoles(member: GuildMember): Promise<Role[]> {
+function storeRoles(member: GuildMember): Promise<Role[]> {
   const previous = storedMutes.get(member.id) ?? []
   const roles = member.roles.cache.filter(validRole).map((r) => r.id)
   storedMutes.set(member.id, [...previous, ...roles])
-  return member.roles.cache.toJSON()
+  return Promise.resolve(member.roles.cache.toJSON())
 }
 
 async function restoreRoles(

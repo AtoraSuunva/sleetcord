@@ -9,9 +9,9 @@ import {
   Client,
 } from 'discord.js'
 import {
-  SleetSlashCommand,
   isOwnerGuard,
   SleetContext,
+  SleetSlashCommand,
 } from '../../src/index.js'
 
 /** Our status list needs a type and name to apply */
@@ -126,7 +126,7 @@ let timeout: NodeJS.Timeout
 const timeoutDelay = 15 * 60 * 1000 // in ms
 
 /** Run a timeout to change the bot's status on READY and every couple mins */
-async function runReady(client: Client) {
+function runReady(client: Client) {
   const status = getRandomStatus()
   client.user?.setActivity(status)
   timeout = setTimeout(() => runReady(client), timeoutDelay)
@@ -137,7 +137,7 @@ async function runActivity(
   this: SleetContext,
   interaction: ChatInputCommandInteraction,
 ) {
-  isOwnerGuard(interaction)
+  await isOwnerGuard(interaction)
 
   if (!interaction.client.user) {
     return interaction.reply({
@@ -160,7 +160,9 @@ async function runActivity(
     activity = getRandomStatus()
     timeout = setTimeout(() => runReady(interaction.client), timeoutDelay)
   } else {
-    const act: ActivityOptions = {}
+    const act: ActivityOptions = {
+      name: 'missing',
+    }
 
     if (name !== null) act.name = name
     if (type !== null) act.type = type
@@ -200,6 +202,7 @@ const reverseActivityTypesMap: Record<
   [ActivityType.Listening]: 'Listening to',
   [ActivityType.Watching]: 'Watching',
   [ActivityType.Competing]: 'Competing in',
+  [ActivityType.Custom]: 'Custom',
 }
 
 /**

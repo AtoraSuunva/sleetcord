@@ -1,19 +1,19 @@
 import { ApplicationCommandOptionType } from 'discord-api-types/v10'
 import {
+  ChatInputCommandInteraction,
+  EmbedBuilder,
   Guild,
   GuildBan,
   Invite,
-  EmbedBuilder,
   User,
-  ChatInputCommandInteraction,
 } from 'discord.js'
 import {
+  SleetSlashCommand,
   botHasPermissionsGuard,
   formatUser,
   getGuild,
   getUser,
   inGuildGuard,
-  SleetSlashCommand,
 } from '../../src/index.js'
 
 export const revoke = new SleetSlashCommand(
@@ -46,7 +46,7 @@ async function runRevoke(
   await interaction.deferReply()
 
   const guild = await getGuild(interaction, true)
-  const user = await getUser(interaction, 'from', true)
+  const user = getUser(interaction, 'from', true)
 
   const revoked = await revokeInvitesFor(guild, user)
   const embed = formatInviteEmbed(user, revoked)
@@ -75,7 +75,7 @@ async function runBanRevoke(ban: GuildBan): Promise<void> {
   const embed = formatInviteEmbed(user, revoked)
 
   if (logChannel && logChannel.isTextBased()) {
-    logChannel.send({ embeds: [embed] })
+    await logChannel.send({ embeds: [embed] })
   }
 }
 

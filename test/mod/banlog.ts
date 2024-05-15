@@ -1,5 +1,5 @@
 import { ApplicationCommandOptionType } from 'discord-api-types/v10'
-import { ChatInputCommandInteraction, Formatters } from 'discord.js'
+import { ChatInputCommandInteraction, codeBlock } from 'discord.js'
 import { SleetSlashCommand, makeChoices } from '../../src/index.js'
 
 const typeChoices = makeChoices(['Ban', 'Unban', 'Kick', 'Mute'])
@@ -54,8 +54,8 @@ function runBanlog(interaction: ChatInputCommandInteraction) {
     `**Responsible Moderator**: ${responsible.tag}`,
   ].join('\n')
 
-  interaction.reply({
+  return interaction.reply({
     ephemeral: true,
-    content: Formatters.codeBlock(log),
+    content: codeBlock(log),
   })
 }

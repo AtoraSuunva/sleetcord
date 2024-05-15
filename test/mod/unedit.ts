@@ -42,7 +42,7 @@ const sweepLifetime = 1000 * 60 * 60 * 3
 const editSweeper = (value: EditStoreEntry) =>
   Date.now() - value.lastEditTimestamp > sweepLifetime
 
-async function handleMessageUpdate(
+function handleMessageUpdate(
   oldMessage: Message | PartialMessage,
   newMessage: Message | PartialMessage,
 ) {

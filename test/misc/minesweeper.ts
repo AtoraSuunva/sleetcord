@@ -1,6 +1,6 @@
 import { ApplicationCommandOptionType } from 'discord-api-types/v10'
 import { ChatInputCommandInteraction } from 'discord.js'
-import { SleetSlashCommand, PreRunError } from '../../src/index.js'
+import { PreRunError, SleetSlashCommand } from '../../src/index.js'
 
 /**
  * Generate a minesweeper grid that you can play using spoilers
@@ -95,7 +95,7 @@ const charMap = (c: string | number) =>
   c === MINE ? ':bomb:' : nMap[c as keyof typeof nMap]
 
 /** Char to use for the mine */
-const MINE = 'X' as const
+const MINE = 'X'
 
 /**
  * The required data for a game of minesweeper

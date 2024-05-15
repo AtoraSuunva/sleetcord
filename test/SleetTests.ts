@@ -476,8 +476,8 @@ export const moduleFilter = new SleetModule(
 
         if (interaction.isChatInputCommand()) {
           if (
-            interaction.options.data.some(
-              (d) => d.value?.toString().includes('!!!ignore!!!'),
+            interaction.options.data.some((d) =>
+              d.value?.toString().includes('!!!ignore!!!'),
             )
           ) {
             return {

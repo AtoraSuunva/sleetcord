@@ -10,13 +10,13 @@ import {
   User,
 } from 'discord.js'
 import {
+  Mentionable,
+  PreRunError,
+  SleetSlashCommand,
   botHasPermissionsGuard,
   getMentionables,
   getTextBasedChannel,
   inGuildGuard,
-  Mentionable,
-  PreRunError,
-  SleetSlashCommand,
 } from '../../src/index.js'
 
 export const purge = new SleetSlashCommand(
@@ -220,7 +220,7 @@ async function runPurge(interaction: ChatInputCommandInteraction) {
     }
   }
 
-  interaction.editReply({
+  await interaction.editReply({
     content: `🗑️ Deleted ${deletedCount} message${
       deletedCount === 1 ? '' : 's'
     }...`,
