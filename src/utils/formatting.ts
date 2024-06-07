@@ -23,7 +23,21 @@ export interface FormatUserOptions {
   globalName?: boolean
   /** Escape the user's username/global name (default: true) */
   escape?: boolean
+  /**
+   * Usable to apply custom formatting to specific parts
+   *
+   * @param part Identifies which part of the user is being formatted
+   * @param str The part, without any formatting or surrounding characters (i.e. `username` instead of `[**username**]`)
+   */
+  format?: FormatUserPart
 }
+
+export type UserPart = 'globalName' | 'discriminator' | 'username' | 'id'
+/**
+ * @param part Identifies which part of the user is being formatted
+ * @param str The part, without any formatting or surrounding characters (i.e. `username` instead of `[**username**]`)
+ */
+export type FormatUserPart = (part: UserPart, str: string) => string
 
 /**
  * Formats a user in the following way:
@@ -48,6 +62,7 @@ export function formatUser(
     mention = false,
     bidirectional = true,
     escape = true,
+    format = (_, str) => str,
   }: FormatUserOptions = {},
 ): string {
   // TODO: detect partial users and fetch them? can't do without changing function to be async, might break things...
@@ -61,22 +76,23 @@ export function formatUser(
       ? escapeAllMarkdown(user.globalName)
       : user.globalName
 
-    formatted.push(globalName)
+    formatted.push(format('globalName', globalName))
     if (bidirectional) formatted.push(LRM_MARK)
     formatted.push(' [')
   }
 
   if (markdown) formatted.push('**')
-  formatted.push(username ?? '<unknown>')
+  formatted.push(format('username', username) ?? '<unknown>')
   if (markdown) formatted.push('**')
   if (bidirectional) formatted.push(LRM_MARK)
-  if (user.discriminator !== '0') formatted.push(`#${user.discriminator}`)
+  if (user.discriminator !== '0')
+    formatted.push(`#${format('discriminator', user.discriminator)}`)
 
   if (user.globalName) {
     formatted.push(']')
   }
 
-  if (id) formatted.push(` (${user.id})`)
+  if (id) formatted.push(` (${format('id', user.id)})`)
   if (mention) formatted.push(` <@${user.id}>`)
 
   return formatted.join('')
