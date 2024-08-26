@@ -1,5 +1,5 @@
 import {
-  RESTPostAPIApplicationCommandsJSONBody,
+  type RESTPostAPIApplicationCommandsJSONBody,
   Routes,
 } from 'discord-api-types/v10'
 

@@ -1,4 +1,4 @@
-import { APIApplicationCommandOptionChoice } from 'discord-api-types/v10'
+import type { APIApplicationCommandOptionChoice } from 'discord-api-types/v10'
 
 /**
  * Can be used to format an array of choices like `['a', 'b', 'c']` to `[{name: 'a', value: 'a'}...]` if you want the name and value to be identical

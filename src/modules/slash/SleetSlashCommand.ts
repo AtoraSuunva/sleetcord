@@ -1,20 +1,20 @@
 import {
-  APIApplicationCommandOption,
+  type APIApplicationCommandOption,
   ApplicationCommandType,
-  RESTPostAPIChatInputApplicationCommandsJSONBody,
+  type RESTPostAPIChatInputApplicationCommandsJSONBody,
 } from 'discord-api-types/v10'
-import { ChatInputCommandInteraction } from 'discord.js'
+import type { ChatInputCommandInteraction } from 'discord.js'
 import { noop } from '../../utils/functions.js'
-import { SleetCommand, SleetCommandExtras } from '../base/SleetCommand.js'
-import {
+import { SleetCommand, type SleetCommandExtras } from '../base/SleetCommand.js'
+import type {
   NoRunSlashEventHandlers,
   SlashEventHandlers,
   SleetContext,
 } from '../events.js'
-import { SleetModule } from '../index.js'
+import type { SleetModule } from '../index.js'
 import {
-  SleetAutocompleteable,
-  SleetAutocompleteableOption,
+  type SleetAutocompleteable,
+  type SleetAutocompleteableOption,
   autocompleteWithSubcommands,
   isAutocompleteableOption,
 } from './SleetAutocompleteable.js'
@@ -158,9 +158,9 @@ export class SleetSlashCommand
       const groupHandler = this.groups.get(group)
       if (groupHandler) {
         return groupHandler.run(context, interaction)
-      } else {
-        throw new Error(`Unknown group '${group}' for command '${this.name}'`)
       }
+
+      throw new Error(`Unknown group '${group}' for command '${this.name}'`)
     }
 
     // Check subcommands after, we run these effectively directly
@@ -169,11 +169,11 @@ export class SleetSlashCommand
       const subcommandHandler = this.subcommands.get(subcommand)
       if (subcommandHandler) {
         return subcommandHandler.run(context, interaction)
-      } else {
-        throw new Error(
-          `Unknown subcommand '${subcommand}' for command '${this.name}'`,
-        )
       }
+
+      throw new Error(
+        `Unknown subcommand '${subcommand}' for command '${this.name}'`,
+      )
     }
 
     return

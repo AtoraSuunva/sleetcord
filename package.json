@@ -1,6 +1,6 @@
 {
   "name": "sleetcord",
-  "version": "1.6.0",
+  "version": "2.0.0",
   "description": "An interaction-first command library for Discord.js",
   "license": "MIT",
   "author": "AtoraSuunva",
@@ -22,30 +22,24 @@
   ],
   "scripts": {
     "build": "tsup",
-    "lint": "eslint src/ && prettier --check src/ && tsc --noEmit",
-    "lint:fix": "eslint src/ --fix && prettier --write src/ && tsc --noEmit",
+    "lint": "biome check && tsc --noEmit",
+    "lint:fix": "biome check --write && tsc --noEmit",
     "start:dev": "node --loader ts-node/esm -r dotenv/config test/index.ts",
     "prepublishOnly": "pnpm lint && pnpm build"
   },
   "dependencies": {
-    "discord-api-types": "^0.37.87",
-    "tseep": "^1.2.1"
+    "discord-api-types": "^0.37.97",
+    "tseep": "^1.2.2"
   },
   "peerDependencies": {
     "discord.js": "^14.12.1"
   },
   "devDependencies": {
-    "@types/node": "^20.14.2",
-    "@typescript-eslint/eslint-plugin": "^7.12.0",
-    "@typescript-eslint/parser": "^7.12.0",
+    "@biomejs/biome": "^1.8.3",
+    "@types/node": "^22.5.0",
     "dotenv": "^16.4.5",
     "env-var": "^7.5.0",
-    "eslint": "^8.57.0",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-import": "^2.29.1",
-    "prettier": "3.3.1",
-    "ts-node": "^10.9.2",
-    "tsup": "^8.1.0",
-    "typescript": "^5.4.5"
+    "tsup": "^8.2.4",
+    "typescript": "^5.5.4"
   }
 }

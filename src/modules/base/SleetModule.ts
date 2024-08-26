@@ -1,4 +1,4 @@
-import { SleetModuleEventHandlers } from '../events.js'
+import type { SleetModuleEventHandlers } from '../events.js'
 
 export interface SleetModuleOptions {
   /** The name of this module. used for logging and debugging */

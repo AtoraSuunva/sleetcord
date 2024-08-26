@@ -1,10 +1,10 @@
-import { CommandInteraction, PermissionResolvable } from 'discord.js'
+import type { CommandInteraction, PermissionResolvable } from 'discord.js'
 
-import { RESTPostAPIApplicationCommandsJSONBody } from 'discord-api-types/rest/v10'
-import { Permissions as PermissionsAsString } from 'discord-api-types/v10'
+import type { RESTPostAPIApplicationCommandsJSONBody } from 'discord-api-types/rest/v10'
+import type { Permissions as PermissionsAsString } from 'discord-api-types/v10'
 import { permissionsToStringBitfield } from '../../utils/permissions.js'
-import { RunnableEventHandlers } from '../events.js'
-import { SleetModule } from './SleetModule.js'
+import type { RunnableEventHandlers } from '../events.js'
+import type { SleetModule } from './SleetModule.js'
 import { SleetRunnable } from './SleetRunnable.js'
 
 /**
@@ -79,6 +79,8 @@ export class SleetCommand<
     body.default_member_permissions = permissionsToStringBitfield(
       default_member_permissions ?? null,
     )
+
+    // biome-ignore lint/performance/noDelete: We need to remove this property from the object
     delete body.registerOnlyInGuilds
 
     super(body, handlers, modules)

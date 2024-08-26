@@ -8,10 +8,4 @@
  *  throw new PreRunError('You need the BAN_MEMBERS permission!')
  * }
  */
-export class PreRunError extends Error {
-  // The Error constructor is actually used here, not sure why eslint is catching it
-  // eslint-disable-next-line @typescript-eslint/no-useless-constructor
-  constructor(message: string) {
-    super(message)
-  }
-}
+export class PreRunError extends Error {}

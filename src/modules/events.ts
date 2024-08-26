@@ -1,18 +1,18 @@
-import { APIApplicationCommandOptionChoice } from 'discord-api-types/v10'
+import type { APIApplicationCommandOptionChoice } from 'discord-api-types/v10'
 import {
-  AutocompleteInteraction,
-  Awaitable,
-  ChatInputCommandInteraction,
-  Client,
-  ClientEvents,
-  CommandInteraction,
+  type AutocompleteInteraction,
+  type Awaitable,
+  type ChatInputCommandInteraction,
+  type Client,
+  type ClientEvents,
+  type CommandInteraction,
   Events,
-  GatewayDispatchPayload,
-  MessageContextMenuCommandInteraction,
-  UserContextMenuCommandInteraction,
+  type GatewayDispatchPayload,
+  type MessageContextMenuCommandInteraction,
+  type UserContextMenuCommandInteraction,
 } from 'discord.js'
-import { SleetClient } from '../SleetClient.js'
-import { SleetModule } from './base/SleetModule.js'
+import type { SleetClient } from '../SleetClient.js'
+import type { SleetModule } from './base/SleetModule.js'
 
 export type ApplicationInteraction =
   | ChatInputCommandInteraction
@@ -27,8 +27,7 @@ export interface SleetContext {
   client: Client
 }
 
-// eslint-disable-next-line @typescript-eslint/no-invalid-void-type
-export type ListenerResult<T = unknown> = Promise<T> | void
+export type ListenerResult<T = unknown> = Promise<T> | undefined
 
 /** A type of every possible Discord event key */
 export type DiscordEvent = keyof ClientEvents

@@ -1,16 +1,16 @@
 import {
-  EscapeMarkdownOptions,
-  GuildMember,
-  PartialGuildMember,
-  PartialUser,
-  User,
+  type EscapeMarkdownOptions,
+  type GuildMember,
+  type PartialGuildMember,
+  type PartialUser,
+  type User,
   escapeMarkdown,
 } from 'discord.js'
 
 /**
  * Left-to-Right mark, changes rendered text direction
  */
-const LRM_MARK = `\u{200e}`
+const LRM_MARK = '\u{200e}'
 
 export interface FormatUserOptions {
   /** Show the user's ID after their tag (default: true) */
@@ -24,7 +24,7 @@ export interface FormatUserOptions {
   /** Show the user's global name + username (default: true) */
   globalName?: boolean
   /** Escape the user's username/global name (default: true) */
-  escape?: boolean
+  escapeMarkdown?: boolean
   /**
    * Usable to apply custom formatting to specific parts
    *
@@ -39,7 +39,10 @@ export type UserPart = 'globalName' | 'discriminator' | 'username' | 'id'
  * @param part Identifies which part of the user is being formatted
  * @param str The part, without any formatting or surrounding characters (i.e. `username` instead of `[**username**]`)
  */
-export type FormatUserPart = (part: UserPart, str: string | null) => string | null
+export type FormatUserPart = (
+  part: UserPart,
+  str: string | null,
+) => string | null
 
 /**
  * Formats a user in the following way:
@@ -63,7 +66,7 @@ export function formatUser(
     markdown = true,
     mention = false,
     bidirectional = true,
-    escape = true,
+    escapeMarkdown = true,
     format = (_, str) => str,
   }: FormatUserOptions = {},
 ): string {
@@ -71,10 +74,12 @@ export function formatUser(
   const user = 'user' in userLike ? userLike.user : userLike
   const formatted: string[] = []
   const username =
-    escape && user.username ? escapeAllMarkdown(user.username) : user.username
+    escapeMarkdown && user.username
+      ? escapeAllMarkdown(user.username)
+      : user.username
 
   if (user.globalName) {
-    const globalName = escape
+    const globalName = escapeMarkdown
       ? escapeAllMarkdown(user.globalName)
       : user.globalName
 

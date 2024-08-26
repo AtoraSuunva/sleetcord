@@ -1,4 +1,4 @@
-import { Interaction, TeamMemberMembershipState, User } from 'discord.js'
+import { type Interaction, TeamMemberMembershipState, User } from 'discord.js'
 import { PreRunError } from '../errors/PreRunError.js'
 
 /**

@@ -1,20 +1,20 @@
 import {
-  APIApplicationCommandSubcommandGroupOption,
-  APIApplicationCommandSubcommandOption,
+  type APIApplicationCommandSubcommandGroupOption,
+  type APIApplicationCommandSubcommandOption,
   ApplicationCommandOptionType,
 } from 'discord-api-types/v10'
-import { ChatInputCommandInteraction } from 'discord.js'
+import type { ChatInputCommandInteraction } from 'discord.js'
 import { noop } from '../../utils/functions.js'
 import { SleetRunnable } from '../base/SleetRunnable.js'
-import {
+import type {
   NoRunSlashEventHandlers,
   SlashEventHandlers,
   SleetContext,
 } from '../events.js'
-import { SleetModule } from '../index.js'
+import type { SleetModule } from '../index.js'
 import {
-  SleetAutocompleteable,
-  SleetAutocompleteableOption,
+  type SleetAutocompleteable,
+  type SleetAutocompleteableOption,
   autocompleteWithSubcommands,
 } from './SleetAutocompleteable.js'
 import { SleetSlashSubcommand } from './SleetSlashSubcommand.js'
@@ -96,11 +96,11 @@ export class SleetSlashCommandGroup
       const subcommandHandler = this.subcommands.get(subcommand)
       if (subcommandHandler) {
         return subcommandHandler.run(context, interaction)
-      } else {
-        throw new Error(
-          `Unknown subcommand '${subcommand}' for subcommand group '${this.name}'`,
-        )
       }
+
+      throw new Error(
+        `Unknown subcommand '${subcommand}' for subcommand group '${this.name}'`,
+      )
     }
 
     return

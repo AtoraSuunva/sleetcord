@@ -1,15 +1,15 @@
 import {
   ApplicationCommandType,
-  RESTPostAPIContextMenuApplicationCommandsJSONBody,
+  type RESTPostAPIContextMenuApplicationCommandsJSONBody,
 } from 'discord-api-types/v10'
-import {
+import type {
   Awaitable,
   CommandInteractionOption,
   User,
   UserContextMenuCommandInteraction,
 } from 'discord.js'
-import { SleetCommand, SleetCommandExtras } from '../base/SleetCommand.js'
-import { RunnableEventHandlers, SleetContext } from '../events.js'
+import { SleetCommand, type SleetCommandExtras } from '../base/SleetCommand.js'
+import type { RunnableEventHandlers, SleetContext } from '../events.js'
 
 type BaseUserCommandBody = Omit<
   RESTPostAPIContextMenuApplicationCommandsJSONBody,

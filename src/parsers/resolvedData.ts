@@ -1,14 +1,14 @@
 import {
-  BaseInteraction,
-  ChatInputCommandInteraction,
-  Client,
-  CommandInteraction,
-  Guild,
-  GuildBasedChannel,
+  type BaseInteraction,
+  type ChatInputCommandInteraction,
+  type Client,
+  type CommandInteraction,
+  type Guild,
+  type GuildBasedChannel,
   GuildMember,
-  GuildTextBasedChannel,
+  type GuildTextBasedChannel,
   Role,
-  User,
+  type User,
 } from 'discord.js'
 import { PreRunError } from '../errors/PreRunError.js'
 import { exists, partitionArray } from '../utils/functions.js'

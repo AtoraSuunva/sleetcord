@@ -1,11 +1,11 @@
-import { AsyncLocalStorage } from 'async_hooks'
+import { AsyncLocalStorage } from 'node:async_hooks'
 import {
   ApplicationCommandType,
-  AutocompleteInteraction,
-  Awaitable,
+  type AutocompleteInteraction,
+  type Awaitable,
   Client,
-  ClientOptions,
-  Interaction,
+  type ClientOptions,
+  type Interaction,
   InteractionType,
 } from 'discord.js'
 import { EventEmitter } from 'tseep'
@@ -13,22 +13,22 @@ import { SleetRest } from './SleetRest.js'
 import { PreRunError } from './errors/PreRunError.js'
 import { SleetCommand } from './modules/base/SleetCommand.js'
 import { SleetModule } from './modules/base/SleetModule.js'
-import { SleetSlashCommand } from './modules/slash/SleetSlashCommand.js'
-import { SleetUserCommand } from './modules/context-menu/SleetUserCommand.js'
 import { SleetMessageCommand } from './modules/context-menu/SleetMessageCommand.js'
+import { SleetUserCommand } from './modules/context-menu/SleetUserCommand.js'
 import {
-  ApplicationInteraction,
-  BaseSleetModuleEventHandlers,
-  EventArguments,
-  EventDetails,
-  ShouldSkipEventReturn,
-  SleetContext,
-  SleetExtensions,
-  SleetModuleEventHandlers,
+  type ApplicationInteraction,
+  type BaseSleetModuleEventHandlers,
+  type EventArguments,
+  type EventDetails,
+  type ShouldSkipEventReturn,
+  type SleetContext,
+  type SleetExtensions,
+  type SleetModuleEventHandlers,
   isDiscordEvent,
   isSleetEvent,
   isSpecialEvent,
 } from './modules/events.js'
+import { SleetSlashCommand } from './modules/slash/SleetSlashCommand.js'
 
 /**
  * A module runner, used to wrap around all module event runs.
@@ -309,9 +309,9 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
       // by just throwing unknowns everywhere until typescript says its okay
       const eventHandler = async (...args: EventArguments) => {
         const eventDetails: EventDetails = {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
+          // biome-ignore lint/suspicious/noExplicitAny: any breaks the type system here
           name: event as any,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
+          // biome-ignore lint/suspicious/noExplicitAny: any breaks the type system here
           arguments: args as any,
         }
 
@@ -330,7 +330,7 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
           (...args) =>
             runningModuleStore.run<Promise<unknown>, unknown[]>(
               module,
-              // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any
+              // biome-ignore lint/suspicious/noExplicitAny: any breaks the type system here
               boundEvent as any,
               ...args,
             ),
@@ -339,10 +339,10 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
       }
 
       if (isDiscordEvent(event)) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any
+        // biome-ignore lint/suspicious/noExplicitAny: any breaks the type system here
         this.client.on(event, eventHandler as any)
       } else if (isSleetEvent(event)) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any
+        // biome-ignore lint/suspicious/noExplicitAny: any breaks the type system here
         this.addListener(event, eventHandler as any, argsNum as any)
       } else if (!isSpecialEvent(event)) {
         throw new Error(
@@ -372,12 +372,10 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
       if (!eventHandler) continue
 
       if (isDiscordEvent(event)) {
-        // Casts otherwise typescript does some crazy type inference that
-        // makes it both error and lag like mad
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any
+        // biome-ignore lint/suspicious/noExplicitAny: Casts otherwise typescript does some crazy type inference that makes it both error and lag
         this.client.off(event, eventHandler as any)
       } else if (isSleetEvent(event)) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any
+        // biome-ignore lint/suspicious/noExplicitAny: any breaks the type system here
         this.off(event, eventHandler as any)
       } else if (!isSpecialEvent(event)) {
         throw new Error(
@@ -478,9 +476,9 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
   async #interactionCreate(interaction: Interaction): Promise<void> {
     if (interaction.type === InteractionType.ApplicationCommand) {
       return this.#handleApplicationInteraction(interaction).then(() => {})
-    } else if (
-      interaction.type === InteractionType.ApplicationCommandAutocomplete
-    ) {
+    }
+
+    if (interaction.type === InteractionType.ApplicationCommandAutocomplete) {
       return this.#handleAutocompleteInteraction(interaction).then(() => {})
     }
   }

@@ -1,15 +1,19 @@
 import {
-  APIApplicationCommandIntegerOption,
-  APIApplicationCommandNumberOption,
-  APIApplicationCommandOption,
-  APIApplicationCommandOptionChoice,
-  APIApplicationCommandStringOption,
+  type APIApplicationCommandIntegerOption,
+  type APIApplicationCommandNumberOption,
+  type APIApplicationCommandOption,
+  type APIApplicationCommandOptionChoice,
+  type APIApplicationCommandStringOption,
   ApplicationCommandOptionType,
 } from 'discord-api-types/v10'
-import { AutocompleteInteraction, Awaitable } from 'discord.js'
-import { SlashEventHandlers, SleetContext } from '../events.js'
+import type {
+  ApplicationCommandOptionChoiceData,
+  AutocompleteInteraction,
+  Awaitable,
+} from 'discord.js'
+import type { SlashEventHandlers, SleetContext } from '../events.js'
 import { SleetSlashCommand } from './SleetSlashCommand.js'
-import { SleetSlashCommandGroup } from './SleetSlashCommandGroup.js'
+import type { SleetSlashCommandGroup } from './SleetSlashCommandGroup.js'
 
 export type AutocompleteableType = string | number
 
@@ -135,7 +139,7 @@ export async function autocomplete(
         autocompleteHandler.type === ApplicationCommandOptionType.Number) &&
       isNumber
 
-    let response
+    let response: ApplicationCommandOptionChoiceData[] | null = null
 
     // Doesn't resolve types correctly if you do (<string> || <number>) :(
     // So we need to do this weird redundant check for typescript to be happy

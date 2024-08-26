@@ -1,15 +1,15 @@
 import {
-  APIApplicationCommandBasicOption,
-  APIApplicationCommandSubcommandOption,
+  type APIApplicationCommandBasicOption,
+  type APIApplicationCommandSubcommandOption,
   ApplicationCommandOptionType,
 } from 'discord-api-types/v10'
-import { ChatInputCommandInteraction } from 'discord.js'
+import type { ChatInputCommandInteraction } from 'discord.js'
 import { SleetRunnable } from '../base/SleetRunnable.js'
-import { SlashEventHandlers } from '../events.js'
-import { SleetModule } from '../index.js'
+import type { SlashEventHandlers } from '../events.js'
+import type { SleetModule } from '../index.js'
 import {
-  SleetAutocompleteable,
-  SleetAutocompleteableOption,
+  type SleetAutocompleteable,
+  type SleetAutocompleteableOption,
   isAutocompleteableOption,
   autocomplete as sleetAutocomplete,
 } from './SleetAutocompleteable.js'
