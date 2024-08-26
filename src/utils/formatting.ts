@@ -1,6 +1,8 @@
 import {
   EscapeMarkdownOptions,
   GuildMember,
+  PartialGuildMember,
+  PartialUser,
   User,
   escapeMarkdown,
 } from 'discord.js'
@@ -37,7 +39,7 @@ export type UserPart = 'globalName' | 'discriminator' | 'username' | 'id'
  * @param part Identifies which part of the user is being formatted
  * @param str The part, without any formatting or surrounding characters (i.e. `username` instead of `[**username**]`)
  */
-export type FormatUserPart = (part: UserPart, str: string) => string
+export type FormatUserPart = (part: UserPart, str: string | null) => string | null
 
 /**
  * Formats a user in the following way:
@@ -55,7 +57,7 @@ export type FormatUserPart = (part: UserPart, str: string) => string
  * @returns A formatted string for the user
  */
 export function formatUser(
-  userLike: User | GuildMember,
+  userLike: User | GuildMember | PartialUser | PartialGuildMember,
   {
     id = true,
     markdown = true,
@@ -66,7 +68,7 @@ export function formatUser(
   }: FormatUserOptions = {},
 ): string {
   // TODO: detect partial users and fetch them? can't do without changing function to be async, might break things...
-  const user = userLike instanceof GuildMember ? userLike.user : userLike
+  const user = 'user' in userLike ? userLike.user : userLike
   const formatted: string[] = []
   const username =
     escape && user.username ? escapeAllMarkdown(user.username) : user.username
@@ -76,7 +78,7 @@ export function formatUser(
       ? escapeAllMarkdown(user.globalName)
       : user.globalName
 
-    formatted.push(format('globalName', globalName))
+    formatted.push(format('globalName', globalName) ?? '')
     if (bidirectional) formatted.push(LRM_MARK)
     formatted.push(' [')
   }
@@ -85,7 +87,7 @@ export function formatUser(
   formatted.push(format('username', username) ?? '<unknown>')
   if (markdown) formatted.push('**')
   if (bidirectional) formatted.push(LRM_MARK)
-  if (user.discriminator !== '0')
+  if (user.discriminator && user.discriminator !== '0')
     formatted.push(`#${format('discriminator', user.discriminator)}`)
 
   if (user.globalName) {
