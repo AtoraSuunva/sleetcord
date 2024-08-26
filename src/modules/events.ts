@@ -27,7 +27,8 @@ export interface SleetContext {
   client: Client
 }
 
-export type ListenerResult<T = unknown> = Promise<T> | undefined
+// biome-ignore lint/suspicious/noConfusingVoidType: Required so a function doesn't need to call `return`
+export type ListenerResult<T = unknown> = Promise<T> | void
 
 /** A type of every possible Discord event key */
 export type DiscordEvent = keyof ClientEvents
