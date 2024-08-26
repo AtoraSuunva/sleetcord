@@ -6,13 +6,12 @@ on:
       - 'main'
 
 jobs:
-  build-and-push-image:
+  run-lint:
     runs-on: ubuntu-latest
     environment:
       name: ${{ github.ref_name }}
     permissions:
       contents: read
-      packages: write
 
     steps:
       - name: Checkout repository
