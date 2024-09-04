@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       discord-api-types:
-        specifier: ^0.37.97
-        version: 0.37.97
+        specifier: ^0.37.99
+        version: 0.37.99
       discord.js:
         specifier: ^14.12.1
         version: 14.14.1
@@ -22,8 +22,8 @@ importers:
         specifier: ^1.8.3
         version: 1.8.3
       '@types/node':
-        specifier: ^22.5.0
-        version: 22.5.0
+        specifier: ^22.5.3
+        version: 22.5.3
       dotenv:
         specifier: ^16.4.5
         version: 16.4.5
@@ -32,7 +32,7 @@ importers:
         version: 7.5.0
       tsup:
         specifier: ^8.2.4
-        version: 8.2.4(typescript@5.5.4)(yaml@2.5.0)
+        version: 8.2.4(typescript@5.5.4)(yaml@2.5.1)
       typescript:
         specifier: ^5.5.4
         version: 5.5.4
@@ -404,8 +404,8 @@ packages:
   '@types/node@20.12.8':
     resolution: {integrity: sha512-NU0rJLJnshZWdE/097cdCBbyW1h4hEg0xpovcoAQYHl8dnEyp/NAOiE45pvc+Bd1Dt+2r94v2eGFpQJ4R7g+2w==}
 
-  '@types/node@22.5.0':
-    resolution: {integrity: sha512-DkFrJOe+rfdHTqqMg0bSNlGlQ85hSoh2TPzZyhHsXnMtligRWpxUySiyw8FY14ITt24HVCiQPWxS3KO/QlGmWg==}
+  '@types/node@22.5.3':
+    resolution: {integrity: sha512-njripolh85IA9SQGTAqbmnNZTdxv7X/4OYGPz8tgy5JDr8MP+uDBa921GpYEoDDnwm0Hmn5ZPeJgiiSTPoOzkQ==}
 
   '@types/ws@8.5.9':
     resolution: {integrity: sha512-jbdrY0a8lxfdTp/+r7Z4CkycbOFN8WX+IOchLJr3juT/xzbJ8URyTVSJ/hvNdadTgM1mnedb47n+Y31GsFnQlg==}
@@ -504,8 +504,8 @@ packages:
   discord-api-types@0.37.61:
     resolution: {integrity: sha512-o/dXNFfhBpYHpQFdT6FWzeO7pKc838QeeZ9d91CfVAtpr5XLK4B/zYxQbYgPdoMiTDvJfzcsLW5naXgmHGDNXw==}
 
-  discord-api-types@0.37.97:
-    resolution: {integrity: sha512-No1BXPcVkyVD4ZVmbNgDKaBoqgeQ+FJpzZ8wqHkfmBnTZig1FcH3iPPersiK1TUIAzgClh2IvOuVUYfcWLQAOA==}
+  discord-api-types@0.37.99:
+    resolution: {integrity: sha512-aQtiAeLF1RHh8iYC2manEQQwsCjeDTA/Y+vhL7TRcRu+8z8nKTd5fGquDG7nbBqOkw0zU3YsZBO5evHx240VVw==}
 
   discord.js@14.14.1:
     resolution: {integrity: sha512-/hUVzkIerxKHyRKopJy5xejp4MYKDPTszAnpYxzVVv4qJYf+Tkt+jnT2N29PIPschicaEEpXwF2ARrTYHYwQ5w==}
@@ -903,8 +903,8 @@ packages:
       utf-8-validate:
         optional: true
 
-  yaml@2.5.0:
-    resolution: {integrity: sha512-2wWLbGbYDiSqqIKoPjar3MPgB94ErzCtrNE1FdqGuaO0pi2JGjmE8aW8TDZwzU7vuxcGRdL/4gPQwQ7hD5AMSw==}
+  yaml@2.5.1:
+    resolution: {integrity: sha512-bLQOjaX/ADgQ20isPJRvF0iRUHIxVhYvr53Of7wGcWlO2jvtUlH5m87DsmulFVxRpNLOnI4tB6p/oh8D7kpn9Q==}
     engines: {node: '>= 14'}
     hasBin: true
 
@@ -1170,7 +1170,7 @@ snapshots:
     dependencies:
       undici-types: 5.26.5
 
-  '@types/node@22.5.0':
+  '@types/node@22.5.3':
     dependencies:
       undici-types: 6.19.8
 
@@ -1256,7 +1256,7 @@ snapshots:
 
   discord-api-types@0.37.61: {}
 
-  discord-api-types@0.37.97: {}
+  discord-api-types@0.37.99: {}
 
   discord.js@14.14.1:
     dependencies:
@@ -1477,11 +1477,11 @@ snapshots:
 
   pirates@4.0.6: {}
 
-  postcss-load-config@6.0.1(yaml@2.5.0):
+  postcss-load-config@6.0.1(yaml@2.5.1):
     dependencies:
       lilconfig: 3.1.2
     optionalDependencies:
-      yaml: 2.5.0
+      yaml: 2.5.1
 
   punycode@2.3.1: {}
 
@@ -1595,7 +1595,7 @@ snapshots:
 
   tslib@2.6.2: {}
 
-  tsup@8.2.4(typescript@5.5.4)(yaml@2.5.0):
+  tsup@8.2.4(typescript@5.5.4)(yaml@2.5.1):
     dependencies:
       bundle-require: 5.0.0(esbuild@0.23.1)
       cac: 6.7.14
@@ -1607,7 +1607,7 @@ snapshots:
       globby: 11.1.0
       joycon: 3.1.1
       picocolors: 1.0.1
-      postcss-load-config: 6.0.1(yaml@2.5.0)
+      postcss-load-config: 6.0.1(yaml@2.5.1)
       resolve-from: 5.0.0
       rollup: 4.21.0
       source-map: 0.8.0-beta.0
@@ -1657,5 +1657,5 @@ snapshots:
 
   ws@8.14.2: {}
 
-  yaml@2.5.0:
+  yaml@2.5.1:
     optional: true
