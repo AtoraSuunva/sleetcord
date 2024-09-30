@@ -7,10 +7,10 @@ import {
   escapeMarkdown,
 } from 'discord.js'
 
-/**
- * Left-to-Right mark, changes rendered text direction
- */
-const LRM_MARK = '\u{200e}'
+// See https://www.w3.org/International/articles/inline-bidi-markup/index#nomarkup
+// tl;dr: First character tells the text renderer "consider the upcoming text isolated" and the second says "this is the end of the isolated section"
+const FIRST_STRONG_ISOLATE = '\u{2068}'
+const POP_DIRECTIONAL_ISOLATE = '\u{2069}'
 
 export interface FormatUserOptions {
   /** Show the user's ID after their tag (default: true) */
@@ -19,7 +19,7 @@ export interface FormatUserOptions {
   markdown?: boolean
   /** Mention the user at the end of the formatted string (default: false) */
   mention?: boolean
-  /** Insert a left-to-right mark after the username (default: true) */
+  /** Insert a First Strong Isolate and a Pop Directional Isolate around the username (default: true) */
   bidirectional?: boolean
   /** Show the user's global name + username (default: true) */
   globalName?: boolean
@@ -47,13 +47,15 @@ export type FormatUserPart = (
 /**
  * Formats a user in the following way:
  *
- * **No global name**: `username↦ (id) <@user>`
+ * **No global name**: `↦username↤ (id) <@user>`
  *
- * **With global name**: `Global Name↦ [username↦] (id) <@user>`
+ * **With global name**: `↦Global Name↤ [↦username↤] (id) <@user>`
  *
  * Username is either old-style `**username**#discriminator` or new-style `**username**`
  *
- * Left-to-Right marks (denoted by `↦`) are inserted prevent RTL characters from messing up the rest of the string
+ * A First Strong Isolate character (denoted by `↦`) and a Pop Directional Isolate character (denoted by `↤`) are inserted to prevent RTL characters from messing up the rest of the string.
+ *
+ * See w3.org's [article on bidi markup](https://www.w3.org/International/articles/inline-bidi-markup/index#nomarkup) for technical information
  *
  * @param userLike A User or GuildMember to format
  * @param params How to format the user
@@ -83,15 +85,17 @@ export function formatUser(
       ? escapeAllMarkdown(user.globalName)
       : user.globalName
 
+    if (bidirectional) formatted.push(FIRST_STRONG_ISOLATE)
     formatted.push(format('globalName', globalName) ?? '')
-    if (bidirectional) formatted.push(LRM_MARK)
+    if (bidirectional) formatted.push(POP_DIRECTIONAL_ISOLATE)
     formatted.push(' [')
   }
 
   if (markdown) formatted.push('**')
+  if (bidirectional) formatted.push(FIRST_STRONG_ISOLATE)
   formatted.push(format('username', username) ?? '<unknown>')
+  if (bidirectional) formatted.push(POP_DIRECTIONAL_ISOLATE)
   if (markdown) formatted.push('**')
-  if (bidirectional) formatted.push(LRM_MARK)
   if (user.discriminator && user.discriminator !== '0')
     formatted.push(`#${format('discriminator', user.discriminator)}`)
 
