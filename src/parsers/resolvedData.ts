@@ -502,7 +502,7 @@ export async function getMentionables(
   const users = (await getUsers(interaction, name, required)) ?? []
   const members = (await getMembers(interaction, name, required)) ?? []
   const roles =
-    guild !== null ? (await getRoles(interaction, name, required)) ?? [] : []
+    guild !== null ? ((await getRoles(interaction, name, required)) ?? []) : []
 
   const finalUsers = users.filter((u) => members.every((m) => m.id !== u.id))
 
