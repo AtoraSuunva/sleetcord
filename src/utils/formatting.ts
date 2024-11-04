@@ -1,4 +1,6 @@
 import {
+  type APIGuildMember,
+  type APIUser,
   type EscapeMarkdownOptions,
   type GuildMember,
   type PartialGuildMember,
@@ -57,12 +59,18 @@ export type FormatUserPart = (
  *
  * See w3.org's [article on bidi markup](https://www.w3.org/International/articles/inline-bidi-markup/index#nomarkup) for technical information
  *
- * @param userLike A User or GuildMember to format
+ * @param userLike A User or GuildMember to format (Partial and API Users/Members are accepted, but output quality depends on what they contain)
  * @param params How to format the user
  * @returns A formatted string for the user
  */
 export function formatUser(
-  userLike: User | GuildMember | PartialUser | PartialGuildMember,
+  userLike:
+    | User
+    | GuildMember
+    | PartialUser
+    | PartialGuildMember
+    | APIUser
+    | APIGuildMember,
   {
     id = true,
     markdown = true,
@@ -74,19 +82,27 @@ export function formatUser(
 ): string {
   // TODO: detect partial users and fetch them? can't do without changing function to be async, might break things...
   const user = 'user' in userLike ? userLike.user : userLike
+
+  if (!('username' in user)) {
+    // APIGuildMember with no .user, try our best
+    return `${user.nick ? `${user.nick} ` : ''}<unknown guild member>`
+  }
+
   const formatted: string[] = []
   const username =
     escapeMarkdown && user.username
       ? escapeAllMarkdown(user.username)
       : user.username
 
-  if (user.globalName) {
-    const globalName = escapeMarkdown
-      ? escapeAllMarkdown(user.globalName)
-      : user.globalName
+  const globalName = 'globalName' in user ? user.globalName : user.global_name
+
+  if (globalName) {
+    const escapedGlobalName = escapeMarkdown
+      ? escapeAllMarkdown(globalName)
+      : globalName
 
     if (bidirectional) formatted.push(FIRST_STRONG_ISOLATE)
-    formatted.push(format('globalName', globalName) ?? '')
+    formatted.push(format('globalName', escapedGlobalName) ?? '')
     if (bidirectional) formatted.push(POP_DIRECTIONAL_ISOLATE)
     formatted.push(' [')
   }
@@ -99,7 +115,7 @@ export function formatUser(
   if (user.discriminator && user.discriminator !== '0')
     formatted.push(`#${format('discriminator', user.discriminator)}`)
 
-  if (user.globalName) {
+  if (globalName) {
     formatted.push(']')
   }
 
