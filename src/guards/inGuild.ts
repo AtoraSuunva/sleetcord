@@ -1,10 +1,12 @@
 import type {
+  AnySelectMenuInteraction,
   AutocompleteInteraction,
   BaseInteraction,
   ButtonInteraction,
   ChatInputCommandInteraction,
   CommandInteraction,
   ContextMenuCommandInteraction,
+  Interaction,
   MessageComponentInteraction,
   MessageContextMenuCommandInteraction,
   SelectMenuInteraction,
@@ -23,11 +25,14 @@ export function inGuildGuard(
   interaction: ButtonInteraction,
 ): asserts interaction is ButtonInteraction<InGuildCacheType>
 export function inGuildGuard(
-  interaction: SelectMenuInteraction,
-): asserts interaction is SelectMenuInteraction<InGuildCacheType>
-export function inGuildGuard(
   interaction: MessageComponentInteraction,
 ): asserts interaction is MessageComponentInteraction<InGuildCacheType>
+export function inGuildGuard(
+  interaction: AnySelectMenuInteraction,
+): asserts interaction is AnySelectMenuInteraction<InGuildCacheType>
+export function inGuildGuard(
+  interaction: SelectMenuInteraction,
+): asserts interaction is SelectMenuInteraction<InGuildCacheType>
 
 export function inGuildGuard(
   interaction: MessageContextMenuCommandInteraction,
@@ -50,6 +55,10 @@ export function inGuildGuard(
 export function inGuildGuard(
   interaction: AutocompleteInteraction,
 ): asserts interaction is AutocompleteInteraction<InGuildCacheType>
+
+export function inGuildGuard(
+  interaction: Interaction,
+): asserts interaction is Interaction<InGuildCacheType>
 
 export function inGuildGuard(
   interaction: BaseInteraction,
