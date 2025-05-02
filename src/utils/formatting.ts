@@ -27,6 +27,8 @@ export interface FormatUserOptions {
   globalName?: boolean
   /** Escape the user's username/global name (default: true) */
   escapeMarkdown?: boolean
+  /** Wrap the user ID in backticks so it can be copied by tapping on mobile, disabled if markdown: false (default: true) */
+  codeID?: boolean
   /**
    * Usable to apply custom formatting to specific parts
    *
@@ -49,15 +51,26 @@ export type FormatUserPart = (
 /**
  * Formats a user in the following way:
  *
- * **No global name**: `↦username↤ (id) <@user>`
+ * ```js
+ * // No Global Name:
+ * **↦username↤** (id) <@user>
  *
- * **With global name**: `↦Global Name↤ [↦username↤] (id) <@user>`
+ * // With Global Name
+ * ↦Global Name↤ [**↦username↤**] (`id`) <@user>
+ * ```
  *
  * Username is either old-style `**username**#discriminator` or new-style `**username**`
  *
  * A First Strong Isolate character (denoted by `↦`) and a Pop Directional Isolate character (denoted by `↤`) are inserted to prevent RTL characters from messing up the rest of the string.
  *
  * See w3.org's [article on bidi markup](https://www.w3.org/International/articles/inline-bidi-markup/index#nomarkup) for technical information
+ *
+ * @example
+ * formatUser(atorasuunva)
+ * // ↦Atora↤ [**↦atorasuunva↤**] (`74768773940256768`)
+ *
+ * formatUser(atorasuunva, { mention: true })
+ * // ↦Atora↤ [**↦atorasuunva↤**] (`74768773940256768`) <@74768773940256768>
  *
  * @param userLike A User or GuildMember to format (Partial and API Users/Members are accepted, but output quality depends on what they contain)
  * @param params How to format the user
@@ -77,6 +90,7 @@ export function formatUser(
     mention = false,
     bidirectional = true,
     escapeMarkdown = true,
+    codeID = true,
     format = (_, str) => str,
   }: FormatUserOptions = {},
 ): string {
@@ -85,7 +99,8 @@ export function formatUser(
 
   if (!('username' in user)) {
     // APIGuildMember with no .user, try our best
-    return `${user.nick ? `${user.nick} ` : ''}<unknown guild member>`
+    const u = user as unknown as Record<string, string>
+    return `${u.nick ? `${u.nick} ` : ''}<unknown guild member>`
   }
 
   const formatted: string[] = []
@@ -119,7 +134,10 @@ export function formatUser(
     formatted.push(']')
   }
 
-  if (id) formatted.push(` (${format('id', user.id)})`)
+  if (id) {
+    const idString = format('id', user.id)
+    formatted.push(codeID && markdown ? ` (\`${idString}\`)` : ` (${idString})`)
+  }
   if (mention) formatted.push(` <@${user.id}>`)
 
   return formatted.join('')
