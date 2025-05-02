@@ -2,7 +2,6 @@ import {
   type BaseInteraction,
   type ChatInputCommandInteraction,
   type Client,
-  type CommandInteraction,
   type Guild,
   type GuildBasedChannel,
   GuildMember,
@@ -246,17 +245,17 @@ export async function getGuild(
  * @param required Is the option required? If missing, an error will be thrown if true, null will be returned if false
  */
 export function getUser(
-  interaction: CommandInteraction,
+  interaction: ChatInputCommandInteraction,
   name: string,
   required: true,
 ): User
 export function getUser(
-  interaction: CommandInteraction,
+  interaction: ChatInputCommandInteraction,
   name: string,
   required?: boolean,
 ): User | null
 export function getUser(
-  interaction: CommandInteraction,
+  interaction: ChatInputCommandInteraction,
   name: string,
   required = false,
 ): User | null {
@@ -270,17 +269,17 @@ export function getUser(
  * @param required Is the option required? If missing, an error will be thrown if true, null will be returned if false
  */
 export async function getMember(
-  interaction: CommandInteraction,
+  interaction: ChatInputCommandInteraction,
   name: string,
   required: true,
 ): Promise<GuildMember>
 export async function getMember(
-  interaction: CommandInteraction,
+  interaction: ChatInputCommandInteraction,
   name: string,
   required?: boolean,
 ): Promise<GuildMember | null>
 export async function getMember(
-  interaction: CommandInteraction,
+  interaction: ChatInputCommandInteraction,
   name: string,
   required = false,
 ): Promise<GuildMember | null> {

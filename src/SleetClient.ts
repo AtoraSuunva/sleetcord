@@ -1,12 +1,10 @@
 import { AsyncLocalStorage } from 'node:async_hooks'
 import {
-  ApplicationCommandType,
   type AutocompleteInteraction,
   type Awaitable,
+  type BaseInteraction,
   Client,
   type ClientOptions,
-  type Interaction,
-  InteractionType,
 } from 'discord.js'
 import { EventEmitter } from 'tseep'
 import { SleetRest } from './SleetRest.js'
@@ -473,13 +471,17 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
    * @param interaction The interaction to handle
    * @returns Nothing
    */
-  async #interactionCreate(interaction: Interaction): Promise<void> {
-    if (interaction.type === InteractionType.ApplicationCommand) {
-      return this.#handleApplicationInteraction(interaction).then(() => {})
+  async #interactionCreate(interaction: BaseInteraction): Promise<void> {
+    if (interaction.isAutocomplete()) {
+      return this.#handleAutocompleteInteraction(interaction).then(() => {})
     }
 
-    if (interaction.type === InteractionType.ApplicationCommandAutocomplete) {
-      return this.#handleAutocompleteInteraction(interaction).then(() => {})
+    if (
+      interaction.isChatInputCommand() ||
+      interaction.isMessageContextMenuCommand() ||
+      interaction.isUserContextMenuCommand()
+    ) {
+      return this.#handleApplicationInteraction(interaction).then(() => {})
     }
   }
 
@@ -526,20 +528,21 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
       () =>
         runningModuleStore.run(module, async () => {
           this.emit('runModule', module, interaction)
+
           try {
             // Make sure the module can run the incoming type of interaction
             if (
-              interaction.commandType === ApplicationCommandType.ChatInput &&
+              interaction.isChatInputCommand() &&
               module instanceof SleetSlashCommand
             ) {
               await module.run(this.context, interaction)
             } else if (
-              interaction.commandType === ApplicationCommandType.User &&
+              interaction.isUserContextMenuCommand() &&
               module instanceof SleetUserCommand
             ) {
               await module.run(this.context, interaction)
             } else if (
-              interaction.commandType === ApplicationCommandType.Message &&
+              interaction.isMessageContextMenuCommand() &&
               module instanceof SleetMessageCommand
             ) {
               await module.run(this.context, interaction)
