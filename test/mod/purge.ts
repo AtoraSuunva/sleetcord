@@ -1,22 +1,22 @@
 import { ApplicationCommandOptionType } from 'discord-api-types/v10'
 import {
-  ChatInputCommandInteraction,
-  Collection,
-  DMChannel,
-  FetchMessagesOptions,
-  GuildMember,
-  Message,
-  Snowflake,
-  User,
+    ChatInputCommandInteraction,
+    Collection,
+    DMChannel,
+    FetchMessagesOptions,
+    GuildMember,
+    Message,
+    Snowflake,
+    User,
 } from 'discord.js'
 import {
-  Mentionable,
-  PreRunError,
-  SleetSlashCommand,
-  botHasPermissionsGuard,
-  getMentionables,
-  getTextBasedChannel,
-  inGuildGuard,
+    Mentionable,
+    PreRunError,
+    SleetSlashCommand,
+    botHasPermissionsGuard,
+    getMentionables,
+    getTextBasedChannel,
+    inGuildGuard,
 } from '../../src/index.js'
 
 export const purge = new SleetSlashCommand(

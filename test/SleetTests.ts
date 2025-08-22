@@ -23,7 +23,7 @@ export const readyLogModule = new SleetModule(
     load: () => {
       console.log(`${readyLogModule.name} loaded!`)
     },
-    ready: (client) => {
+    clientReady: (client) => {
       console.log(`Logged in as ${client.user.tag}`)
     },
     messageReactionAdd: (messageReaction, user) => {

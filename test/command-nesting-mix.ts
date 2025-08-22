@@ -1,7 +1,7 @@
 import {
-  SleetSlashCommand,
-  SleetSlashCommandGroup,
-  SleetSlashSubcommand,
+    SleetSlashCommand,
+    SleetSlashCommandGroup,
+    SleetSlashSubcommand,
 } from '../src/index.js'
 
 export const blacklistAddTag = new SleetSlashSubcommand(

@@ -1,6 +1,6 @@
 # The MIT License (MIT)
 
-Copyright © `2023` `Atora Suunva`
+Copyright © 2023-2025 AtoraSuunva
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation

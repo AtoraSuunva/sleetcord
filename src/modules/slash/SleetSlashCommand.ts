@@ -1,9 +1,9 @@
+import type { ChatInputCommandInteraction } from 'discord.js'
 import {
   type APIApplicationCommandOption,
   ApplicationCommandType,
   type RESTPostAPIChatInputApplicationCommandsJSONBody,
 } from 'discord-api-types/v10'
-import type { ChatInputCommandInteraction } from 'discord.js'
 import { noop } from '../../utils/functions.js'
 import { SleetCommand, type SleetCommandExtras } from '../base/SleetCommand.js'
 import type {
@@ -13,10 +13,10 @@ import type {
 } from '../events.js'
 import type { SleetModule } from '../index.js'
 import {
-  type SleetAutocompleteable,
-  type SleetAutocompleteableOption,
   autocompleteWithSubcommands,
   isAutocompleteableOption,
+  type SleetAutocompleteable,
+  type SleetAutocompleteableOption,
 } from './SleetAutocompleteable.js'
 import { SleetSlashCommandGroup } from './SleetSlashCommandGroup.js'
 import { SleetSlashSubcommand } from './SleetSlashSubcommand.js'

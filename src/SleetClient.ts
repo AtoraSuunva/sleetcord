@@ -7,7 +7,6 @@ import {
   type ClientOptions,
 } from 'discord.js'
 import { EventEmitter } from 'tseep'
-import { SleetRest } from './SleetRest.js'
 import { PreRunError } from './errors/PreRunError.js'
 import { SleetCommand } from './modules/base/SleetCommand.js'
 import { SleetModule } from './modules/base/SleetModule.js'
@@ -18,15 +17,16 @@ import {
   type BaseSleetModuleEventHandlers,
   type EventArguments,
   type EventDetails,
+  isDiscordEvent,
+  isSleetEvent,
+  isSpecialEvent,
   type ShouldSkipEventReturn,
   type SleetContext,
   type SleetExtensions,
   type SleetModuleEventHandlers,
-  isDiscordEvent,
-  isSleetEvent,
-  isSpecialEvent,
 } from './modules/events.js'
 import { SleetSlashCommand } from './modules/slash/SleetSlashCommand.js'
+import { SleetRest } from './SleetRest.js'
 
 /**
  * A module runner, used to wrap around all module event runs.
@@ -343,8 +343,10 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
         // biome-ignore lint/suspicious/noExplicitAny: any breaks the type system here
         this.addListener(event, eventHandler as any, argsNum as any)
       } else if (!isSpecialEvent(event)) {
+        const strEvent = String(event)
+
         throw new Error(
-          `Unknown event '${String(event)}' while processing ${module.name}`,
+          `Unknown event '${strEvent}' while processing ${module.name}${strEvent === 'ready' ? ": 'ready' is deprecated, use 'clientReady' instead" : ''}`,
         )
       }
 
@@ -462,7 +464,7 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
    * @returns The token used to login if successful
    */
   login() {
-    this.client.once('ready', () => void this.client.application?.fetch())
+    this.client.once('clientReady', () => void this.client.application?.fetch())
     return this.client.login(this.options.token)
   }
 

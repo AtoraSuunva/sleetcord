@@ -1,9 +1,9 @@
 import { ApplicationCommandOptionType } from 'discord-api-types/v10'
 import { ChatInputCommandInteraction } from 'discord.js'
 import {
-  AutocompleteHandler,
-  SleetSlashCommand,
-  getUsers,
+    AutocompleteHandler,
+    SleetSlashCommand,
+    getUsers,
 } from '../src/index.js'
 
 const messageAutocomplete: AutocompleteHandler<string> = ({ value }) => [

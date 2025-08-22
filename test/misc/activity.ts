@@ -65,7 +65,7 @@ export const activity = new SleetSlashCommand(
     ],
   },
   {
-    ready: runReady,
+    clientReady: runReady,
     run: runActivity,
   },
 )

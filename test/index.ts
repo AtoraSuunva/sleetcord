@@ -23,10 +23,8 @@ import {
   secretUserCommand,
 } from './guild-locked.js'
 import { activity } from './misc/activity.js'
-import { furrygen } from './misc/furrygen.js'
 import { info } from './misc/info.js'
 import { minesweeper } from './misc/minesweeper.js'
-import { stats } from './misc/stats.js'
 import { banlog } from './mod/banlog.js'
 import { mute, unmute } from './mod/mute.js'
 import { purge } from './mod/purge.js'
@@ -73,9 +71,7 @@ sleetClient.addModules([
 
   // misc
   activity,
-  furrygen,
   info,
-  stats,
   minesweeper,
 
   // util

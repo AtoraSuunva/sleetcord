@@ -1,16 +1,16 @@
 import {
-  ApplicationCommandOptionType,
-  ChatInputCommandInteraction,
-  Guild,
-  User,
+    ApplicationCommandOptionType,
+    ChatInputCommandInteraction,
+    Guild,
+    User,
 } from 'discord.js'
 import {
-  botHasPermissionsGuard,
-  formatUser,
-  getGuild,
-  getUsers,
-  inGuildGuard,
-  SleetSlashCommand,
+    botHasPermissionsGuard,
+    formatUser,
+    getGuild,
+    getUsers,
+    inGuildGuard,
+    SleetSlashCommand,
 } from '../../src/index.js'
 
 export const unban = new SleetSlashCommand(

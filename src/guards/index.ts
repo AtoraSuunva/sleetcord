@@ -1,6 +1,3 @@
 export * from './hasPermissions.js'
 export * from './inGuild.js'
 export * from './isOwner.js'
-export type * from './hasPermissions.js'
-export type * from './inGuild.js'
-export type * from './isOwner.js'

@@ -2,11 +2,11 @@ import {
   type APIGuildMember,
   type APIUser,
   type EscapeMarkdownOptions,
+  escapeMarkdown,
   type GuildMember,
   type PartialGuildMember,
   type PartialUser,
   type User,
-  escapeMarkdown,
 } from 'discord.js'
 
 // See https://www.w3.org/International/articles/inline-bidi-markup/index#nomarkup

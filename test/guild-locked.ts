@@ -1,12 +1,12 @@
 import {
-  ChatInputCommandInteraction,
-  MessageContextMenuCommandInteraction,
-  UserContextMenuCommandInteraction,
+    ChatInputCommandInteraction,
+    MessageContextMenuCommandInteraction,
+    UserContextMenuCommandInteraction,
 } from 'discord.js'
 import {
-  SleetMessageCommand,
-  SleetSlashCommand,
-  SleetUserCommand,
+    SleetMessageCommand,
+    SleetSlashCommand,
+    SleetUserCommand,
 } from '../src/index.js'
 
 /**

@@ -3,26 +3,23 @@
     "./**/*",
     "../src/**/*"
   ],
-  "ts-node": {
-    "transpileOnly": true,
-    "transpiler": "ts-node/transpilers/swc-experimental",
-    "files": true
-  },
+  "exclude": ["**/node_modules", "**/.*/"],
   "compilerOptions": {
     /* Projects */
     "composite": true,
     "rootDir": "..",
     "outDir": "./dist",
+    "incremental": true,
     "tsBuildInfoFile": ".tsbuildinfo",
 
     /* Language and Environment */
-    "target": "ES2022",
-    "lib": ["ES2022"],
+    "target": "es2024",
+    "lib": ["ES2024"],
     "types": ["node"],
 
     /* Modules */
-    "module": "Node16",
-    "moduleResolution": "Node16",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
 
     /* Emit */
     "sourceMap": true,
@@ -43,6 +40,7 @@
     "exactOptionalPropertyTypes": true,
 
     /* Completeness */
+    "skipDefaultLibCheck": true,
     "skipLibCheck": true
   }
 }

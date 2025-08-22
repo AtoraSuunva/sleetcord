@@ -1,18 +1,18 @@
 import { ApplicationCommandOptionType } from 'discord-api-types/v10'
 import {
-  ChatInputCommandInteraction,
-  Guild,
-  GuildBan,
-  GuildMember,
-  User,
+    ChatInputCommandInteraction,
+    Guild,
+    GuildBan,
+    GuildMember,
+    User,
 } from 'discord.js'
 import {
-  botHasPermissionsGuard,
-  formatUser,
-  getGuild,
-  getUsers,
-  SleetSlashCommand,
-  tryFetchMember,
+    botHasPermissionsGuard,
+    formatUser,
+    getGuild,
+    getUsers,
+    SleetSlashCommand,
+    tryFetchMember,
 } from '../../src/index.js'
 
 export const softban = new SleetSlashCommand(

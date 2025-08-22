@@ -1,3 +1,8 @@
+import type {
+  ApplicationCommandOptionChoiceData,
+  AutocompleteInteraction,
+  Awaitable,
+} from 'discord.js'
 import {
   type APIApplicationCommandIntegerOption,
   type APIApplicationCommandNumberOption,
@@ -6,11 +11,6 @@ import {
   type APIApplicationCommandStringOption,
   ApplicationCommandOptionType,
 } from 'discord-api-types/v10'
-import type {
-  ApplicationCommandOptionChoiceData,
-  AutocompleteInteraction,
-  Awaitable,
-} from 'discord.js'
 import type { SlashEventHandlers, SleetContext } from '../events.js'
 import { SleetSlashCommand } from './SleetSlashCommand.js'
 import type { SleetSlashCommandGroup } from './SleetSlashCommandGroup.js'

@@ -1,13 +1,13 @@
 import { ApplicationCommandOptionType } from 'discord-api-types/v10'
 import {
-  Channel,
-  ChatInputCommandInteraction,
-  Client,
-  EmbedBuilder,
-  Guild,
-  Message,
-  TextBasedChannel,
-  User,
+    Channel,
+    ChatInputCommandInteraction,
+    Client,
+    EmbedBuilder,
+    Guild,
+    Message,
+    TextBasedChannel,
+    User,
 } from 'discord.js'
 import { SleetSlashCommand } from '../../src/index.js'
 

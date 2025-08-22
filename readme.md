@@ -60,7 +60,7 @@ const echo = new SleetSlashCommand({
     })
   },
   // Other events can also be listened to, and the respective event listeners will automatically be attached
-  ready: () => {
+  clientReady: () => {
     console.log('The bot entered READY!')
   }
 })

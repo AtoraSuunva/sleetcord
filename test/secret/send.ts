@@ -2,9 +2,9 @@
 import { ApplicationCommandOptionType } from 'discord-api-types/v10'
 import { ChatInputCommandInteraction } from 'discord.js'
 import {
-  SleetSlashCommand,
-  getTextBasedChannel,
-  inGuildGuard,
+    SleetSlashCommand,
+    getTextBasedChannel,
+    inGuildGuard,
 } from '../../src/index.js'
 
 export const send = new SleetSlashCommand(

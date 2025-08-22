@@ -80,7 +80,6 @@ export class SleetCommand<
       default_member_permissions ?? null,
     )
 
-    // biome-ignore lint/performance/noDelete: We need to remove this property from the object
     delete body.registerOnlyInGuilds
 
     super(body, handlers, modules)

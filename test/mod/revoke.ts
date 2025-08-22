@@ -1,19 +1,19 @@
 import { ApplicationCommandOptionType } from 'discord-api-types/v10'
 import {
-  ChatInputCommandInteraction,
-  EmbedBuilder,
-  Guild,
-  GuildBan,
-  Invite,
-  User,
+    ChatInputCommandInteraction,
+    EmbedBuilder,
+    Guild,
+    GuildBan,
+    Invite,
+    User,
 } from 'discord.js'
 import {
-  SleetSlashCommand,
-  botHasPermissionsGuard,
-  formatUser,
-  getGuild,
-  getUser,
-  inGuildGuard,
+    SleetSlashCommand,
+    botHasPermissionsGuard,
+    formatUser,
+    getGuild,
+    getUser,
+    inGuildGuard,
 } from '../../src/index.js'
 
 export const revoke = new SleetSlashCommand(

@@ -1,3 +1,4 @@
 onlyBuiltDependencies:
   - esbuild
   - '@biomejs/biome'
+strictPeerDependencies: true

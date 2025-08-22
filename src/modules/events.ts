@@ -1,4 +1,3 @@
-import type { APIApplicationCommandOptionChoice } from 'discord-api-types/v10'
 import {
   type AutocompleteInteraction,
   type Awaitable,
@@ -11,6 +10,7 @@ import {
   type MessageContextMenuCommandInteraction,
   type UserContextMenuCommandInteraction,
 } from 'discord.js'
+import type { APIApplicationCommandOptionChoice } from 'discord-api-types/v10'
 import type { SleetClient } from '../SleetClient.js'
 import type { SleetModule } from './base/SleetModule.js'
 
@@ -151,7 +151,7 @@ export type ClientEventHandlers = {
  * All possible event handlers a command can have, both for Sleet events and Discord.js events
  */
 export interface BaseSleetModuleEventHandlers
-  extends Partial<ClientEventHandlers> {
+  extends Partial<Omit<ClientEventHandlers, 'ready'>> {
   /**
    * Event emitted when a SleetClient loads this module, can be used to fetch data
    * from an external source

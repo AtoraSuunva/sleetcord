@@ -1,10 +1,10 @@
 import { ApplicationCommandOptionType } from 'discord-api-types/v10'
 import {
-  ChatInputCommandInteraction,
-  Collection,
-  Formatters,
-  Message,
-  PartialMessage,
+    ChatInputCommandInteraction,
+    Collection,
+    Formatters,
+    Message,
+    PartialMessage,
 } from 'discord.js'
 import { SleetSlashCommand, isLikelyID } from '../../src/index.js'
 
