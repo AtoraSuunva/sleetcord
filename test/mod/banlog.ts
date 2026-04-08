@@ -1,5 +1,6 @@
 import { ApplicationCommandOptionType } from 'discord-api-types/v10'
 import { ChatInputCommandInteraction, codeBlock } from 'discord.js'
+
 import { SleetSlashCommand, makeChoices } from '../../src/index.js'
 
 const typeChoices = makeChoices(['Ban', 'Unban', 'Kick', 'Mute'])
@@ -44,8 +45,7 @@ function runBanlog(interaction: ChatInputCommandInteraction) {
   const user = interaction.options.getUser('user', true)
   const reason = interaction.options.getString('reason', true)
   const type = interaction.options.getString('type', false) ?? 'Ban'
-  const responsible =
-    interaction.options.getUser('responsible', false) ?? interaction.user
+  const responsible = interaction.options.getUser('responsible', false) ?? interaction.user
 
   const log = [
     `**${type}**`,

@@ -1,8 +1,9 @@
 import {
-    MessageContextMenuCommandInteraction,
-    MessageFlags,
-    MessageFlagsBitField,
+  MessageContextMenuCommandInteraction,
+  MessageFlags,
+  MessageFlagsBitField,
 } from 'discord.js'
+
 import { InteractionMessage, SleetMessageCommand } from '../../src/index.js'
 
 export const restore_embeds = new SleetMessageCommand(

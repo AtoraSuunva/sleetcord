@@ -1,13 +1,14 @@
+import {
+  ApplicationCommandType,
+  type RESTPostAPIContextMenuApplicationCommandsJSONBody,
+} from 'discord-api-types/v10'
 import type {
   Awaitable,
   CommandInteractionOption,
   User,
   UserContextMenuCommandInteraction,
 } from 'discord.js'
-import {
-  ApplicationCommandType,
-  type RESTPostAPIContextMenuApplicationCommandsJSONBody,
-} from 'discord-api-types/v10'
+
 import { SleetCommand, type SleetCommandExtras } from '../base/SleetCommand.js'
 import type { RunnableEventHandlers, SleetContext } from '../events.js'
 
@@ -21,15 +22,12 @@ export interface SleetUserCommandBody extends BaseUserCommandBody {
   type?: ApplicationCommandType.User
 }
 
-export type InteractionMember = NonNullable<
-  CommandInteractionOption['member']
-> | null
+export type InteractionMember = NonNullable<CommandInteractionOption['member']> | null
 
-export interface UserCommandHandlers
-  extends RunnableEventHandlers<
-    UserContextMenuCommandInteraction,
-    [User, InteractionMember]
-  > {
+export interface UserCommandHandlers extends RunnableEventHandlers<
+  UserContextMenuCommandInteraction,
+  [User, InteractionMember]
+> {
   run: (
     interaction: UserContextMenuCommandInteraction,
     user: User,

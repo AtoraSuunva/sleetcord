@@ -1,5 +1,6 @@
 import { ApplicationCommandOptionType } from 'discord-api-types/v10'
 import { ChatInputCommandInteraction } from 'discord.js'
+
 import { PreRunError, SleetSlashCommand } from '../../src/index.js'
 
 /**
@@ -47,9 +48,7 @@ function runMinesweeper(interaction: ChatInputCommandInteraction) {
   const height = interaction.options.getInteger('height') ?? 7
 
   if (mines > width * height) {
-    throw new PreRunError(
-      "There are too many mines, they can't all fit in the grid!!",
-    )
+    throw new PreRunError("There are too many mines, they can't all fit in the grid!!")
   }
 
   const { grid, minecount, safe } = createMinesweeper(height, width, mines)
@@ -59,9 +58,7 @@ function runMinesweeper(interaction: ChatInputCommandInteraction) {
     grid
       .map((row, y) =>
         row
-          .map((v, x) =>
-            safe[0] === y && safe[1] === x ? charMap(v) : `||${charMap(v)}||`,
-          )
+          .map((v, x) => (safe[0] === y && safe[1] === x ? charMap(v) : `||${charMap(v)}||`))
           .join(''),
       )
       .join('\n')
@@ -91,8 +88,7 @@ const nMap = {
 }
 
 /** Map a character to the "display emoji", either a bomb 💣 or a number 1️⃣ */
-const charMap = (c: string | number) =>
-  c === MINE ? ':bomb:' : nMap[c as keyof typeof nMap]
+const charMap = (c: string | number) => (c === MINE ? ':bomb:' : nMap[c as keyof typeof nMap])
 
 /** Char to use for the mine */
 const MINE = 'X'

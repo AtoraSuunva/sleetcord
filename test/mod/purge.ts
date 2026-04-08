@@ -1,54 +1,68 @@
-import { ApplicationCommandOptionType } from 'discord-api-types/v10'
 import {
-    ChatInputCommandInteraction,
-    Collection,
-    DMChannel,
-    FetchMessagesOptions,
-    GuildMember,
-    Message,
-    Snowflake,
-    User,
+  ApplicationCommandOptionType,
+  ApplicationIntegrationType,
+  type ChatInputCommandInteraction,
+  type Collection,
+  cleanCodeBlockContent,
+  codeBlock,
+  DMChannel,
+  type FetchMessagesOptions,
+  GuildMember,
+  type GuildTextBasedChannel,
+  InteractionContextType,
+  type Message,
+  MessageFlags,
+  type Snowflake,
+  User,
 } from 'discord.js'
 import {
-    Mentionable,
-    PreRunError,
-    SleetSlashCommand,
-    botHasPermissionsGuard,
-    getMentionables,
-    getTextBasedChannel,
-    inGuildGuard,
-} from '../../src/index.js'
+  botHasPermissionsGuard,
+  getMentionables,
+  getTextBasedChannel,
+  inGuildGuard,
+  type Mentionable,
+  PreRunError,
+  SleetSlashCommand,
+} from 'sleetcord'
+
+const MAX_FETCH_MESSAGES = 100
+const REGEX_TIMEOUT = 100
 
 export const purge = new SleetSlashCommand(
   {
     name: 'purge',
-    description: 'Purges a number of messages',
+    description:
+      'Purge messages. By default all messages match, options filter messages and work as AND conditions',
     default_member_permissions: ['ManageMessages'],
-    dm_permission: false,
+    contexts: [InteractionContextType.Guild],
+    integration_types: [ApplicationIntegrationType.GuildInstall],
     options: [
       {
         name: 'count',
         type: ApplicationCommandOptionType.Integer,
-        description: 'The number of messages to purge (default: 100)',
+        description: `The number of messages to purge (default: ${MAX_FETCH_MESSAGES})`,
         min_value: 1,
-        max_value: 100,
+        max_value: 300,
       },
       {
         name: 'content',
         type: ApplicationCommandOptionType.String,
-        description: 'Purge messages with this content (case-insensitive)',
+        description: 'Purge only messages with this content (case-insensitive)',
+      },
+      {
+        name: 'regex',
+        type: ApplicationCommandOptionType.String,
+        description: `Purge only messages with content matching this regex pattern (${REGEX_TIMEOUT}ms timeout, 'v' flag)`,
       },
       {
         name: 'from',
         type: ApplicationCommandOptionType.String,
-        description:
-          'The users/roles to purge messages from (default: everyone)',
+        description: 'Purge only messages from these users/roles (default: everyone)',
       },
       {
         name: 'mentions',
         type: ApplicationCommandOptionType.String,
-        description:
-          'Purge only messages that mention a user/role (default: none)',
+        description: 'Purge only messages that mention a user/role (default: none)',
       },
       {
         name: 'bots',
@@ -57,39 +71,56 @@ export const purge = new SleetSlashCommand(
       },
       {
         name: 'emoji',
+        type: ApplicationCommandOptionType.Integer,
+        description: 'Purge only messages with this many or more emoji (default: 0)',
+        min_value: 0,
+      },
+      {
+        name: 'only_emoji',
         type: ApplicationCommandOptionType.Boolean,
-        description:
-          'Purge only messages that contain an emoji (default: none)',
+        description: 'Purge only messages that only contain emoji (default: false)',
       },
       {
         name: 'embeds',
         type: ApplicationCommandOptionType.Integer,
-        description:
-          'Purge only messages with this many or more embeds (default: 0)',
+        description: 'Purge only messages with this many or more embeds (default: 0)',
         min_value: 0,
+      },
+      {
+        name: 'stickers',
+        type: ApplicationCommandOptionType.Boolean,
+        description: 'Purge only messages with stickers (default: False)',
+      },
+      {
+        name: 'webhooks',
+        type: ApplicationCommandOptionType.Boolean,
+        description: 'Purge only messages sent by webhooks (default: false)',
+      },
+      {
+        name: 'reacts',
+        type: ApplicationCommandOptionType.Boolean,
+        description:
+          'Purge reactions instead of messages, still matches using the other options (default: False)',
       },
       {
         name: 'before',
         type: ApplicationCommandOptionType.String,
-        description:
-          'Purge only messages before this message ID (default: none)',
+        description: 'Purge only messages before this message ID, exclusive (default: none)',
       },
       {
         name: 'after',
         type: ApplicationCommandOptionType.String,
-        description:
-          'Purge only messages after this message ID (default: none)',
+        description: 'Purge only messages after this message ID, exclusive (default: none)',
       },
       {
         name: 'channel',
         type: ApplicationCommandOptionType.Channel,
-        description:
-          'The channel to purge messages from (default: current channel)',
+        description: 'The channel to purge messages from (default: current channel)',
       },
       {
-        name: 'silent',
+        name: 'ephemeral',
         type: ApplicationCommandOptionType.Boolean,
-        description: 'Silent purge (default: true)',
+        description: 'Send purge results only to you (default: true)',
       },
     ],
   },
@@ -98,29 +129,28 @@ export const purge = new SleetSlashCommand(
   },
 )
 
-const MAX_FETCH_MESSAGES = 100
-
 /**
  * Purge a set of messages based on a couple filter criteria.
  * @param interaction The interaction to use
  */
 async function runPurge(interaction: ChatInputCommandInteraction) {
   inGuildGuard(interaction)
-  await botHasPermissionsGuard(interaction, [
-    'ViewChannel',
-    'ManageMessages',
-    'ReadMessageHistory',
-  ])
+  await botHasPermissionsGuard(interaction, ['ViewChannel', 'ManageMessages', 'ReadMessageHistory'])
 
   const count = interaction.options.getInteger('count') ?? MAX_FETCH_MESSAGES
-  const content = interaction.options.getString('content')
+  const content = interaction.options.getString('content')?.toLowerCase() ?? null
+  const regexString = interaction.options.getString('regex')
   const from = await getMentionables(interaction, 'from')
   const mentions = await getMentionables(interaction, 'mentions')
   const bots = interaction.options.getBoolean('bots') ?? false
-  const emoji = interaction.options.getBoolean('emoji') ?? false
+  const emoji = interaction.options.getInteger('emoji') ?? 0
+  const onlyEmoji = interaction.options.getBoolean('only_emoji') ?? false
   const embeds = interaction.options.getInteger('embeds') ?? 0
+  const stickers = interaction.options.getBoolean('stickers') ?? false
+  const reacts = interaction.options.getBoolean('reacts') ?? false
   const before = interaction.options.getString('before')
   const after = interaction.options.getString('after')
+  const webhooks = interaction.options.getBoolean('webhooks') ?? false
 
   const channelOption = interaction.options.getChannel('channel')
   const channel = channelOption
@@ -135,9 +165,24 @@ async function runPurge(interaction: ChatInputCommandInteraction) {
     throw new PreRunError('You must provide a guild channel')
   }
 
-  const silent = interaction.options.getBoolean('silent') ?? true
+  let regex: RegExp | null = null
 
-  await interaction.deferReply({ ephemeral: silent })
+  if (regexString) {
+    try {
+      regex = new RegExp(regexString, 'v')
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e)
+      throw new PreRunError(
+        `Invalid regex pattern:\n${codeBlock('js', cleanCodeBlockContent(message))}`,
+      )
+    }
+  }
+
+  const ephemeral = interaction.options.getBoolean('ephemeral') ?? true
+
+  await interaction.deferReply({
+    flags: ephemeral ? MessageFlags.Ephemeral : '0',
+  })
 
   /**
    * Fetch messages after this offset
@@ -180,15 +225,20 @@ async function runPurge(interaction: ChatInputCommandInteraction) {
       beforeOffset = oldestMessage.id
     }
 
-    const filteredMessages = filterMessages(messages, {
+    const filteredMessages = await filterMessages(messages, {
       after,
       before,
       content,
+      regex,
       from,
       mentions,
       bots,
       emoji,
+      onlyEmoji,
       embeds,
+      stickers,
+      reacts,
+      webhooks,
     })
 
     if (filteredMessages.size === 0) {
@@ -196,21 +246,16 @@ async function runPurge(interaction: ChatInputCommandInteraction) {
       continue
     }
 
-    const toPurge = filteredMessages
-      .sort(youngestFirst)
-      .first(count - deletedCount)
+    const toPurge = filteredMessages.sort(youngestFirst).first(count - deletedCount)
 
-    const { size } = await channel.bulkDelete(toPurge, true)
+    const { size } = await (reacts ? bulkDeleteReacts(toPurge) : bulkDelete(channel, toPurge))
+
     deletedCount += size
 
     // When searching backwards:
     // We reached some point after the specified "after", stop
     // Next fetch would just be after that point and be pointless
-    if (
-      before &&
-      after &&
-      filteredMessages.some((message) => !isAfter(message, after))
-    ) {
+    if (before && after && filteredMessages.some((message) => !isAfter(message, after))) {
       break
     }
 
@@ -221,10 +266,34 @@ async function runPurge(interaction: ChatInputCommandInteraction) {
   }
 
   await interaction.editReply({
-    content: `🗑️ Deleted ${deletedCount} message${
-      deletedCount === 1 ? '' : 's'
-    }...`,
+    content: `🗑️ ${reacts ? 'Removed reactions from' : 'Deleted'} ${deletedCount} ${deletedCount === 1 ? 'message' : 'messages'}...`,
   })
+}
+
+async function bulkDelete(
+  channel: GuildTextBasedChannel,
+  messages: Message[],
+): Promise<{ size: number }> {
+  const bulkDeleteable: Message[] = []
+  let deleted = 0
+
+  for (const m of messages) {
+    if (m.bulkDeletable) {
+      bulkDeleteable.push(m)
+    } else if (m.deletable) {
+      await m
+        .delete()
+        .then(() => deleted++)
+        .catch(() => {})
+    }
+  }
+
+  if (bulkDeleteable.length > 1) {
+    const { size } = await channel.bulkDelete(bulkDeleteable, true)
+    deleted += size
+  }
+
+  return { size: deleted }
 }
 
 /**
@@ -235,10 +304,7 @@ async function runPurge(interaction: ChatInputCommandInteraction) {
  * @param before The message ID to purge before
  * @returns An object that can be passed as query options to fetch messages
  */
-function getFetchOptions(
-  after: string | null,
-  before: string | null,
-): FetchMessagesOptions {
+function getFetchOptions(after: string | null, before: string | null): FetchMessagesOptions {
   const fetchOptions: FetchMessagesOptions = {
     limit: MAX_FETCH_MESSAGES,
   }
@@ -261,11 +327,16 @@ interface FilterOptions {
   after?: string | null
   before?: string | null
   content?: string | null
+  regex?: RegExp | null
   from?: Mentionable[] | null
   mentions?: Mentionable[] | null
   bots: boolean
-  emoji: boolean
+  emoji: number
+  onlyEmoji: boolean
   embeds: number
+  stickers: boolean
+  reacts: boolean
+  webhooks: boolean
 }
 
 type FetchedMessages = Collection<Snowflake, Message>
@@ -276,34 +347,66 @@ type FetchedMessages = Collection<Snowflake, Message>
  * @param options How to filter the messages
  * @returns A Collection of messages that passed the filter
  */
-function filterMessages(
+async function filterMessages(
   messages: FetchedMessages,
   {
     after,
     before,
     content,
+    regex,
     from,
     mentions,
     bots,
     emoji,
+    onlyEmoji,
     embeds,
+    stickers,
+    webhooks,
+    // reacts,
   }: FilterOptions,
-): FetchedMessages {
-  return messages.filter((message) => {
+): Promise<FetchedMessages> {
+  let msgs = messages.filter((message) => {
+    // In case supporting non-bulk deletes ends up being too bad
+    // if (!reacts && !message.bulkDeletable) return false
     if (after && !isAfter(message, after)) return false
     if (before && !isBefore(message, before)) return false
-    if (content && !hasContent(message, content)) return false
     if (from && !isFrom(message, from)) return false
     if (mentions && !doesMention(message, mentions)) return false
     if (bots && !isBot(message)) return false
-    if (emoji && !hasEmoji(message)) return false
+    if (emoji && !hasCountEmoji(message, emoji)) return false
+    if (onlyEmoji && !hasOnlyEmoji(message)) return false
     if (embeds && !hasCountEmbeds(message, embeds)) return false
-    if (!isDeleteable(message)) return false
+    if (stickers && message.stickers.size === 0) return false
+    if (content && !hasContent(message, content)) return false
+    if (webhooks && !isWebhook(message)) return false
+
     return true
   })
+
+  if (regex) {
+    // It's hard to make a more efficient version that doesn't end up with everything being an array
+    // Though this will hardly ever be the bottleneck when a regex is involved
+    const noMatch: Snowflake[] = []
+
+    for (const [id, message] of msgs) {
+      try {
+        const result = regex.test(message.content)
+        if (!result) noMatch.push(id)
+      } catch {
+        noMatch.push(id)
+      }
+    }
+
+    msgs = msgs.filter((_, id) => !noMatch.includes(id))
+  }
+
+  return msgs
 }
 
-type HasTimestamp = { createdTimestamp: number }
+interface HasTimestamp {
+  createdTimestamp: number
+}
+
 /**
  * Comparison function for two messages, sorting by youngest first
  * @param first First message to compare
@@ -323,7 +426,7 @@ function isBefore(message: Message, before: string): boolean {
 }
 
 function hasContent(message: Message, content: string): boolean {
-  return message.content.toLowerCase().includes(content.toLowerCase())
+  return message.content.toLowerCase().includes(content)
 }
 
 function isFrom(message: Message, from: Mentionable[]): boolean {
@@ -353,20 +456,39 @@ function isBot(message: Message): boolean {
   return message.author.bot
 }
 
-function hasEmoji(message: Message): boolean {
-  // TODO: regex this
-  return message.content.includes('🙏')
+const unicodeEmojiRegex = /\p{RGI_Emoji}/gv
+const discordEmojiRegex = /<a?:\w+:\d+>/g
+
+function hasCountEmoji(message: Message, maxEmoji: number): boolean {
+  const unicodeEmojis = message.content.match(unicodeEmojiRegex)?.length ?? 0
+  const discordEmojis = message.content.match(discordEmojiRegex)?.length ?? 0
+  return unicodeEmojis + discordEmojis >= maxEmoji
 }
 
-function hasCountEmbeds(message: Message, embedCount: number): boolean {
+function hasOnlyEmoji(message: Message): boolean {
+  return (
+    message.content.replaceAll(unicodeEmojiRegex, '').replaceAll(discordEmojiRegex, '').trim() ===
+    ''
+  )
+}
+
+function hasCountEmbeds(message: Message, maxEmbeds: number): boolean {
   const count = message.embeds.length + message.attachments.size
-  return count >= embedCount
+  return count >= maxEmbeds
 }
 
-// 14 Days period in ms
-const p14Days = 60 * 60 * 24 * 14
+function isWebhook(message: Message): boolean {
+  return message.webhookId !== undefined
+}
 
-function isDeleteable(message: Message): boolean {
-  const tDelta = message.createdTimestamp - Date.now()
-  return message.deletable && tDelta < p14Days
+interface BulkDeleteResult {
+  size: number
+}
+
+async function bulkDeleteReacts(messages: Message[]): Promise<BulkDeleteResult> {
+  for (const message of messages) {
+    await message.reactions.removeAll()
+  }
+
+  return { size: messages.length }
 }

@@ -18,52 +18,58 @@ More helpers are available in [sleetcord-common](https://github.com/AtoraSuunva/
 `npm install sleetcord`
 
 ```js
-const echo = new SleetSlashCommand({
-  name: 'echo',
-  description: 'Echoes your message!',
-  // An array of permission strings can be provided and they'll be automatically parsed into a bitfield
-  default_member_permissions: ['ManageMessages'],
-  options: [{
-    name: 'message',
-    // You can use discord-api-types or the type number directly (i.e. `3`)
-    type: ApplicationCommandOptionType.String,
-    description: 'The message to echo',
-    required: true,
-    // Autocomplete handlers can be directly attached to options
-    // Sleetcord will automatically set `autocomplete: true` when serializing the body, and will call the autocomplete handler automatically
-    autocomplete: (interaction, name, value) => [
+const echo = new SleetSlashCommand(
+  {
+    name: 'echo',
+    description: 'Echoes your message!',
+    // An array of permission strings can be provided and they'll be automatically parsed into a bitfield
+    default_member_permissions: ['ManageMessages'],
+    options: [
       {
-        name: value,
-        value: `${value}!`,
+        name: 'message',
+        // You can use discord-api-types or the type number directly (i.e. `3`)
+        type: ApplicationCommandOptionType.String,
+        description: 'The message to echo',
+        required: true,
+        // Autocomplete handlers can be directly attached to options
+        // Sleetcord will automatically set `autocomplete: true` when serializing the body, and will call the autocomplete handler automatically
+        autocomplete: (interaction, name, value) => [
+          {
+            name: value,
+            value: `${value}!`,
+          },
+        ],
+      },
+      {
+        name: 'allowed_mentions',
+        type: ApplicationCommandOptionType.String,
+        description: 'What users to allow to mention',
       },
     ],
-  }, {
-    name: 'allowed_mentions',
-    type: ApplicationCommandOptionType.String,
-    description: 'What users to allow to mention',
-  }]
-}, {
-  // Run is called only when `/echo` is ran
-  run: async (interaction) => {
-    const message = interaction.options.getString('message')
-    // Accepts both @mentions or user ids, and fetches the users for you!
-    const allowedMentions = (await getUsers(interaction, 'allowed_mentions')) ?? []
-
-    const users = allowedMentions.map((user) => user.id)
-
-    interaction.reply({
-      content: message,
-      ephemeral,
-      allowedMentions: {
-        users,
-      },
-    })
   },
-  // Other events can also be listened to, and the respective event listeners will automatically be attached
-  clientReady: () => {
-    console.log('The bot entered READY!')
-  }
-})
+  {
+    // Run is called only when `/echo` is ran
+    run: async (interaction) => {
+      const message = interaction.options.getString('message')
+      // Accepts both @mentions or user ids, and fetches the users for you!
+      const allowedMentions = (await getUsers(interaction, 'allowed_mentions')) ?? []
+
+      const users = allowedMentions.map((user) => user.id)
+
+      interaction.reply({
+        content: message,
+        ephemeral,
+        allowedMentions: {
+          users,
+        },
+      })
+    },
+    // Other events can also be listened to, and the respective event listeners will automatically be attached
+    clientReady: () => {
+      console.log('The bot entered READY!')
+    },
+  },
+)
 
 const sleetClient = new SleetClient({
   sleet: {

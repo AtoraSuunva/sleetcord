@@ -1,0 +1,28 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "options": {
+    "typeAware": true,
+    "typeCheck": true
+  },
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error",
+    "perf": "error"
+  },
+  "plugins": ["eslint", "typescript", "unicorn", "oxc", "jsdoc", "promise"],
+  "rules": {
+    "no-param-reassign": "error",
+    "default-param-last": "error",
+    "prefer-enum-initializers": "error",
+    "no-inferrable-types": "error",
+    //
+    "no-this-in-exported-function": "allow",
+    // most shadowing is fine
+    "no-shadow": "allow",
+    // message ordering is often important and we have to work with ratelimits. This keeps a single module from queueing too many messages and instantly ratelimiting everything else
+    "no-await-in-loop": "allow",
+    // we are smarter than the compiler :)
+    "no-unsafe-type-assertion": "allow"
+  },
+  "ignorePatterns": ["test/**/*"]
+}

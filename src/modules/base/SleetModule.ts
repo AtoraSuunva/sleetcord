@@ -26,9 +26,7 @@ export interface SleetModuleOptions {
  *  },
  * })
  */
-export class SleetModule<
-  Handlers extends SleetModuleEventHandlers = SleetModuleEventHandlers,
-> {
+export class SleetModule<Handlers extends SleetModuleEventHandlers = SleetModuleEventHandlers> {
   /**
    * The name used to key & map this module, should be unique at each "level"
    *
@@ -54,11 +52,7 @@ export class SleetModule<
    * @param options The options for this module
    * @param handlers Event handlers for Sleet to register
    */
-  constructor(
-    options: SleetModuleOptions,
-    handlers: Handlers,
-    modules: SleetModule[] = [],
-  ) {
+  constructor(options: SleetModuleOptions, handlers: Handlers, modules: SleetModule[] = []) {
     this.name = options.name
     this.handlers = handlers
     this.modules = modules

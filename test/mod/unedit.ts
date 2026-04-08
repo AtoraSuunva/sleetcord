@@ -1,11 +1,12 @@
 import { ApplicationCommandOptionType } from 'discord-api-types/v10'
 import {
-    ChatInputCommandInteraction,
-    Collection,
-    Formatters,
-    Message,
-    PartialMessage,
+  ChatInputCommandInteraction,
+  Collection,
+  Formatters,
+  Message,
+  PartialMessage,
 } from 'discord.js'
+
 import { SleetSlashCommand, isLikelyID } from '../../src/index.js'
 
 export const unedit = new SleetSlashCommand(
@@ -39,8 +40,7 @@ const editStore = new Collection<string, EditStoreEntry>()
 /** 3 hours in ms */
 const sweepLifetime = 1000 * 60 * 60 * 3
 
-const editSweeper = (value: EditStoreEntry) =>
-  Date.now() - value.lastEditTimestamp > sweepLifetime
+const editSweeper = (value: EditStoreEntry) => Date.now() - value.lastEditTimestamp > sweepLifetime
 
 function handleMessageUpdate(
   oldMessage: Message | PartialMessage,
@@ -51,14 +51,12 @@ function handleMessageUpdate(
   }
 
   const previousEdits = editStore.get(newMessage.id) ?? {
-    lastEditTimestamp:
-      oldMessage.editedTimestamp ?? oldMessage.createdTimestamp,
+    lastEditTimestamp: oldMessage.editedTimestamp ?? oldMessage.createdTimestamp,
     edits: [oldMessage.content ?? '[Initial message content not cached]'],
   }
 
   previousEdits.edits.push(newMessage.content)
-  previousEdits.lastEditTimestamp =
-    newMessage.editedTimestamp ?? newMessage.createdTimestamp
+  previousEdits.lastEditTimestamp = newMessage.editedTimestamp ?? newMessage.createdTimestamp
   editStore.set(newMessage.id, previousEdits)
 
   // Remove all older entries to keep memory from endlessly growing
@@ -85,10 +83,7 @@ async function runUnedit(interaction: ChatInputCommandInteraction) {
     })
   }
 
-  const edits = Formatters.codeBlock(
-    'json',
-    JSON.stringify(previousEdits.edits, null, 2),
-  )
+  const edits = Formatters.codeBlock('json', JSON.stringify(previousEdits.edits, null, 2))
 
   return interaction.reply(edits)
 }

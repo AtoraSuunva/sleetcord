@@ -3,16 +3,9 @@ import {
   APIApplicationCommandOptionChoice,
   ApplicationCommandOptionType,
 } from 'discord-api-types/v10'
-import {
-  ActivityOptions,
-  ChatInputCommandInteraction,
-  Client,
-} from 'discord.js'
-import {
-  isOwnerGuard,
-  SleetContext,
-  SleetSlashCommand,
-} from '../../src/index.js'
+import { ActivityOptions, ChatInputCommandInteraction, Client } from 'discord.js'
+
+import { isOwnerGuard, SleetContext, SleetSlashCommand } from '../../src/index.js'
 
 /** Our status list needs a type and name to apply */
 type Status = Pick<ActivityOptions, 'name' | 'type'>
@@ -133,10 +126,7 @@ function runReady(client: Client) {
 }
 
 /** Either set a new random status, or set it to the one the user specified */
-async function runActivity(
-  this: SleetContext,
-  interaction: ChatInputCommandInteraction,
-) {
+async function runActivity(this: SleetContext, interaction: ChatInputCommandInteraction) {
   await isOwnerGuard(interaction)
 
   if (!interaction.client.user) {
@@ -147,10 +137,7 @@ async function runActivity(
   }
 
   const name = interaction.options.getString('name')
-  const type = interaction.options.getInteger('type') as Exclude<
-    ActivityOptions['type'],
-    undefined
-  >
+  const type = interaction.options.getInteger('type') as Exclude<ActivityOptions['type'], undefined>
 
   let activity: Status
   clearTimeout(timeout)
@@ -193,10 +180,7 @@ function getRandomStatus(): Status {
 }
 
 /** Maps from an activity ID or string to a display string */
-const reverseActivityTypesMap: Record<
-  Exclude<Status['type'], undefined>,
-  string
-> = {
+const reverseActivityTypesMap: Record<Exclude<Status['type'], undefined>, string> = {
   [ActivityType.Playing]: 'Playing',
   [ActivityType.Streaming]: 'Streaming',
   [ActivityType.Listening]: 'Listening to',

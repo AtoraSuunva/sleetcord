@@ -1,16 +1,13 @@
-import type { ChatInputCommandInteraction } from 'discord.js'
 import {
   type APIApplicationCommandOption,
   ApplicationCommandType,
   type RESTPostAPIChatInputApplicationCommandsJSONBody,
 } from 'discord-api-types/v10'
+import type { ChatInputCommandInteraction } from 'discord.js'
+
 import { noop } from '../../utils/functions.js'
 import { SleetCommand, type SleetCommandExtras } from '../base/SleetCommand.js'
-import type {
-  NoRunSlashEventHandlers,
-  SlashEventHandlers,
-  SleetContext,
-} from '../events.js'
+import type { NoRunSlashEventHandlers, SlashEventHandlers, SleetContext } from '../events.js'
 import type { SleetModule } from '../index.js'
 import {
   autocompleteWithSubcommands,
@@ -22,10 +19,8 @@ import { SleetSlashCommandGroup } from './SleetSlashCommandGroup.js'
 import { SleetSlashSubcommand } from './SleetSlashSubcommand.js'
 
 interface BaseCommandBody
-  extends Omit<
-      RESTPostAPIChatInputApplicationCommandsJSONBody,
-      'options' | keyof SleetCommandExtras
-    >,
+  extends
+    Omit<RESTPostAPIChatInputApplicationCommandsJSONBody, 'options' | keyof SleetCommandExtras>,
     SleetCommandExtras {}
 
 export interface SleetSlashCommandBody extends BaseCommandBody {
@@ -34,18 +29,21 @@ export interface SleetSlashCommandBody extends BaseCommandBody {
     | (SleetSlashSubcommand | SleetSlashCommandGroup)[]
 }
 
-export interface SleetSlashCommandBodyJSON
-  extends Omit<SleetSlashCommandBody, 'options'> {
+export interface SleetSlashCommandBodyJSON extends Omit<SleetSlashCommandBody, 'options'> {
   options?: APIApplicationCommandOption[]
 }
 
-export interface SleetSlashCommandBodyAutocompleteable
-  extends Omit<SleetSlashCommandBody, 'options'> {
+export interface SleetSlashCommandBodyAutocompleteable extends Omit<
+  SleetSlashCommandBody,
+  'options'
+> {
   options?: (APIApplicationCommandOption | SleetAutocompleteableOption)[]
 }
 
-export interface SleetSlashCommandBodyWithSubcommands
-  extends Omit<SleetSlashCommandBody, 'options'> {
+export interface SleetSlashCommandBodyWithSubcommands extends Omit<
+  SleetSlashCommandBody,
+  'options'
+> {
   options?: (SleetSlashSubcommand | SleetSlashCommandGroup)[]
 }
 
@@ -111,17 +109,12 @@ export class SleetSlashCommand
     handlers: NoRunSlashEventHandlers = {},
     modules: SleetModule[] = [],
   ) {
-    const { json, subcommands, groups, autocomplete } =
-      parseSlashCommandOptions(body.options)
+    const { json, subcommands, groups, autocomplete } = parseSlashCommandOptions(body.options)
     // TODO: probably copy this instead of modifying it in-place. Same issue of knowing which properties to copy as removing the cast
     body.type = ApplicationCommandType.ChatInput
     body.options = json
 
-    if (
-      subcommands.size === 0 &&
-      groups.size === 0 &&
-      handlers.run === undefined
-    ) {
+    if (subcommands.size === 0 && groups.size === 0 && handlers.run === undefined) {
       throw new Error(
         `No run handler provided for command '${body.name}', either provide a run handler or use subcommands/subcommand groups.`,
       )
@@ -143,10 +136,7 @@ export class SleetSlashCommand
     this.autocompleteHandlers = autocomplete
   }
 
-  public override async run(
-    context: SleetContext,
-    interaction: ChatInputCommandInteraction,
-  ) {
+  public override async run(context: SleetContext, interaction: ChatInputCommandInteraction) {
     // First run the handler for the command itself
     // Users can throw errors to exit execution early to have things like permission
     // or condition checking for entire groups or subcommands in 1 place
@@ -171,12 +161,10 @@ export class SleetSlashCommand
         return subcommandHandler.run(context, interaction)
       }
 
-      throw new Error(
-        `Unknown subcommand '${subcommand}' for command '${this.name}'`,
-      )
+      throw new Error(`Unknown subcommand '${subcommand}' for command '${this.name}'`)
     }
 
-    return
+    return undefined
   }
 
   public autocomplete: SleetAutocompleteable['autocomplete'] =

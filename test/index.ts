@@ -1,6 +1,22 @@
 import { GatewayIntentBits } from 'discord.js'
 import env from 'env-var'
+
 import { SleetClient } from '../src/index.js'
+import { blacklist } from './command-nesting-mix.js'
+import { echo } from './echo.js'
+import { secretMessageCommand, secretSlashCommand, secretUserCommand } from './guild-locked.js'
+import { activity } from './misc/activity.js'
+import { info } from './misc/info.js'
+import { minesweeper } from './misc/minesweeper.js'
+import { banlog } from './mod/banlog.js'
+import { mute, unmute } from './mod/mute.js'
+import { purge } from './mod/purge.js'
+import { revoke } from './mod/revoke.js'
+import { softban } from './mod/softban.js'
+import { unban } from './mod/unban.js'
+import { unedit } from './mod/unedit.js'
+import { autoreply } from './secret/autoreply.js'
+import { send } from './secret/send.js'
 import {
   autocompleteCommand,
   autocompleteFood,
@@ -15,25 +31,6 @@ import {
   userCommand,
   userPermissionsCommand,
 } from './SleetTests.js'
-import { blacklist } from './command-nesting-mix.js'
-import { echo } from './echo.js'
-import {
-  secretMessageCommand,
-  secretSlashCommand,
-  secretUserCommand,
-} from './guild-locked.js'
-import { activity } from './misc/activity.js'
-import { info } from './misc/info.js'
-import { minesweeper } from './misc/minesweeper.js'
-import { banlog } from './mod/banlog.js'
-import { mute, unmute } from './mod/mute.js'
-import { purge } from './mod/purge.js'
-import { revoke } from './mod/revoke.js'
-import { softban } from './mod/softban.js'
-import { unban } from './mod/unban.js'
-import { unedit } from './mod/unedit.js'
-import { autoreply } from './secret/autoreply.js'
-import { send } from './secret/send.js'
 import { count_members } from './util/count_members.js'
 import { quote } from './util/quote.js'
 import { restore_embeds } from './util/restore_embeds.js'

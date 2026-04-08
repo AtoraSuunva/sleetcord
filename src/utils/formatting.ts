@@ -43,10 +43,7 @@ export type UserPart = 'globalName' | 'discriminator' | 'username' | 'id'
  * @param part Identifies which part of the user is being formatted
  * @param str The part, without any formatting or surrounding characters (i.e. `username` instead of `[**username**]`)
  */
-export type FormatUserPart = (
-  part: UserPart,
-  str: string | null,
-) => string | null
+export type FormatUserPart = (part: UserPart, str: string | null) => string | null
 
 /**
  * Formats a user in the following way:
@@ -77,13 +74,7 @@ export type FormatUserPart = (
  * @returns A formatted string for the user
  */
 export function formatUser(
-  userLike:
-    | User
-    | GuildMember
-    | PartialUser
-    | PartialGuildMember
-    | APIUser
-    | APIGuildMember,
+  userLike: User | GuildMember | PartialUser | PartialGuildMember | APIUser | APIGuildMember,
   {
     id = true,
     markdown = true,
@@ -105,16 +96,12 @@ export function formatUser(
 
   const formatted: string[] = []
   const username =
-    escapeMarkdown && user.username
-      ? escapeAllMarkdown(user.username)
-      : user.username
+    escapeMarkdown && user.username ? escapeAllMarkdown(user.username) : user.username
 
   const globalName = 'globalName' in user ? user.globalName : user.global_name
 
   if (globalName) {
-    const escapedGlobalName = escapeMarkdown
-      ? escapeAllMarkdown(globalName)
-      : globalName
+    const escapedGlobalName = escapeMarkdown ? escapeAllMarkdown(globalName) : globalName
 
     if (bidirectional) formatted.push(FIRST_STRONG_ISOLATE)
     formatted.push(format('globalName', escapedGlobalName) ?? '')
@@ -155,10 +142,7 @@ export function formatUser(
  * @param options Options for what markdown to escape in the string, default all
  * @returns The string with markdown escaped
  */
-export function escapeAllMarkdown(
-  text: string,
-  options?: EscapeMarkdownOptions,
-) {
+export function escapeAllMarkdown(text: string, options?: EscapeMarkdownOptions) {
   return escapeMarkdown(text, {
     heading: true,
     bulletedList: true,

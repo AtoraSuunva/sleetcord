@@ -12,6 +12,7 @@ import type {
   SelectMenuInteraction,
   UserContextMenuCommandInteraction,
 } from 'discord.js'
+
 import { PreRunError } from '../errors/PreRunError.js'
 
 type InGuildCacheType = 'cached' | 'raw'

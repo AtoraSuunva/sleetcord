@@ -1,13 +1,10 @@
 import {
-    ChatInputCommandInteraction,
-    MessageContextMenuCommandInteraction,
-    UserContextMenuCommandInteraction,
+  ChatInputCommandInteraction,
+  MessageContextMenuCommandInteraction,
+  UserContextMenuCommandInteraction,
 } from 'discord.js'
-import {
-    SleetMessageCommand,
-    SleetSlashCommand,
-    SleetUserCommand,
-} from '../src/index.js'
+
+import { SleetMessageCommand, SleetSlashCommand, SleetUserCommand } from '../src/index.js'
 
 /**
  * Test locking a command to just 1 guild

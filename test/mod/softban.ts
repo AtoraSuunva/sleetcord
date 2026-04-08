@@ -1,18 +1,13 @@
 import { ApplicationCommandOptionType } from 'discord-api-types/v10'
+import { ChatInputCommandInteraction, Guild, GuildBan, GuildMember, User } from 'discord.js'
+
 import {
-    ChatInputCommandInteraction,
-    Guild,
-    GuildBan,
-    GuildMember,
-    User,
-} from 'discord.js'
-import {
-    botHasPermissionsGuard,
-    formatUser,
-    getGuild,
-    getUsers,
-    SleetSlashCommand,
-    tryFetchMember,
+  botHasPermissionsGuard,
+  formatUser,
+  getGuild,
+  getUsers,
+  SleetSlashCommand,
+  tryFetchMember,
 } from '../../src/index.js'
 
 export const softban = new SleetSlashCommand(
@@ -93,19 +88,12 @@ async function runSoftban(interaction: ChatInputCommandInteraction) {
       earlyFailed.push({ user, reason: 'This is me.' })
     } else if (user.id === interaction.user.id) {
       earlyFailed.push({ user, reason: 'You cannot softban yourself.' })
-    } else if (
-      member &&
-      member.roles.highest.position >= userHighestRole.position
-    ) {
+    } else if (member && member.roles.highest.position >= userHighestRole.position) {
       earlyFailed.push({
         user,
-        reason:
-          'You cannot softban someone with a higher or equal role to you.',
+        reason: 'You cannot softban someone with a higher or equal role to you.',
       })
-    } else if (
-      member &&
-      member.roles.highest.position >= myHighestRole.position
-    ) {
+    } else if (member && member.roles.highest.position >= myHighestRole.position) {
       earlyFailed.push({
         user,
         reason: 'I cannot softban someone with a higher or equal role to me.',
@@ -136,10 +124,8 @@ async function runSoftban(interaction: ChatInputCommandInteraction) {
   const failed = actionResults.failed
 
   const totalFails = [...earlyFailed, ...failed]
-  const succ =
-    succeeded.length > 0 ? `\n${formatSuccesses(succeeded)}` : ' Nobody!'
-  const fail =
-    totalFails.length > 0 ? `\n**Failed:**\n${formatFails(totalFails)}` : ''
+  const succ = succeeded.length > 0 ? `\n${formatSuccesses(succeeded)}` : ' Nobody!'
+  const fail = totalFails.length > 0 ? `\n**Failed:**\n${formatFails(totalFails)}` : ''
 
   return interaction.editReply(`**Softbanned**${succ}${fail}`)
 }
@@ -153,10 +139,7 @@ interface BanContext {
   reason: string
 }
 
-async function softbanUsers(
-  users: User[],
-  context: BanContext,
-): Promise<ActionResult> {
+async function softbanUsers(users: User[], context: BanContext): Promise<ActionResult> {
   const results = await Promise.all(users.map((m) => softbanUser(m, context)))
 
   const succeeded: SoftbanActionSuccess[] = []
@@ -212,7 +195,5 @@ function formatSuccesses(success: SoftbanActionSuccess[]): string {
 }
 
 function formatFails(failed: SoftbanActionFail[]): string {
-  return failed
-    .map((fail) => `> ${formatUser(fail.user)} - ${fail.reason}`)
-    .join('\n')
+  return failed.map((fail) => `> ${formatUser(fail.user)} - ${fail.reason}`).join('\n')
 }

@@ -1,16 +1,12 @@
+import { ApplicationCommandOptionType, ChatInputCommandInteraction, Guild, User } from 'discord.js'
+
 import {
-    ApplicationCommandOptionType,
-    ChatInputCommandInteraction,
-    Guild,
-    User,
-} from 'discord.js'
-import {
-    botHasPermissionsGuard,
-    formatUser,
-    getGuild,
-    getUsers,
-    inGuildGuard,
-    SleetSlashCommand,
+  botHasPermissionsGuard,
+  formatUser,
+  getGuild,
+  getUsers,
+  inGuildGuard,
+  SleetSlashCommand,
 } from '../../src/index.js'
 
 export const unban = new SleetSlashCommand(
@@ -82,11 +78,7 @@ interface UnbanResult {
   failed: UnbanFail[]
 }
 
-async function unbanUsers(
-  guild: Guild,
-  users: User[],
-  reason: string,
-): Promise<UnbanResult> {
+async function unbanUsers(guild: Guild, users: User[], reason: string): Promise<UnbanResult> {
   const succeeded: UnbanSucess[] = []
   const failed: UnbanFail[] = []
 
@@ -108,8 +100,7 @@ async function unbanUsers(
 }
 
 function formatUnbanResult({ succeeded, failed }: UnbanResult): string {
-  const succ =
-    succeeded.length > 0 ? `\n${formatSuccesses(succeeded)}` : ' Nobody!'
+  const succ = succeeded.length > 0 ? `\n${formatSuccesses(succeeded)}` : ' Nobody!'
   const fail = failed.length > 0 ? `\n**Failed:**\n${formatFails(failed)}` : ''
 
   return `**Unbanned**${succ}${fail}`
@@ -120,7 +111,5 @@ function formatSuccesses(success: UnbanSucess[]): string {
 }
 
 function formatFails(failed: UnbanFail[]): string {
-  return failed
-    .map((fail) => `> ${formatUser(fail.user)} - ${fail.reason}`)
-    .join('\n')
+  return failed.map((fail) => `> ${formatUser(fail.user)} - ${fail.reason}`).join('\n')
 }

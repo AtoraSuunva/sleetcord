@@ -1,9 +1,10 @@
-import type { ChatInputCommandInteraction } from 'discord.js'
 import {
   type APIApplicationCommandBasicOption,
   type APIApplicationCommandSubcommandOption,
   ApplicationCommandOptionType,
 } from 'discord-api-types/v10'
+import type { ChatInputCommandInteraction } from 'discord.js'
+
 import { SleetRunnable } from '../base/SleetRunnable.js'
 import type { SlashEventHandlers } from '../events.js'
 import type { SleetModule } from '../index.js'
@@ -14,14 +15,15 @@ import {
   autocomplete as sleetAutocomplete,
 } from './SleetAutocompleteable.js'
 
-export interface SleetSlashSubcommandBody
-  extends Omit<APIApplicationCommandSubcommandOption, 'type' | 'options'> {
+export interface SleetSlashSubcommandBody extends Omit<
+  APIApplicationCommandSubcommandOption,
+  'type' | 'options'
+> {
   type?: ApplicationCommandOptionType.Subcommand
   options?: (APIApplicationCommandBasicOption | SleetAutocompleteableOption)[]
 }
 
-export interface SleetSlashSubcommandBodyJSON
-  extends Omit<SleetSlashSubcommandBody, 'options'> {
+export interface SleetSlashSubcommandBodyJSON extends Omit<SleetSlashSubcommandBody, 'options'> {
   options?: APIApplicationCommandBasicOption[]
 }
 
@@ -52,10 +54,7 @@ function parseSlashSubcommandOptions(
 }
 
 export class SleetSlashSubcommand
-  extends SleetRunnable<
-    APIApplicationCommandSubcommandOption,
-    ChatInputCommandInteraction
-  >
+  extends SleetRunnable<APIApplicationCommandSubcommandOption, ChatInputCommandInteraction>
   implements SleetAutocompleteable
 {
   public autocompleteHandlers: Map<string, SleetAutocompleteableOption>
@@ -74,6 +73,5 @@ export class SleetSlashSubcommand
     this.autocompleteHandlers = autocomplete
   }
 
-  public autocomplete: SleetAutocompleteable['autocomplete'] =
-    sleetAutocomplete.bind(this)
+  public autocomplete: SleetAutocompleteable['autocomplete'] = sleetAutocomplete.bind(this)
 }

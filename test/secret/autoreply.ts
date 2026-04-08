@@ -1,5 +1,6 @@
 import { OAuth2Scopes } from 'discord-api-types/v10'
 import { ClientUser, Message } from 'discord.js'
+
 import { SleetModule } from '../../src/index.js'
 
 export const autoreply = new SleetModule(
@@ -19,10 +20,11 @@ async function handleMessageCreate(message: Message) {
   if (message.author.bot) return
 
   if (thanksRegex.test(message.content)) {
-    return message.reply({
+    message.reply({
       content: 'np',
       allowedMentions: { parse: [], repliedUser: false },
     })
+    return
   }
 
   const { client } = message

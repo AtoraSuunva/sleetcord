@@ -1,19 +1,20 @@
 import { ApplicationCommandOptionType } from 'discord-api-types/v10'
 import {
-    ChatInputCommandInteraction,
-    EmbedBuilder,
-    Guild,
-    GuildBan,
-    Invite,
-    User,
+  ChatInputCommandInteraction,
+  EmbedBuilder,
+  Guild,
+  GuildBan,
+  Invite,
+  User,
 } from 'discord.js'
+
 import {
-    SleetSlashCommand,
-    botHasPermissionsGuard,
-    formatUser,
-    getGuild,
-    getUser,
-    inGuildGuard,
+  SleetSlashCommand,
+  botHasPermissionsGuard,
+  formatUser,
+  getGuild,
+  getUser,
+  inGuildGuard,
 } from '../../src/index.js'
 
 export const revoke = new SleetSlashCommand(
@@ -37,9 +38,7 @@ export const revoke = new SleetSlashCommand(
   },
 )
 
-async function runRevoke(
-  interaction: ChatInputCommandInteraction,
-): Promise<unknown> {
+async function runRevoke(interaction: ChatInputCommandInteraction): Promise<unknown> {
   inGuildGuard(interaction)
   await botHasPermissionsGuard(interaction, ['ManageGuild'])
 
@@ -56,17 +55,13 @@ async function runRevoke(
 
 // TODO: store this somewhere that isn't just a map
 // Map of guildID -> channelID to do and log invite revokes on ban in
-const banRevokeIn = new Map<string, string>([
-  ['120330239996854274', '797336365284065300'],
-])
+const banRevokeIn = new Map<string, string>([['120330239996854274', '797336365284065300']])
 
 async function runBanRevoke(ban: GuildBan): Promise<void> {
   const { guild, user } = ban
   if (!banRevokeIn.has(guild.id)) return
   const logChannelID = banRevokeIn.get(guild.id)
-  const logChannel = logChannelID
-    ? guild.channels.cache.get(logChannelID)
-    : undefined
+  const logChannel = logChannelID ? guild.channels.cache.get(logChannelID) : undefined
 
   const revoked = await revokeInvitesFor(guild, user)
 
@@ -120,9 +115,7 @@ function formatInviteEmbed(user: User, invites: Invite[]): EmbedBuilder {
         `[#${i.channel?.name ?? 'unknown channel'}] `,
         `Uses: <${i.uses}/${i.maxUses === 0 ? '\u{221E}' : i.maxUses}>, `,
         i.createdAt ? `Created: ${i.createdAt.toLocaleString()}, ` : '',
-        i.expiresAt
-          ? `Expires: ${i.expiresAt.toLocaleString()}`
-          : 'Expires: Never',
+        i.expiresAt ? `Expires: ${i.expiresAt.toLocaleString()}` : 'Expires: Never',
       ].join(''),
     )
   }

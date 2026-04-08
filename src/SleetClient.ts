@@ -1,4 +1,5 @@
 import { AsyncLocalStorage } from 'node:async_hooks'
+
 import {
   type AutocompleteInteraction,
   type Awaitable,
@@ -7,6 +8,7 @@ import {
   type ClientOptions,
 } from 'discord.js'
 import { EventEmitter } from 'tseep'
+
 import { PreRunError } from './errors/PreRunError.js'
 import { SleetCommand } from './modules/base/SleetCommand.js'
 import { SleetModule } from './modules/base/SleetModule.js'
@@ -262,11 +264,7 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
 
   #registerEventsFor(module: SleetModule) {
     if (!(module instanceof SleetModule)) {
-      throw new Error(
-        `${String(
-          module,
-        )} is not a SleetModule, but was being registered for events`,
-      )
+      throw new Error(`${String(module)} is not a SleetModule, but was being registered for events`)
     }
 
     const events = this.registeredEvents.get(module) ?? []
@@ -277,20 +275,12 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
     ][]) {
       if (!handler) continue
 
-      this.emit(
-        'sleetDebug',
-        `Registering event '${event}' for '${module.name}'`,
-      )
+      this.emit('sleetDebug', `Registering event '${event}' for '${module.name}'`)
 
-      if (
-        event === 'shouldSkipEvent' &&
-        typeof module.handlers.shouldSkipEvent === 'function'
-      ) {
+      if (event === 'shouldSkipEvent' && typeof module.handlers.shouldSkipEvent === 'function') {
         // This is a special case, since we don't use any event emitters for this
         // We need to call each one and track the return value
-        this.shouldSkipHandlers.add(
-          module as SleetModule<Required<SleetExtensions>>,
-        )
+        this.shouldSkipHandlers.add(module as SleetModule<Required<SleetExtensions>>)
         continue
       }
 
@@ -325,12 +315,12 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
 
         this.moduleRunner(
           module,
-          (...args) =>
+          (...moduleArgs) =>
             runningModuleStore.run<Promise<unknown>, unknown[]>(
               module,
               // biome-ignore lint/suspicious/noExplicitAny: any breaks the type system here
               boundEvent as any,
-              ...args,
+              ...moduleArgs,
             ),
           eventDetails,
         )
@@ -359,9 +349,7 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
   #unregisterEventsFor(module: SleetModule) {
     if (!(module instanceof SleetModule)) {
       throw new Error(
-        `${String(
-          module,
-        )} is not a SleetModule, but was being unregistered for events`,
+        `${String(module)} is not a SleetModule, but was being unregistered for events`,
       )
     }
 
@@ -378,9 +366,7 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
         // biome-ignore lint/suspicious/noExplicitAny: any breaks the type system here
         this.off(event, eventHandler as any)
       } else if (!isSpecialEvent(event)) {
-        throw new Error(
-          `Unknown event '${String(event)}' while processing ${module.name}`,
-        )
+        throw new Error(`Unknown event '${String(event)}' while processing ${module.name}`)
       }
     }
 
@@ -413,8 +399,7 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
       toAdd = sleetCommands
     } else if (guildId) {
       toAdd = sleetCommands.filter(
-        (c) =>
-          !c.registerOnlyInGuilds || c.registerOnlyInGuilds.includes(guildId),
+        (c) => !c.registerOnlyInGuilds || c.registerOnlyInGuilds.includes(guildId),
       )
     } else {
       toAdd = sleetCommands.filter((c) => !c.registerOnlyInGuilds)
@@ -429,15 +414,15 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
       for (const command of sleetCommands) {
         if (!command.registerOnlyInGuilds) continue
 
-        for (const guildId of command.registerOnlyInGuilds) {
-          const commands = toRegister.get(guildId) ?? []
-          commands.push(command)
-          toRegister.set(guildId, commands)
+        for (const cGuildId of command.registerOnlyInGuilds) {
+          const guildCommand = toRegister.get(cGuildId) ?? []
+          guildCommand.push(command)
+          toRegister.set(cGuildId, guildCommand)
         }
       }
 
-      for (const [guildId, commands] of toRegister) {
-        promises.push(this.putCommands({ commands, guildId }))
+      for (const [registerGuildId, registerCommand] of toRegister) {
+        promises.push(this.putCommands({ commands: registerCommand, guildId: registerGuildId }))
       }
     }
 
@@ -475,7 +460,7 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
    */
   async #interactionCreate(interaction: BaseInteraction): Promise<void> {
     if (interaction.isAutocomplete()) {
-      return this.#handleAutocompleteInteraction(interaction).then(() => {})
+      return this.#handleAutocompleteInteraction(interaction)
     }
 
     if (
@@ -483,7 +468,7 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
       interaction.isMessageContextMenuCommand() ||
       interaction.isUserContextMenuCommand()
     ) {
-      return this.#handleApplicationInteraction(interaction).then(() => {})
+      return this.#handleApplicationInteraction(interaction)
     }
   }
 
@@ -491,20 +476,14 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
     const module = this.commands.get(interaction.commandName)
 
     if (!module) {
-      this.emit(
-        'sleetWarn',
-        'No module registered for this interaction',
-        interaction,
-      )
+      this.emit('sleetWarn', 'No module registered for this interaction', interaction)
       return
     }
 
     if (!(module instanceof SleetCommand)) {
       this.emit(
         'sleetWarn',
-        `${String(
-          module,
-        )} is not a SleetCommand, but has registered interactions`,
+        `${String(module)} is not a SleetCommand, but has registered interactions`,
         interaction.commandName,
       )
       return
@@ -525,7 +504,7 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
       return
     }
 
-    return this.moduleRunner(
+    this.moduleRunner(
       module,
       () =>
         runningModuleStore.run(module, async () => {
@@ -533,10 +512,7 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
 
           try {
             // Make sure the module can run the incoming type of interaction
-            if (
-              interaction.isChatInputCommand() &&
-              module instanceof SleetSlashCommand
-            ) {
+            if (interaction.isChatInputCommand() && module instanceof SleetSlashCommand) {
               await module.run(this.context, interaction)
             } else if (
               interaction.isUserContextMenuCommand() &&
@@ -549,18 +525,10 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
             ) {
               await module.run(this.context, interaction)
             } else {
-              this.emit(
-                'sleetWarn',
-                'Module could not handle incoming interaction',
-                interaction,
-              )
+              this.emit('sleetWarn', 'Module could not handle incoming interaction', interaction)
             }
           } catch (e) {
-            await this.#handleApplicationInteractionError(
-              interaction,
-              module,
-              e,
-            )
+            await this.#handleApplicationInteractionError(interaction, module, e)
           }
         }),
       eventDetails,
@@ -571,11 +539,7 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
     const module = this.commands.get(interaction.commandName)
 
     if (!module) {
-      this.emit(
-        'sleetWarn',
-        'No module registered for this interaction',
-        interaction,
-      )
+      this.emit('sleetWarn', 'No module registered for this interaction', interaction)
       await interaction.respond([
         {
           name: 'No module registered for this interaction',
@@ -588,9 +552,7 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
     if (!(module instanceof SleetCommand)) {
       this.emit(
         'sleetWarn',
-        `${String(
-          module,
-        )} is not a SleetCommand, but has registered interactions`,
+        `${String(module)} is not a SleetCommand, but has registered interactions`,
         interaction.commandName,
       )
       await interaction.respond([
@@ -619,7 +581,7 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
       return
     }
 
-    return this.moduleRunner(
+    this.moduleRunner(
       module,
       () =>
         runningModuleStore.run(module, async () => {
@@ -628,11 +590,7 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
               await module.autocomplete(this.context, interaction)
             }
           } catch (e) {
-            await this.#handleAutocompleteInteractionError(
-              interaction,
-              module,
-              e,
-            )
+            await this.#handleAutocompleteInteractionError(interaction, module, e)
           }
         }),
       eventDetails,
@@ -695,23 +653,12 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
    * @param module The module to check
    * @returns A skip reason if the event should be skipped, false otherwise
    */
-  async #shouldSkipEvent(
-    event: EventDetails,
-    module: SleetModule,
-  ): Promise<ShouldSkipEventReturn> {
+  async #shouldSkipEvent(event: EventDetails, module: SleetModule): Promise<ShouldSkipEventReturn> {
     for (const skipper of this.shouldSkipHandlers.values()) {
       // TODO: this has the module being run (skipper), but not the module being checked (module)
-      const reason = await (
-        this.moduleRunner as ModuleRunner<ShouldSkipEventReturn>
-      )(
+      const reason = await (this.moduleRunner as ModuleRunner<ShouldSkipEventReturn>)(
         skipper,
-        () =>
-          runningModuleStore.run(
-            skipper,
-            skipper.handlers.shouldSkipEvent,
-            event,
-            module,
-          ),
+        () => runningModuleStore.run(skipper, skipper.handlers.shouldSkipEvent, event, module),
         event,
       )
 
@@ -725,10 +672,7 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
   }
 }
 
-async function conditionalReply(
-  interaction: ApplicationInteraction,
-  content: string,
-) {
+async function conditionalReply(interaction: ApplicationInteraction, content: string) {
   // TODO: if you do
   // const defer = interaction.deferReply()
   // [error here!!]

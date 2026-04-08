@@ -19,11 +19,9 @@ export function exists<T>(value: T | null | undefined): value is T {
  * Partition an array into chunks of a specific size. Useful if you have 1000 items and want to process them in chunks of 100.
  * @param array The array to partition
  * @param chunkSize The size of each chunk to return
+ * @yields A chunk of the array of the specified size until the entire array has been processed
  */
-export function* partitionArray<T>(
-  array: T[],
-  chunkSize: number,
-): Generator<T[], void, void> {
+export function* partitionArray<T>(array: T[], chunkSize: number): Generator<T[], void, void> {
   for (let i = 0; i < array.length; i += chunkSize) {
     yield array.slice(i, i + chunkSize)
   }

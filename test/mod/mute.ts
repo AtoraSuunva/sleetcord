@@ -1,21 +1,9 @@
 import { ApplicationCommandOptionType } from 'discord-api-types/v10'
 import { ChatInputCommandInteraction, GuildMember, Role } from 'discord.js'
-import {
-    SleetSlashCommand,
-    formatUser,
-    getMembers,
-    inGuildGuard,
-} from '../../src/index.js'
 
-const mutedRoles = [
-  'muted',
-  'mute',
-  'foreboden',
-  'roleban',
-  'rolebanned',
-  'jail',
-  'jailed',
-]
+import { SleetSlashCommand, formatUser, getMembers, inGuildGuard } from '../../src/index.js'
+
+const mutedRoles = ['muted', 'mute', 'foreboden', 'roleban', 'rolebanned', 'jail', 'jailed']
 
 export const mute = new SleetSlashCommand(
   {
@@ -176,12 +164,8 @@ async function runMute(
   const deferReply = interaction.deferReply({ ephemeral })
 
   const totalFails = [...earlyFailed, ...failed]
-  const succ =
-    succeeded.length > 0
-      ? `\n${formatSuccesses(succeeded, action)}`
-      : ' Nobody!'
-  const fail =
-    totalFails.length > 0 ? `\n**Failed:**\n${formatFails(totalFails)}` : ''
+  const succ = succeeded.length > 0 ? `\n${formatSuccesses(succeeded, action)}` : ' Nobody!'
+  const fail = totalFails.length > 0 ? `\n**Failed:**\n${formatFails(totalFails)}` : ''
 
   await deferReply
   return interaction.editReply(`**${capitalAction}:**${succ}${fail}`)
@@ -286,10 +270,7 @@ function formatSuccesses(succeeded: MuteSuccess[], action: MuteAction): string {
 
         const validRoles = (roles ?? []).filter(validRole)
 
-        const restored =
-          validRoles.length > 0
-            ? ` - **${act}:** ${formatRoles(validRoles)}`
-            : ''
+        const restored = validRoles.length > 0 ? ` - **${act}:** ${formatRoles(validRoles)}` : ''
 
         return `> ${formatUser(member)}${restored}`
       })
@@ -298,9 +279,7 @@ function formatSuccesses(succeeded: MuteSuccess[], action: MuteAction): string {
 }
 
 function formatFails(failed: MuteFail[]): string {
-  return failed
-    .map((fail) => `> ${formatUser(fail.member)} - ${fail.reason}`)
-    .join('\n')
+  return failed.map((fail) => `> ${formatUser(fail.member)} - ${fail.reason}`).join('\n')
 }
 
 function formatRoles(roles: Role[]): string {

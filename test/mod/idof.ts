@@ -1,15 +1,9 @@
 import { ApplicationCommandOptionType } from 'discord-api-types/v10'
 import { ChatInputCommandInteraction, codeBlock, Guild } from 'discord.js'
-import {
-    AutocompleteHandler,
-    getGuild,
-    SleetSlashCommand,
-} from '../../src/index.js'
 
-const userAutocomplete: AutocompleteHandler<string> = async ({
-  interaction,
-  value,
-}) => {
+import { AutocompleteHandler, getGuild, SleetSlashCommand } from '../../src/index.js'
+
+const userAutocomplete: AutocompleteHandler<string> = async ({ interaction, value }) => {
   if (!interaction.inGuild()) {
     return []
   }
@@ -49,15 +43,11 @@ async function runIdof(interaction: ChatInputCommandInteraction) {
   if (matches.length === 0) {
     return interaction.reply(`No users found matching "${user}"`)
   } else if (matches.length === 1) {
-    return interaction.reply(`${matches[0].id}`)
+    return interaction.reply(matches[0].id)
   } else {
-    const formattedMatches = codeBlock(
-      matches.map((m) => `${m.name} (${m.id})`).join('\n'),
-    )
+    const formattedMatches = codeBlock(matches.map((m) => `${m.name} (${m.id})`).join('\n'))
 
-    return interaction.reply(
-      `Multiple users found matching "${user}":\n${formattedMatches}`,
-    )
+    return interaction.reply(`Multiple users found matching "${user}":\n${formattedMatches}`)
   }
 }
 

@@ -1,4 +1,5 @@
 import type { Awaitable, CommandInteraction } from 'discord.js'
+
 import type { RunnableEventHandlers, SleetContext } from '../events.js'
 import { SleetModule } from './SleetModule.js'
 
@@ -29,11 +30,7 @@ export class SleetRunnable<
     super(body, handlers, modules)
   }
 
-  public run(
-    context: SleetContext,
-    interaction: I,
-    ...args: A
-  ): Awaitable<unknown> {
+  public run(context: SleetContext, interaction: I, ...args: A): Awaitable<unknown> {
     return this.handlers.run.call(context, interaction, ...args)
   }
 }

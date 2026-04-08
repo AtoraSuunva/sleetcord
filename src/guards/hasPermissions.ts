@@ -1,8 +1,5 @@
-import type {
-  CommandInteraction,
-  Interaction,
-  PermissionResolvable,
-} from 'discord.js'
+import type { CommandInteraction, Interaction, PermissionResolvable } from 'discord.js'
+
 import { PreRunError } from '../errors/PreRunError.js'
 import { getGuild } from '../index.js'
 
@@ -22,9 +19,7 @@ export function hasPermissionsGuard(
   const missingPermissions = memberPermissions.missing(requiredPermissions)
 
   if (missingPermissions.length > 0) {
-    throw new PreRunError(
-      `You're missing these permissions: ${missingPermissions.join(', ')}`,
-    )
+    throw new PreRunError(`You're missing these permissions: ${missingPermissions.join(', ')}`)
   }
 }
 
@@ -46,8 +41,6 @@ export async function botHasPermissionsGuard(
   const missingPermissions = myPermissions.missing(requiredPermissions)
 
   if (missingPermissions.length > 0) {
-    throw new PreRunError(
-      `I'm missing these permissions: ${missingPermissions.join(', ')}`,
-    )
+    throw new PreRunError(`I'm missing these permissions: ${missingPermissions.join(', ')}`)
   }
 }

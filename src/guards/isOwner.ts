@@ -1,4 +1,5 @@
 import { type Interaction, TeamMemberMembershipState, User } from 'discord.js'
+
 import { PreRunError } from '../errors/PreRunError.js'
 
 /**
@@ -38,7 +39,6 @@ export async function isOwner(user: User): Promise<boolean> {
 
   return owner.members.some(
     (member) =>
-      member.membershipState === TeamMemberMembershipState.Accepted &&
-      user.id === member.user.id,
+      member.membershipState === TeamMemberMembershipState.Accepted && user.id === member.user.id,
   )
 }

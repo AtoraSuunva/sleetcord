@@ -1,4 +1,5 @@
 import { ApplicationCommandOptionType } from 'discord-api-types/v10'
+
 import {
   autocompleteForStrings,
   getChannel,
@@ -241,8 +242,7 @@ export const userGetCommand = new SleetSlashSubcommand(
       },
       {
         name: 'channel',
-        description:
-          'The channel permissions to get (default: Guild permissions)',
+        description: 'The channel permissions to get (default: Guild permissions)',
         type: ApplicationCommandOptionType.Channel,
       },
     ],
@@ -258,9 +258,7 @@ export const userGetCommand = new SleetSlashSubcommand(
 
       const member = await getMember(interaction, 'user', true)
       const channel = await getChannel(interaction, 'channel')
-      const permissions = channel
-        ? member.permissionsIn(channel)
-        : member.permissions
+      const permissions = channel ? member.permissionsIn(channel) : member.permissions
 
       const permString = permissions.toArray().join(', ')
 
@@ -287,8 +285,7 @@ export const userEditCommand = new SleetSlashSubcommand(
       },
       {
         name: 'channel',
-        description:
-          'The channel to edit permissions for (default: Guild permissions)',
+        description: 'The channel to edit permissions for (default: Guild permissions)',
         type: ApplicationCommandOptionType.Channel,
       },
     ],
@@ -363,10 +360,7 @@ const childModule = new SleetModule(
     messageCreate: (message) => {
       const module = runningModuleStore.getStore()
 
-      console.log(
-        `the child module saw an event (from ${module?.name})`,
-        message.content,
-      )
+      console.log(`the child module saw an event (from ${module?.name})`, message.content)
     },
   },
 )
@@ -379,9 +373,7 @@ const moduleChildSlashCommand = new SleetSlashCommand(
   {
     run: async (interaction) => {
       const module = runningModuleStore.getStore()
-      await interaction.reply(
-        `Child slash command running from ${module?.name}`,
-      )
+      await interaction.reply(`Child slash command running from ${module?.name}`)
     },
   },
 )
@@ -445,9 +437,7 @@ export const eventLogger = new SleetModule(
   },
   {
     eventHandled(eventDetails, module) {
-      console.log(
-        `- Event ${eventDetails.name} handled by module ${module.name}`,
-      )
+      console.log(`- Event ${eventDetails.name} handled by module ${module.name}`)
 
       if (eventDetails.name === 'messageCreate') {
         console.log('  -> Message content:', eventDetails.arguments[0].content)
@@ -475,11 +465,7 @@ export const moduleFilter = new SleetModule(
         const interaction = eventDetails.arguments[0]
 
         if (interaction.isChatInputCommand()) {
-          if (
-            interaction.options.data.some((d) =>
-              d.value?.toString().includes('!!!ignore!!!'),
-            )
-          ) {
+          if (interaction.options.data.some((d) => d.value?.toString().includes('!!!ignore!!!'))) {
             return {
               message: 'Command option value included "!!!ignore!!!"',
             }

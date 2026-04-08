@@ -34,15 +34,10 @@ export function autocompleteForStrings(
   },
 ): AutocompleteHandler<string> {
   const matcherFn =
-    matcher ??
-    (caseSensitive
-      ? (a, b) => a.includes(b.toLowerCase())
-      : (a, b) => a.includes(b))
+    matcher ?? (caseSensitive ? (a, b) => a.includes(b.toLowerCase()) : (a, b) => a.includes(b))
 
   return ({ value }) => {
     const matchValue = caseSensitive ? value.toLowerCase() : value
-    return array
-      .filter((v) => matcherFn(v, matchValue))
-      .map((v) => ({ name: `${v}`, value: v }))
+    return array.filter((v) => matcherFn(v, matchValue)).map((v) => ({ name: v, value: v }))
   }
 }

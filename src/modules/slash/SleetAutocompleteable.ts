@@ -1,8 +1,3 @@
-import type {
-  ApplicationCommandOptionChoiceData,
-  AutocompleteInteraction,
-  Awaitable,
-} from 'discord.js'
 import {
   type APIApplicationCommandIntegerOption,
   type APIApplicationCommandNumberOption,
@@ -11,6 +6,12 @@ import {
   type APIApplicationCommandStringOption,
   ApplicationCommandOptionType,
 } from 'discord-api-types/v10'
+import type {
+  ApplicationCommandOptionChoiceData,
+  AutocompleteInteraction,
+  Awaitable,
+} from 'discord.js'
+
 import type { SlashEventHandlers, SleetContext } from '../events.js'
 import { SleetSlashCommand } from './SleetSlashCommand.js'
 import type { SleetSlashCommandGroup } from './SleetSlashCommandGroup.js'
@@ -33,31 +34,29 @@ export type APIApplicationAutocompleteableOption =
   | APIApplicationCommandIntegerOption
   | APIApplicationCommandNumberOption
 
-export type GetAutocompleteableOptionType<
-  T extends APIApplicationAutocompleteableOption,
-> = T['type'] extends ApplicationCommandOptionType.String
-  ? string
-  : T['type'] extends ApplicationCommandOptionType.Integer
-    ? number
-    : T['type'] extends ApplicationCommandOptionType.Number
+export type GetAutocompleteableOptionType<T extends APIApplicationAutocompleteableOption> =
+  T['type'] extends ApplicationCommandOptionType.String
+    ? string
+    : T['type'] extends ApplicationCommandOptionType.Integer
       ? number
-      : never
+      : T['type'] extends ApplicationCommandOptionType.Number
+        ? number
+        : never
 
-export type AutocompleteableOption<
-  T extends APIApplicationAutocompleteableOption,
-> = Omit<T, 'autocomplete'> & {
+export type AutocompleteableOption<T extends APIApplicationAutocompleteableOption> = Omit<
+  T,
+  'autocomplete'
+> & {
   autocomplete: AutocompleteHandler<GetAutocompleteableOptionType<T>>
   choices?: []
 }
 
-export type AutocompleteableStringOption =
-  AutocompleteableOption<APIApplicationCommandStringOption>
+export type AutocompleteableStringOption = AutocompleteableOption<APIApplicationCommandStringOption>
 
 export type AutocompleteableIntegerOption =
   AutocompleteableOption<APIApplicationCommandIntegerOption>
 
-export type AutocompleteableNumberOption =
-  AutocompleteableOption<APIApplicationCommandNumberOption>
+export type AutocompleteableNumberOption = AutocompleteableOption<APIApplicationCommandNumberOption>
 
 export type SleetAutocompleteableOption =
   | AutocompleteableStringOption
@@ -68,10 +67,7 @@ export interface SleetAutocompleteable {
   name: string
   handlers: SlashEventHandlers
   autocompleteHandlers: Map<string, SleetAutocompleteableOption>
-  autocomplete(
-    context: SleetContext,
-    interaction: AutocompleteInteraction,
-  ): Awaitable<unknown>
+  autocomplete(context: SleetContext, interaction: AutocompleteInteraction): Awaitable<unknown>
 }
 
 export function isAutocompleteableOption(
@@ -130,8 +126,7 @@ export async function autocomplete(
   if (autocompleteHandler) {
     const isString = typeof value === 'string'
     const isStringType =
-      autocompleteHandler.type === ApplicationCommandOptionType.String &&
-      isString
+      autocompleteHandler.type === ApplicationCommandOptionType.String && isString
 
     const isNumber = typeof value === 'number'
     const isNumberType =
@@ -172,11 +167,6 @@ export async function autocomplete(
   }
 
   // Fall back to the global one if the dedicated one returns nothing or doesn't exist
-  const response = await this.handlers.autocomplete?.call(
-    context,
-    interaction,
-    name,
-    value,
-  )
+  const response = await this.handlers.autocomplete?.call(context, interaction, name, value)
   if (response) await interaction.respond(response)
 }

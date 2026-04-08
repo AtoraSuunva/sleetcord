@@ -1,8 +1,5 @@
+import { type RESTPostAPIApplicationCommandsJSONBody, Routes } from 'discord-api-types/v10'
 import { REST } from 'discord.js'
-import {
-  type RESTPostAPIApplicationCommandsJSONBody,
-  Routes,
-} from 'discord-api-types/v10'
 
 export interface SleetRestOptions {
   /** The token for the bot */
@@ -40,15 +37,9 @@ export class SleetRest {
    * @param commands The commands to put
    * @param guildId The guild to put the commands in
    */
-  putGuildCommands(
-    commands: RESTPostAPIApplicationCommandsJSONBody[],
-    guildId: string,
-  ) {
-    return this.rest.put(
-      Routes.applicationGuildCommands(this.applicationId, guildId),
-      {
-        body: commands,
-      },
-    )
+  putGuildCommands(commands: RESTPostAPIApplicationCommandsJSONBody[], guildId: string) {
+    return this.rest.put(Routes.applicationGuildCommands(this.applicationId, guildId), {
+      body: commands,
+    })
   }
 }

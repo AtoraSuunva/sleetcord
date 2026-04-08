@@ -1,5 +1,6 @@
 import { ApplicationCommandOptionType } from 'discord-api-types/v10'
 import { ChatInputCommandInteraction, escapeMarkdown } from 'discord.js'
+
 import { getGuild, SleetSlashCommand } from '../../src/index.js'
 
 export const count_members = new SleetSlashCommand(
@@ -32,15 +33,10 @@ async function runCountMembers(interaction: ChatInputCommandInteraction) {
 
   await interaction.deferReply()
 
-  const members = await Promise.race([
-    promiseTimeout(10 * 1000),
-    guild.members.fetch(),
-  ])
+  const members = await Promise.race([promiseTimeout(10 * 1000), guild.members.fetch()])
 
   if (members === null) {
-    return interaction.editReply(
-      'Timed out while trying to fetch members, try again later.',
-    )
+    return interaction.editReply('Timed out while trying to fetch members, try again later.')
   }
 
   const nameContainsLower = nameContains.toLowerCase()
@@ -55,7 +51,5 @@ async function runCountMembers(interaction: ChatInputCommandInteraction) {
   )
 }
 
-const promiseTimeout = <T = null>(
-  time: number,
-  result: T | null = null,
-): Promise<T | null> => new Promise((r) => setTimeout(r, time, result))
+const promiseTimeout = <T = null>(time: number, result: T | null = null): Promise<T | null> =>
+  new Promise((r) => setTimeout(r, time, result))

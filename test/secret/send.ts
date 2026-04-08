@@ -1,11 +1,8 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { ApplicationCommandOptionType } from 'discord-api-types/v10'
 import { ChatInputCommandInteraction } from 'discord.js'
-import {
-    SleetSlashCommand,
-    getTextBasedChannel,
-    inGuildGuard,
-} from '../../src/index.js'
+
+import { SleetSlashCommand, getTextBasedChannel, inGuildGuard } from '../../src/index.js'
 
 export const send = new SleetSlashCommand(
   {
@@ -21,8 +18,7 @@ export const send = new SleetSlashCommand(
       },
       {
         name: 'channel',
-        description:
-          'The channel to send the message to (default: same channel)',
+        description: 'The channel to send the message to (default: same channel)',
         type: ApplicationCommandOptionType.Channel,
       },
     ],
@@ -36,8 +32,7 @@ async function runSend(interaction: ChatInputCommandInteraction) {
   inGuildGuard(interaction)
 
   const message = interaction.options.getString('message', true)
-  const channel =
-    (await getTextBasedChannel(interaction, 'channel')) ?? interaction.channel
+  const channel = (await getTextBasedChannel(interaction, 'channel')) ?? interaction.channel
 
   if (channel === null) {
     return interaction.reply({

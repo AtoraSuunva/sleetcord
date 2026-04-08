@@ -9,6 +9,7 @@ import {
   Role,
   type User,
 } from 'discord.js'
+
 import { PreRunError } from '../errors/PreRunError.js'
 import { exists, partitionArray } from '../utils/functions.js'
 
@@ -90,15 +91,14 @@ export async function getUsers(
   if (string === null) return null
 
   const data = interaction.options.resolved?.users
-  const resolvedDataUsers =
-    data?.filter((v) => string.includes(v.id)).map((u) => u) ?? []
+  const resolvedDataUsers = data?.filter((v) => string.includes(v.id)).map((u) => u) ?? []
 
   const ids = getAllIDs(string)
   const resolvedIDUsers = await Promise.all(
     ids.map((uid) =>
       // Only fetch data if the user isn't already resolved, this prevents dupes in the output and dupe fetches
       resolvedDataUsers.some((u) => u.id === uid)
-        ? null
+        ? Promise.resolve(null)
         : tryFetchUser(interaction.client, uid),
     ),
   ).then((res) => res.filter(exists))
@@ -153,17 +153,15 @@ export async function getMembers(
       .map((m) => m) ?? []
 
   // Avoid fetching members again if we already have them from resolved data
-  const allIDs = Array.from(
-    new Set([...getAllIDs(string), ...unresolvedIds]),
-  ).filter((uid) => !resolvedDataMembers.some((m) => m.id === uid))
+  const allIDs = Array.from(new Set([...getAllIDs(string), ...unresolvedIds])).filter(
+    (uid) => !resolvedDataMembers.some((m) => m.id === uid),
+  )
 
   const guild = await getGuild(interaction, true)
   const resolvedIDMembers = (
     await Promise.all(
       Array.from(partitionArray(allIDs, 100)).map((chunk) =>
-        guild.members
-          .fetch({ user: chunk })
-          .then((r) => Array.from(r.values())),
+        guild.members.fetch({ user: chunk }).then((r) => Array.from(r.values())),
       ),
     )
   ).flat()
@@ -177,10 +175,7 @@ export async function getMembers(
  * @param uid The (potential) ID of the user to fetch
  * @returns The user if successfully fetched, otherwise null if an error occurred or the user doesn't exist
  */
-export async function tryFetchUser(
-  client: Client,
-  uid: string,
-): Promise<User | null> {
+export async function tryFetchUser(client: Client, uid: string): Promise<User | null> {
   try {
     return await client.users.fetch(uid)
   } catch {
@@ -194,10 +189,7 @@ export async function tryFetchUser(
  * @param uid The (potential) ID of the member to fetch
  * @returns The member if successfully fetched, otherwise null if an error occurred or there's no member with that ID in the guild
  */
-export async function tryFetchMember(
-  guild: Guild,
-  uid: string,
-): Promise<GuildMember | null> {
+export async function tryFetchMember(guild: Guild, uid: string): Promise<GuildMember | null> {
   try {
     return await guild.members.fetch(uid)
   } catch {
@@ -210,10 +202,7 @@ export async function tryFetchMember(
  * @param interaction The interaction to resolve data for
  * @param required If the guild is required, if the guild is missing, an error will be thrown if true, null will be returned if false
  */
-export async function getGuild(
-  interaction: BaseInteraction,
-  required: true,
-): Promise<Guild>
+export async function getGuild(interaction: BaseInteraction, required: true): Promise<Guild>
 export async function getGuild(
   interaction: BaseInteraction,
   required?: boolean,
@@ -224,16 +213,11 @@ export async function getGuild(
 ): Promise<Guild | null> {
   if (!interaction.inGuild()) {
     if (required)
-      throw new ResolveDataError(
-        'Tried to get a guild, but interaction was not in a guild',
-      )
+      throw new ResolveDataError('Tried to get a guild, but interaction was not in a guild')
     return null
   }
 
-  return (
-    interaction.guild ??
-    (await interaction.client.guilds.fetch(interaction.guildId))
-  )
+  return interaction.guild ?? (await interaction.client.guilds.fetch(interaction.guildId))
 }
 
 /**
@@ -284,9 +268,7 @@ export async function getMember(
   required = false,
 ): Promise<GuildMember | null> {
   if (!interaction.inGuild()) {
-    throw new ResolveDataError(
-      'Tried to get a member, but interaction was not in a guild',
-    )
+    throw new ResolveDataError('Tried to get a member, but interaction was not in a guild')
   }
 
   const guild = await getGuild(interaction, true)
@@ -296,9 +278,7 @@ export async function getMember(
 
   if (user === null) return null
 
-  return member instanceof GuildMember
-    ? member
-    : await guild.members.fetch(user)
+  return member instanceof GuildMember ? member : await guild.members.fetch(user)
 }
 
 /**
@@ -323,9 +303,7 @@ export async function getChannel(
   required = false,
 ): Promise<GuildBasedChannel | null> {
   if (!interaction.inGuild()) {
-    throw new ResolveDataError(
-      'Tried to get a channel, but interaction was not in a guild',
-    )
+    throw new ResolveDataError('Tried to get a channel, but interaction was not in a guild')
   }
 
   const guild = await getGuild(interaction, true)
@@ -359,9 +337,7 @@ export async function getTextBasedChannel(
   required = false,
 ): Promise<GuildTextBasedChannel | null> {
   if (!interaction.inGuild()) {
-    throw new ResolveDataError(
-      'Tried to get a channel, but interaction was not in a guild',
-    )
+    throw new ResolveDataError('Tried to get a channel, but interaction was not in a guild')
   }
 
   // TODO: check if this fetched cached threads correctly?
@@ -406,9 +382,7 @@ export async function getRole(
   required = false,
 ): Promise<Role | null> {
   if (!interaction.inGuild()) {
-    throw new ResolveDataError(
-      'Tried to get a role, but interaction was not in a guild',
-    )
+    throw new ResolveDataError('Tried to get a role, but interaction was not in a guild')
   }
 
   const guild = await getGuild(interaction, true)
@@ -442,9 +416,7 @@ export async function getRoles(
   required = false,
 ): Promise<Role[] | null> {
   if (!interaction.inGuild()) {
-    throw new ResolveDataError(
-      'Tried to get roles, but interaction was not in a guild',
-    )
+    throw new ResolveDataError('Tried to get roles, but interaction was not in a guild')
   }
 
   const guild = await getGuild(interaction, true)
@@ -458,7 +430,7 @@ export async function getRoles(
         return true
       })
       .map((role) => {
-        if (role instanceof Role) return role
+        if (role instanceof Role) return Promise.resolve(role)
         return guild.roles.fetch(role.id)
       }) ?? []
 
@@ -500,8 +472,7 @@ export async function getMentionables(
 
   const users = (await getUsers(interaction, name, required)) ?? []
   const members = (await getMembers(interaction, name, required)) ?? []
-  const roles =
-    guild !== null ? ((await getRoles(interaction, name, required)) ?? []) : []
+  const roles = guild !== null ? ((await getRoles(interaction, name, required)) ?? []) : []
 
   const finalUsers = users.filter((u) => members.every((m) => m.id !== u.id))
 

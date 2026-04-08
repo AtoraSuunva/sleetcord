@@ -1,7 +1,7 @@
-import type { CommandInteraction, PermissionResolvable } from 'discord.js'
-
 import type { RESTPostAPIApplicationCommandsJSONBody } from 'discord-api-types/rest/v10'
 import type { Permissions as PermissionsAsString } from 'discord-api-types/v10'
+import type { CommandInteraction, PermissionResolvable } from 'discord.js'
+
 import { permissionsToStringBitfield } from '../../utils/permissions.js'
 import type { RunnableEventHandlers } from '../events.js'
 import type { SleetModule } from './SleetModule.js'
@@ -22,10 +22,7 @@ export interface SleetCommandExtras {
    *   - A permissions bitfield as a string
    *   - `null`
    */
-  default_member_permissions?:
-    | PermissionResolvable[]
-    | PermissionsAsString
-    | null
+  default_member_permissions?: PermissionResolvable[] | PermissionsAsString | null
 
   /**
    * Locks a command to only be **registered** in a guild if the guild ID is specified.
@@ -56,24 +53,11 @@ export class SleetCommand<
   I extends CommandInteraction = CommandInteraction,
   A extends unknown[] = [],
   Handlers extends RunnableEventHandlers<I, A> = RunnableEventHandlers<I, A>,
-> extends SleetRunnable<
-  RESTPostAPIApplicationCommandsJSONBody,
-  I,
-  A,
-  Handlers
-> {
+> extends SleetRunnable<RESTPostAPIApplicationCommandsJSONBody, I, A, Handlers> {
   public registerOnlyInGuilds?: string[]
 
-  constructor(
-    body: SleetCommandBody,
-    handlers: Handlers,
-    modules?: SleetModule[],
-  )
-  constructor(
-    body: SleetCommandExtendedBody,
-    handlers: Handlers,
-    modules: SleetModule[] = [],
-  ) {
+  constructor(body: SleetCommandBody, handlers: Handlers, modules?: SleetModule[])
+  constructor(body: SleetCommandExtendedBody, handlers: Handlers, modules: SleetModule[] = []) {
     const { default_member_permissions, registerOnlyInGuilds } = body
 
     body.default_member_permissions = permissionsToStringBitfield(

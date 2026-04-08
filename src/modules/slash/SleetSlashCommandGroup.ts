@@ -1,16 +1,13 @@
-import type { ChatInputCommandInteraction } from 'discord.js'
 import {
   type APIApplicationCommandSubcommandGroupOption,
   type APIApplicationCommandSubcommandOption,
   ApplicationCommandOptionType,
 } from 'discord-api-types/v10'
+import type { ChatInputCommandInteraction } from 'discord.js'
+
 import { noop } from '../../utils/functions.js'
 import { SleetRunnable } from '../base/SleetRunnable.js'
-import type {
-  NoRunSlashEventHandlers,
-  SlashEventHandlers,
-  SleetContext,
-} from '../events.js'
+import type { NoRunSlashEventHandlers, SlashEventHandlers, SleetContext } from '../events.js'
 import type { SleetModule } from '../index.js'
 import {
   autocompleteWithSubcommands,
@@ -19,8 +16,10 @@ import {
 } from './SleetAutocompleteable.js'
 import { SleetSlashSubcommand } from './SleetSlashSubcommand.js'
 
-export interface SleetSlashCommandGroupBody
-  extends Omit<APIApplicationCommandSubcommandGroupOption, 'options' | 'type'> {
+export interface SleetSlashCommandGroupBody extends Omit<
+  APIApplicationCommandSubcommandGroupOption,
+  'options' | 'type'
+> {
   type?: ApplicationCommandOptionType.SubcommandGroup
   options: SleetSlashSubcommand[] | APIApplicationCommandSubcommandOption[]
 }
@@ -41,9 +40,7 @@ function parseSlashCommandGroupOptions(
       subcommands.set(option.name, option)
       json.push(option.body)
     } else {
-      throw new Error(
-        `Invalid option '${option.name}' for subcommand group '${body.name}'`,
-      )
+      throw new Error(`Invalid option '${option.name}' for subcommand group '${body.name}'`)
     }
   }
 
@@ -51,10 +48,7 @@ function parseSlashCommandGroupOptions(
 }
 
 export class SleetSlashCommandGroup
-  extends SleetRunnable<
-    APIApplicationCommandSubcommandGroupOption,
-    ChatInputCommandInteraction
-  >
+  extends SleetRunnable<APIApplicationCommandSubcommandGroupOption, ChatInputCommandInteraction>
   implements SleetAutocompleteable
 {
   public subcommands: Map<string, SleetSlashSubcommand>
@@ -72,19 +66,15 @@ export class SleetSlashCommandGroup
     body.options = json
     if (!handlers.run) handlers.run = noop
 
-    super(
-      body as APIApplicationCommandSubcommandGroupOption,
-      handlers as SlashEventHandlers,
-      [...subcommands.values(), ...modules],
-    )
+    super(body as APIApplicationCommandSubcommandGroupOption, handlers as SlashEventHandlers, [
+      ...subcommands.values(),
+      ...modules,
+    ])
 
     this.subcommands = subcommands
   }
 
-  public override async run(
-    context: SleetContext,
-    interaction: ChatInputCommandInteraction,
-  ) {
+  public override async run(context: SleetContext, interaction: ChatInputCommandInteraction) {
     // First run the handler for the subcommand group itself
     // Users can throw errors to exit execution early to have things like permission
     // or condition checking for entire groups in 1 place
@@ -98,12 +88,10 @@ export class SleetSlashCommandGroup
         return subcommandHandler.run(context, interaction)
       }
 
-      throw new Error(
-        `Unknown subcommand '${subcommand}' for subcommand group '${this.name}'`,
-      )
+      throw new Error(`Unknown subcommand '${subcommand}' for subcommand group '${this.name}'`)
     }
 
-    return
+    return undefined
   }
 
   public autocomplete: SleetAutocompleteable['autocomplete'] =

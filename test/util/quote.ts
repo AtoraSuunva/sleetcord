@@ -1,14 +1,15 @@
 import { ApplicationCommandOptionType } from 'discord-api-types/v10'
 import {
-    Channel,
-    ChatInputCommandInteraction,
-    Client,
-    EmbedBuilder,
-    Guild,
-    Message,
-    TextBasedChannel,
-    User,
+  Channel,
+  ChatInputCommandInteraction,
+  Client,
+  EmbedBuilder,
+  Guild,
+  Message,
+  TextBasedChannel,
+  User,
 } from 'discord.js'
+
 import { SleetSlashCommand } from '../../src/index.js'
 
 export const quote = new SleetSlashCommand(
@@ -37,11 +38,7 @@ async function handleMessageCreate(message: Message) {
   }
 
   try {
-    const embed = await getQuoteFor(
-      message.client,
-      message.author,
-      message.content,
-    )
+    const embed = await getQuoteFor(message.client, message.author, message.content)
 
     await message.reply({
       embeds: [embed],
@@ -56,11 +53,7 @@ async function runQuote(interaction: ChatInputCommandInteraction) {
   const messageLink = interaction.options.getString('message_link', true)
 
   try {
-    const embed = await getQuoteFor(
-      interaction.client,
-      interaction.user,
-      messageLink,
-    )
+    const embed = await getQuoteFor(interaction.client, interaction.user, messageLink)
     await interaction.reply({ embeds: [embed] })
   } catch (e) {
     await interaction.reply({
@@ -93,11 +86,7 @@ function getMessageLinkIds(str: string): MessageLinkMatches | null {
   }
 }
 
-async function getQuoteFor(
-  client: Client,
-  user: User,
-  content: string,
-): Promise<EmbedBuilder> {
+async function getQuoteFor(client: Client, user: User, content: string): Promise<EmbedBuilder> {
   const matches = getMessageLinkIds(content)
 
   if (!matches) {
@@ -159,10 +148,7 @@ async function getQuoteFor(
   return embed
 }
 
-async function tryFetchGuild(
-  client: Client,
-  guildId: string,
-): Promise<Guild | null> {
+async function tryFetchGuild(client: Client, guildId: string): Promise<Guild | null> {
   try {
     return await client.guilds.fetch(guildId)
   } catch {
@@ -170,10 +156,7 @@ async function tryFetchGuild(
   }
 }
 
-async function tryFetchChannel(
-  client: Client,
-  channelId: string,
-): Promise<Channel | null> {
+async function tryFetchChannel(client: Client, channelId: string): Promise<Channel | null> {
   try {
     return await client.channels.fetch(channelId)
   } catch {

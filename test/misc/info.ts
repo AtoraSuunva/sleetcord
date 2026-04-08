@@ -1,15 +1,16 @@
 import * as os from 'node:os'
+
 import {
-  ChatInputCommandInteraction,
-  Client,
+  type ChatInputCommandInteraction,
+  type Client,
+  version as discordJSVersion,
   EmbedBuilder,
-  Guild,
-  Invite,
+  type Guild,
+  type Invite,
   Team,
   User,
-  version as discordJSVersion,
 } from 'discord.js'
-import { SleetSlashCommand, exists, formatUser } from '../../src/index.js'
+import { exists, formatUser, SleetSlashCommand } from 'sleetcord'
 
 /**
  * Get some info about the bot, currently includes:
@@ -39,13 +40,6 @@ async function runInfo(interaction: ChatInputCommandInteraction) {
   const { client } = interaction
 
   const embed = new EmbedBuilder()
-    .setAuthor({
-      name: formatUser(client.user, {
-        markdown: false,
-        escape: false,
-      }),
-    })
-    .setThumbnail(client.user.displayAvatarURL())
 
   const owner = formatOwner(client)
   const versionInfo = `Node ${process.version}\ndiscord.js v${discordJSVersion}`
@@ -57,18 +51,14 @@ async function runInfo(interaction: ChatInputCommandInteraction) {
   const totalMem = os.totalmem()
   const usedMem = os.totalmem() - os.freemem()
   const usedMemPercent = ((usedMem / totalMem) * 100).toFixed(2)
-  const memoryString = `${formatBytes(usedMem)} / ${formatBytes(
-    totalMem,
-  )} (${usedMemPercent}%)`
+  const memoryString = `${formatBytes(usedMem)} / ${formatBytes(totalMem)} (${usedMemPercent}%)`
 
   const approximateGuildCount =
     client.application.approximateGuildCount?.toLocaleString() ?? 'Unknown'
 
   const botGuild = client.application.guild
 
-  const botGuildInvite = botGuild
-    ? await ensureInviteFor(botGuild, CACHED_INVITE)
-    : null
+  const botGuildInvite = botGuild ? await ensureInviteFor(botGuild, CACHED_INVITE) : null
 
   if (CACHED_INVITE == null && botGuildInvite) {
     CACHED_INVITE = botGuildInvite
@@ -84,16 +74,30 @@ async function runInfo(interaction: ChatInputCommandInteraction) {
   embed.addFields([
     { name: 'Owner', value: owner, inline: true },
     { name: 'Using', value: versionInfo, inline: true },
-    { name: 'CPU Load Average', value: cpuString, inline: false },
+    { name: ' ', value: ' ' },
+    { name: 'CPU Load Average', value: cpuString, inline: true },
     { name: 'Memory Usage', value: memoryString, inline: true },
+    { name: ' ', value: ' ' },
     { name: 'Bot Guild', value: botGuildInfo, inline: true },
     { name: 'Approximate Guilds', value: approximateGuildCount, inline: true },
   ])
+
+  if (client.shard) {
+    embed.addFields([
+      {
+        name: 'Shard',
+        value: `IDs: ${client.shard.ids.join(', ')} (${client.shard.count} total)`,
+      },
+    ])
+  }
 
   await interaction.reply({
     embeds: [embed],
   })
 }
+
+const k = 1000
+const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
 
 /**
  * Formats a number of bytes into a format like `512.00 MB`, using the "best-fit" unit size
@@ -103,11 +107,8 @@ async function runInfo(interaction: ChatInputCommandInteraction) {
  */
 function formatBytes(bytes: number, decimals = 2): string {
   if (bytes === 0) return '0 B'
-  const k = 1000,
-    dm = decimals + 1 || 3,
-    sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'],
-    i = Math.floor(Math.log(bytes) / Math.log(k))
-  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return `${Number.parseFloat((bytes / k ** i).toFixed(decimals + 1))} ${sizes[i]}`
 }
 
 /**
@@ -120,19 +121,18 @@ function formatOwner(client: Client<true>): string {
 
   if (owner instanceof User) {
     return formatUser(owner)
-  } else if (owner instanceof Team) {
+  }
+
+  if (owner instanceof Team) {
     return `Team: ${owner.name} (Owned by ${
       owner.owner ? formatUser(owner.owner.user) : '<Unknown>'
     })`
-  } else {
-    return '<Unknown>'
   }
+
+  return '<Unknown>'
 }
 
-async function ensureInviteFor(
-  guild: Guild,
-  cachedInvite: Invite | null,
-): Promise<Invite | null> {
+async function ensureInviteFor(guild: Guild, cachedInvite: Invite | null): Promise<Invite | null> {
   if (cachedInvite === null) {
     const channels = await guild.channels.fetch()
     const firstChannel =
@@ -147,12 +147,14 @@ async function ensureInviteFor(
     }
 
     if ('createInvite' in firstChannel) {
-      cachedInvite = CACHED_INVITE = await firstChannel.createInvite({
+      CACHED_INVITE = await firstChannel.createInvite({
         maxAge: 0,
         maxUses: 0,
         temporary: false,
         unique: false,
       })
+
+      return CACHED_INVITE
     }
   }
 
