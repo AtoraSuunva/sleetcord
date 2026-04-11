@@ -7,7 +7,7 @@ import {
   PartialMessage,
 } from 'discord.js'
 
-import { SleetSlashCommand, isLikelyID } from '../../src/index.js'
+import { SleetSlashCommand, isLikelyID } from '../../src/index.ts'
 
 export const unedit = new SleetSlashCommand(
   {

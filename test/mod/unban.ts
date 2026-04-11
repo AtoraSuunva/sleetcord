@@ -7,7 +7,7 @@ import {
   getUsers,
   inGuildGuard,
   SleetSlashCommand,
-} from '../../src/index.js'
+} from '../../src/index.ts'
 
 export const unban = new SleetSlashCommand(
   {

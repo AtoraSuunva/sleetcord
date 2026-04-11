@@ -10,8 +10,8 @@ import {
   type User,
 } from 'discord.js'
 
-import { PreRunError } from '../errors/PreRunError.js'
-import { exists, partitionArray } from '../utils/functions.js'
+import { PreRunError } from '../errors/PreRunError.ts'
+import { exists, partitionArray } from '../utils/functions.ts'
 
 /**
  * An error indication there was a problem trying to resolve some data from the interaction,

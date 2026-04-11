@@ -8,18 +8,18 @@ import type {
   RESTPostAPIApplicationCommandsJSONBody,
 } from 'discord.js'
 
-import { noop } from '../../utils/functions.js'
-import { SleetCommand, type SleetCommandExtras } from '../base/SleetCommand.js'
-import type { NoRunSlashEventHandlers, SlashEventHandlers, SleetContext } from '../events.js'
-import type { SleetModuleOptions } from '../index.js'
+import { noop } from '../../utils/functions.ts'
+import { SleetCommand, type SleetCommandExtras } from '../base/SleetCommand.ts'
+import type { NoRunSlashEventHandlers, SlashEventHandlers, SleetContext } from '../events.ts'
+import type { SleetModuleOptions } from '../index.ts'
 import {
   autocompleteWithSubcommands,
   isAutocompleteableOption,
   type SleetAutocompleteable,
   type SleetAutocompleteableOption,
-} from './SleetAutocompleteable.js'
-import { SleetSlashCommandGroup } from './SleetSlashCommandGroup.js'
-import { SleetSlashSubcommand } from './SleetSlashSubcommand.js'
+} from './SleetAutocompleteable.ts'
+import { SleetSlashCommandGroup } from './SleetSlashCommandGroup.ts'
+import { SleetSlashSubcommand } from './SleetSlashSubcommand.ts'
 
 interface BaseCommandBody
   extends

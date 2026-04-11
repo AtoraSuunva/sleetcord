@@ -1,7 +1,7 @@
 import type { CommandInteraction, Interaction, PermissionResolvable } from 'discord.js'
 
-import { PreRunError } from '../errors/PreRunError.js'
-import { getGuild } from '../index.js'
+import { PreRunError } from '../errors/PreRunError.ts'
+import { getGuild } from '../index.ts'
 
 /**
  * Checks if the member who initiated the interaction has the required permissions

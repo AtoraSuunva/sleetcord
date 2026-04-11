@@ -1,1 +1,1 @@
-export * from './SleetModule.js'
+export * from './SleetModule.ts'

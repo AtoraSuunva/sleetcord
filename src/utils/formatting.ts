@@ -131,7 +131,7 @@ export function formatUser(
 }
 
 /**
- * A version of Discord.js' `escapeMarkdown` that escapes all markdown by default
+ * A version of discord.js' `escapeMarkdown` that escapes all markdown by default
  *
  * As of D.js v14.13.0 (sha 23e0ac5), the following markdown is not escaped by default:
  * - headings

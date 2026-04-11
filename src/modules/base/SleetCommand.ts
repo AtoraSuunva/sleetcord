@@ -2,10 +2,10 @@ import type { RESTPostAPIApplicationCommandsJSONBody } from 'discord-api-types/r
 import type { Permissions as PermissionsAsString } from 'discord-api-types/v10'
 import type { CommandInteraction, PermissionResolvable } from 'discord.js'
 
-import { permissionsToStringBitfield } from '../../utils/permissions.js'
-import type { RunnableEventHandlers } from '../events.js'
-import type { SleetModuleOptions } from './SleetModule.js'
-import { SleetRunnable } from './SleetRunnable.js'
+import { permissionsToStringBitfield } from '../../utils/permissions.ts'
+import type { RunnableEventHandlers } from '../events.ts'
+import type { SleetModuleOptions } from './SleetModule.ts'
+import { SleetRunnable } from './SleetRunnable.ts'
 
 /**
  * Extra types added to all sleet commands, usually used to add additional "functionality" to commands like accepting one type of input and automatically converting it to what the api wants

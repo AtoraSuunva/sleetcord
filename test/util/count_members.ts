@@ -1,7 +1,7 @@
 import { ApplicationCommandOptionType } from 'discord-api-types/v10'
 import { ChatInputCommandInteraction, escapeMarkdown } from 'discord.js'
 
-import { getGuild, SleetSlashCommand } from '../../src/index.js'
+import { getGuild, SleetSlashCommand } from '../../src/index.ts'
 
 export const count_members = new SleetSlashCommand(
   {

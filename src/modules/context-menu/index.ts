@@ -1,2 +1,2 @@
-export * from './SleetMessageCommand.js'
-export * from './SleetUserCommand.js'
+export * from './SleetMessageCommand.ts'
+export * from './SleetUserCommand.ts'

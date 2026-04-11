@@ -5,7 +5,7 @@ import {
 } from 'discord-api-types/v10'
 import { ActivityOptions, ChatInputCommandInteraction, Client } from 'discord.js'
 
-import { isOwnerGuard, SleetContext, SleetSlashCommand } from '../../src/index.js'
+import { isOwnerGuard, SleetContext, SleetSlashCommand } from '../../src/index.ts'
 
 /** Our status list needs a type and name to apply */
 type Status = Pick<ActivityOptions, 'name' | 'type'>

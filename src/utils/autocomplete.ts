@@ -1,4 +1,4 @@
-import type { AutocompleteHandler } from '../modules/slash/SleetAutocompleteable.js'
+import type { AutocompleteHandler } from '../modules/slash/SleetAutocompleteable.ts'
 
 export interface StringAutocompleteHandlerOptions {
   /**

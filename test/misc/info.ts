@@ -11,7 +11,7 @@ import {
   User,
 } from 'discord.js'
 
-import { exists, formatUser, SleetSlashCommand } from '../../src/index.js'
+import { exists, formatUser, SleetSlashCommand } from '../../src/index.ts'
 
 /**
  * Get some info about the bot, currently includes:

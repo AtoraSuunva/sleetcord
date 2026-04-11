@@ -1,5 +1,5 @@
-import { SleetModuleMiddleware } from '../../SleetClient.js'
-import type { SleetModuleEventHandlers } from '../events.js'
+import { SleetModuleMiddleware } from '../../SleetClient.ts'
+import type { SleetModuleEventHandlers } from '../events.ts'
 
 export interface SleetModuleBody {
   /** The name of this module. used for logging and debugging */

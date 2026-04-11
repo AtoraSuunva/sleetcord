@@ -15,7 +15,7 @@ import {
   getGuild,
   getUser,
   inGuildGuard,
-} from '../../src/index.js'
+} from '../../src/index.ts'
 
 export const revoke = new SleetSlashCommand(
   {

@@ -1,6 +1,6 @@
 import { type Interaction, TeamMemberMembershipState, User } from 'discord.js'
 
-import { PreRunError } from '../errors/PreRunError.js'
+import { PreRunError } from '../errors/PreRunError.ts'
 
 /**
  * Check the user the interaction came from to make sure that they're the bot owner or a member of the bot's team.

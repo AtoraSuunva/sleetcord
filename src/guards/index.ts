@@ -1,3 +1,3 @@
-export * from './hasPermissions.js'
-export * from './inGuild.js'
-export * from './isOwner.js'
+export * from './hasPermissions.ts'
+export * from './inGuild.ts'
+export * from './isOwner.ts'

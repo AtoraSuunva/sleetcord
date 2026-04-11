@@ -1,1 +1,1 @@
-export * from './resolvedData.js'
+export * from './resolvedData.ts'

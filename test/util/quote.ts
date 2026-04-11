@@ -10,7 +10,7 @@ import {
   User,
 } from 'discord.js'
 
-import { SleetSlashCommand } from '../../src/index.js'
+import { SleetSlashCommand } from '../../src/index.ts'
 
 export const quote = new SleetSlashCommand(
   {

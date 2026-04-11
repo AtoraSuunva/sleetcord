@@ -1,43 +1,4 @@
 {
-  "include": ["./**/*", "../src/**/*"],
-  "exclude": ["**/node_modules", "**/.*/"],
-  "compilerOptions": {
-    /* Projects */
-    "composite": true,
-    "rootDir": "..",
-    "outDir": "./dist",
-    "incremental": true,
-    "tsBuildInfoFile": ".tsbuildinfo",
-
-    /* Language and Environment */
-    "target": "es2024",
-    "lib": ["ES2024"],
-    "types": ["node"],
-
-    /* Modules */
-    "module": "nodenext",
-    "moduleResolution": "nodenext",
-
-    /* Emit */
-    "sourceMap": true,
-    "declaration": true,
-    "declarationMap": true,
-
-    /* Interop Constraints */
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-
-    /* Type Checking */
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noImplicitReturns": true,
-    // "noUncheckedIndexedAccess": true,
-    "noImplicitOverride": true,
-    "exactOptionalPropertyTypes": true,
-
-    /* Completeness */
-    "skipDefaultLibCheck": true,
-    "skipLibCheck": true
-  }
+  "extends": "../tsconfig.json",
+  "include": ["./**/*", "../src/**/*"]
 }

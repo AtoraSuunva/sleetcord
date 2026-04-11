@@ -4,7 +4,7 @@ import {
   UserContextMenuCommandInteraction,
 } from 'discord.js'
 
-import { SleetMessageCommand, SleetSlashCommand, SleetUserCommand } from '../src/index.js'
+import { SleetMessageCommand, SleetSlashCommand, SleetUserCommand } from '../src/index.ts'
 
 /**
  * Test locking a command to just 1 guild

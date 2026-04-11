@@ -12,8 +12,8 @@ import {
   type UserContextMenuCommandInteraction,
 } from 'discord.js'
 
-import type { SleetClient } from '../SleetClient.js'
-import type { SleetModule } from './base/SleetModule.js'
+import type { SleetClient } from '../SleetClient.ts'
+import type { SleetModule } from './base/SleetModule.ts'
 
 export type ApplicationInteraction =
   | ChatInputCommandInteraction

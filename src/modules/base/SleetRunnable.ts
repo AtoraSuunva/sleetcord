@@ -1,7 +1,7 @@
 import type { Awaitable, CommandInteraction } from 'discord.js'
 
-import type { RunnableEventHandlers, SleetContext } from '../events.js'
-import { SleetModule, SleetModuleBody } from './SleetModule.js'
+import type { RunnableEventHandlers, SleetContext } from '../events.ts'
+import { SleetModule, SleetModuleBody } from './SleetModule.ts'
 
 /**
  * A "runnable" sleet module, which can process any incoming interaction.

@@ -5,16 +5,16 @@ import {
 } from 'discord-api-types/v10'
 import type { ChatInputCommandInteraction } from 'discord.js'
 
-import { noop } from '../../utils/functions.js'
-import { SleetRunnable } from '../base/SleetRunnable.js'
-import type { NoRunSlashEventHandlers, SlashEventHandlers, SleetContext } from '../events.js'
-import type { SleetModuleOptions } from '../index.js'
+import { noop } from '../../utils/functions.ts'
+import { SleetRunnable } from '../base/SleetRunnable.ts'
+import type { NoRunSlashEventHandlers, SlashEventHandlers, SleetContext } from '../events.ts'
+import type { SleetModuleOptions } from '../index.ts'
 import {
   autocompleteWithSubcommands,
   type SleetAutocompleteable,
   type SleetAutocompleteableOption,
-} from './SleetAutocompleteable.js'
-import { SleetSlashSubcommand } from './SleetSlashSubcommand.js'
+} from './SleetAutocompleteable.ts'
+import { SleetSlashSubcommand } from './SleetSlashSubcommand.ts'
 
 export interface SleetSlashCommandGroupBody extends Omit<
   APIApplicationCommandSubcommandGroupOption,

@@ -4,7 +4,7 @@ import {
   MessageFlagsBitField,
 } from 'discord.js'
 
-import { InteractionMessage, SleetMessageCommand } from '../../src/index.js'
+import { InteractionMessage, SleetMessageCommand } from '../../src/index.ts'
 
 export const restore_embeds = new SleetMessageCommand(
   {

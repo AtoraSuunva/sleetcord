@@ -12,9 +12,9 @@ import type {
   Awaitable,
 } from 'discord.js'
 
-import type { SlashEventHandlers, SleetContext } from '../events.js'
-import { SleetSlashCommand } from './SleetSlashCommand.js'
-import type { SleetSlashCommandGroup } from './SleetSlashCommandGroup.js'
+import type { SlashEventHandlers, SleetContext } from '../events.ts'
+import { SleetSlashCommand } from './SleetSlashCommand.ts'
+import type { SleetSlashCommandGroup } from './SleetSlashCommandGroup.ts'
 
 export type AutocompleteableType = string | number
 

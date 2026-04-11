@@ -15,7 +15,7 @@ import {
   SleetSlashCommandGroup,
   SleetSlashSubcommand,
   SleetUserCommand,
-} from '../src/index.js'
+} from '../src/index.ts'
 
 export const readyLogModule = new SleetModule(
   {

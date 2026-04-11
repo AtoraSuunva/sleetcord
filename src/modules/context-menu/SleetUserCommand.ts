@@ -9,8 +9,8 @@ import type {
   UserContextMenuCommandInteraction,
 } from 'discord.js'
 
-import { SleetCommand, type SleetCommandExtras } from '../base/SleetCommand.js'
-import type { RunnableEventHandlers, SleetContext } from '../events.js'
+import { SleetCommand, type SleetCommandExtras } from '../base/SleetCommand.ts'
+import type { RunnableEventHandlers, SleetContext } from '../events.ts'
 
 type BaseUserCommandBody = Omit<
   RESTPostAPIContextMenuApplicationCommandsJSONBody,

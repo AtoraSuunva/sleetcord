@@ -24,7 +24,7 @@ import {
   type Mentionable,
   PreRunError,
   SleetSlashCommand,
-} from '../../src/index.js'
+} from '../../src/index.ts'
 
 const MAX_FETCH_MESSAGES = 100
 const REGEX_TIMEOUT = 100

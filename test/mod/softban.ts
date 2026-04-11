@@ -8,7 +8,7 @@ import {
   getUsers,
   SleetSlashCommand,
   tryFetchMember,
-} from '../../src/index.js'
+} from '../../src/index.ts'
 
 export const softban = new SleetSlashCommand(
   {

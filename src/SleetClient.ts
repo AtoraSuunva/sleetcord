@@ -8,11 +8,11 @@ import {
 } from 'discord.js'
 import { EventEmitter } from 'tseep'
 
-import { PreRunError } from './errors/PreRunError.js'
-import { SleetCommand } from './modules/base/SleetCommand.js'
-import { SleetModule } from './modules/base/SleetModule.js'
-import { SleetMessageCommand } from './modules/context-menu/SleetMessageCommand.js'
-import { SleetUserCommand } from './modules/context-menu/SleetUserCommand.js'
+import { PreRunError } from './errors/PreRunError.ts'
+import { SleetCommand } from './modules/base/SleetCommand.ts'
+import { SleetModule } from './modules/base/SleetModule.ts'
+import { SleetMessageCommand } from './modules/context-menu/SleetMessageCommand.ts'
+import { SleetUserCommand } from './modules/context-menu/SleetUserCommand.ts'
 import {
   type ApplicationInteraction,
   type BaseSleetModuleEventHandlers,
@@ -23,9 +23,9 @@ import {
   isSpecialEvent,
   type SleetContext,
   type SleetModuleEventHandlers,
-} from './modules/events.js'
-import { SleetSlashCommand } from './modules/slash/SleetSlashCommand.js'
-import { SleetRest } from './SleetRest.js'
+} from './modules/events.ts'
+import { SleetSlashCommand } from './modules/slash/SleetSlashCommand.ts'
+import { SleetRest } from './SleetRest.ts'
 
 /**
  * Middleware for the module event handling. Can be used like express middleware to wrap around event handling logic to add logging, error catching, conditional handling, etc.
