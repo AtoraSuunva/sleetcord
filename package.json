@@ -4,14 +4,19 @@
   "description": "An interaction-first command library for Discord.js",
   "license": "MIT",
   "author": "AtoraSuunva",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AtoraSuunva/sleetcord"
+  },
   "files": [
     "dist",
     "src"
   ],
   "type": "module",
+  "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
-    "import": {
+    ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     }
@@ -25,7 +30,9 @@
     "format:check": "oxfmt --check",
     "lint:fix": "oxlint --fix",
     "format:fix": "oxfmt --write",
-    "prepublishOnly": "pnpm check && pnpm build"
+    "prepublishOnly": "pnpm check && pnpm build",
+    "publish:npm": "pnpm publish",
+    "publish:jsr": "pnpx jsr publish"
   },
   "dependencies": {
     "discord-api-types": "^0.38.45",
@@ -45,5 +52,9 @@
   },
   "peerDependencies": {
     "discord.js": "^14.26.2"
-  }
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "packageManager": "pnpm@10.33.0"
 }
