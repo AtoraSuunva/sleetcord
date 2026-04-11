@@ -67,4 +67,4 @@ jobs:
         run: |
           VERSION=$(node -p "require('./package.json').peerDependencies['discord.js']")
           find src -name '*.ts' | xargs sed -i "s|'discord\.js'|'npm:discord.js@${VERSION}'|g"
-      - run: pnpm publish:jsr
+      - run: pnpm publish:jsr --allow-dirty
