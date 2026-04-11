@@ -142,7 +142,7 @@ export function formatUser(
  * @param options Options for what markdown to escape in the string, default all
  * @returns The string with markdown escaped
  */
-export function escapeAllMarkdown(text: string, options?: EscapeMarkdownOptions) {
+export function escapeAllMarkdown(text: string, options?: EscapeMarkdownOptions): string {
   return escapeMarkdown(text, {
     heading: true,
     bulletedList: true,

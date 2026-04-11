@@ -139,7 +139,10 @@ export class SleetSlashCommand
     this.autocompleteHandlers = autocomplete
   }
 
-  public override async run(context: SleetContext, interaction: ChatInputCommandInteraction) {
+  public override async run(
+    context: SleetContext,
+    interaction: ChatInputCommandInteraction,
+  ): Promise<unknown> {
     // First run the handler for the command itself
     // Users can throw errors to exit execution early to have things like permission
     // or condition checking for entire groups or subcommands in 1 place

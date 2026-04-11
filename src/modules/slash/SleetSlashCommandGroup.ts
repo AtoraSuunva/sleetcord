@@ -53,7 +53,7 @@ export class SleetSlashCommandGroup
 {
   public subcommands: Map<string, SleetSlashSubcommand>
   // TODO: maybe actually implement this, but i don't feel like it
-  public autocompleteHandlers = new Map<string, SleetAutocompleteableOption>()
+  public autocompleteHandlers: Map<string, SleetAutocompleteableOption> = new Map()
 
   constructor(
     body: SleetSlashCommandGroupBody,
@@ -78,7 +78,10 @@ export class SleetSlashCommandGroup
     this.subcommands = subcommands
   }
 
-  public override async run(context: SleetContext, interaction: ChatInputCommandInteraction) {
+  public override async run(
+    context: SleetContext,
+    interaction: ChatInputCommandInteraction,
+  ): Promise<unknown> {
     // First run the handler for the subcommand group itself
     // Users can throw errors to exit execution early to have things like permission
     // or condition checking for entire groups in 1 place

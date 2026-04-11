@@ -88,7 +88,7 @@ export async function autocompleteWithSubcommands(
   this: SleetAutocompleteableWithSubcommands,
   context: SleetContext,
   interaction: AutocompleteInteraction,
-) {
+): Promise<unknown> {
   // Check groups first
   if (this instanceof SleetSlashCommand) {
     const group = interaction.options.getSubcommandGroup(false)
@@ -117,7 +117,7 @@ export async function autocomplete(
   this: SleetAutocompleteable,
   context: SleetContext,
   interaction: AutocompleteInteraction,
-) {
+): Promise<void> {
   const { name, value } = interaction.options.getFocused(true)
 
   // Check for a dedicated handler first

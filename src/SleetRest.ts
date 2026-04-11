@@ -26,7 +26,7 @@ export class SleetRest {
    * Overwrites ALL commands for an application
    * @param commands The commands to put
    */
-  putCommands(commands: RESTPostAPIApplicationCommandsJSONBody[]) {
+  putCommands(commands: RESTPostAPIApplicationCommandsJSONBody[]): Promise<unknown> {
     return this.rest.put(Routes.applicationCommands(this.applicationId), {
       body: commands,
     })
@@ -37,7 +37,10 @@ export class SleetRest {
    * @param commands The commands to put
    * @param guildId The guild to put the commands in
    */
-  putGuildCommands(commands: RESTPostAPIApplicationCommandsJSONBody[], guildId: string) {
+  putGuildCommands(
+    commands: RESTPostAPIApplicationCommandsJSONBody[],
+    guildId: string,
+  ): Promise<unknown> {
     return this.rest.put(Routes.applicationGuildCommands(this.applicationId, guildId), {
       body: commands,
     })

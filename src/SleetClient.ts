@@ -129,15 +129,15 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
   /**
    * Map of module name to SleetModule, used for routing incoming events to the right module handlers. Note that modules are namespaced based on their parent modules, so child modules will be registered under `parent/child` to avoid conflicts between "different parent name, same child name" modules.
    */
-  modules = new Map<string, SleetModule>()
+  modules: Map<string, SleetModule> = new Map()
   /**
    * Map of command name to SleetCommand module, used for routing incoming interactions to the right command module. Note that this is not namespaced like the `modules` map, so command modules with the same name will overwrite each other (and cause unexpected behavior), so make sure to give your command modules unique names.
    */
-  commands = new Map<string, SleetCommand>()
+  commands: Map<string, SleetCommand> = new Map()
   /**
    * Map of registered events for each module, used for unregistering events when a module is removed. Maps the module to an array of tuples of the event name and the event handler function.
    */
-  registeredEvents = new Map<SleetModule, SleetModuleEventRegistration[]>()
+  registeredEvents: Map<SleetModule, SleetModuleEventRegistration[]> = new Map()
   /**
    * The context passed to module event handlers, containing the SleetClient and the Discord.js client.
    */
@@ -153,7 +153,7 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
   /**
    * AsyncLocalStorage for the currently running module, in this current async context
    */
-  runningModuleStore = new AsyncLocalStorage<SleetModule>()
+  runningModuleStore: AsyncLocalStorage<SleetModule> = new AsyncLocalStorage()
 
   get #moduleRunner() {
     if (!this.#compiledModuleRunner) {
@@ -440,7 +440,7 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
    * *before* logging in
    * @returns The token used to login if successful
    */
-  login() {
+  login(): Promise<string> {
     this.client.once('clientReady', () => void this.client.application?.fetch())
     return this.client.login(this.options.token)
   }
