@@ -11,7 +11,7 @@ import type {
   MessageContextMenuCommandInteraction,
   SelectMenuInteraction,
   UserContextMenuCommandInteraction,
-} from 'discord.js'
+} from '#discordjs'
 
 import { PreRunError } from '../errors/PreRunError.ts'
 

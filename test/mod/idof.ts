@@ -1,5 +1,6 @@
 import { ApplicationCommandOptionType } from 'discord-api-types/v10'
-import { ChatInputCommandInteraction, codeBlock, Guild } from 'discord.js'
+
+import { ChatInputCommandInteraction, codeBlock, Guild } from '#discordjs'
 
 import { AutocompleteHandler, getGuild, SleetSlashCommand } from '../../src/index.ts'
 

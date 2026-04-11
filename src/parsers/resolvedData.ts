@@ -8,7 +8,7 @@ import {
   type GuildTextBasedChannel,
   Role,
   type User,
-} from 'discord.js'
+} from '#discordjs'
 
 import { PreRunError } from '../errors/PreRunError.ts'
 import { exists, partitionArray } from '../utils/functions.ts'

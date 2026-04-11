@@ -1,5 +1,6 @@
 import { OAuth2Scopes } from 'discord-api-types/v10'
-import { ClientUser, Message } from 'discord.js'
+
+import { ClientUser, Message } from '#discordjs'
 
 import { SleetModule } from '../../src/index.ts'
 

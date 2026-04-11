@@ -14,7 +14,7 @@ import {
   MessageFlags,
   type Snowflake,
   User,
-} from 'discord.js'
+} from '#discordjs'
 
 import {
   botHasPermissionsGuard,

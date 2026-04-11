@@ -1,5 +1,6 @@
 import { ApplicationCommandOptionType } from 'discord-api-types/v10'
-import { ChatInputCommandInteraction, escapeMarkdown } from 'discord.js'
+
+import { ChatInputCommandInteraction, escapeMarkdown } from '#discordjs'
 
 import { getGuild, SleetSlashCommand } from '../../src/index.ts'
 

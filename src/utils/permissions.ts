@@ -1,4 +1,4 @@
-import { type PermissionResolvable, PermissionsBitField } from 'discord.js'
+import { type PermissionResolvable, PermissionsBitField } from '#discordjs'
 
 /**
  * Converts an array of permission resolvables to a permission string, preserves existing permission strings as strings, and null as null

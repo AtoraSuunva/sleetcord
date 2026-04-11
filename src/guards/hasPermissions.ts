@@ -1,4 +1,4 @@
-import type { CommandInteraction, Interaction, PermissionResolvable } from 'discord.js'
+import type { CommandInteraction, Interaction, PermissionResolvable } from '#discordjs'
 
 import { PreRunError } from '../errors/PreRunError.ts'
 import { getGuild } from '../index.ts'

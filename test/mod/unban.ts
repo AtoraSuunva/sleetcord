@@ -1,4 +1,4 @@
-import { ApplicationCommandOptionType, ChatInputCommandInteraction, Guild, User } from 'discord.js'
+import { ApplicationCommandOptionType, ChatInputCommandInteraction, Guild, User } from '#discordjs'
 
 import {
   botHasPermissionsGuard,

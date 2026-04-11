@@ -1,5 +1,6 @@
 import { ApplicationCommandOptionType } from 'discord-api-types/v10'
-import { ChatInputCommandInteraction } from 'discord.js'
+
+import { ChatInputCommandInteraction } from '#discordjs'
 
 import { AutocompleteHandler, SleetSlashCommand, getUsers } from '../src/index.ts'
 

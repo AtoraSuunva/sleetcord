@@ -9,7 +9,7 @@ import {
   type Invite,
   Team,
   User,
-} from 'discord.js'
+} from '#discordjs'
 
 import { exists, formatUser, SleetSlashCommand } from '../../src/index.ts'
 

@@ -1,6 +1,7 @@
 import type { RESTPostAPIApplicationCommandsJSONBody } from 'discord-api-types/rest/v10'
 import type { Permissions as PermissionsAsString } from 'discord-api-types/v10'
-import type { CommandInteraction, PermissionResolvable } from 'discord.js'
+
+import type { CommandInteraction, PermissionResolvable } from '#discordjs'
 
 import { permissionsToStringBitfield } from '../../utils/permissions.ts'
 import type { RunnableEventHandlers } from '../events.ts'

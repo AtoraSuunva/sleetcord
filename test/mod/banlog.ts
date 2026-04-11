@@ -1,5 +1,6 @@
 import { ApplicationCommandOptionType } from 'discord-api-types/v10'
-import { ChatInputCommandInteraction, codeBlock } from 'discord.js'
+
+import { ChatInputCommandInteraction, codeBlock } from '#discordjs'
 
 import { SleetSlashCommand, makeChoices } from '../../src/index.ts'
 

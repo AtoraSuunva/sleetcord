@@ -2,7 +2,7 @@ import {
   ChatInputCommandInteraction,
   MessageContextMenuCommandInteraction,
   UserContextMenuCommandInteraction,
-} from 'discord.js'
+} from '#discordjs'
 
 import { SleetMessageCommand, SleetSlashCommand, SleetUserCommand } from '../src/index.ts'
 

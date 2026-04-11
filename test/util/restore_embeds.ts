@@ -2,7 +2,7 @@ import {
   MessageContextMenuCommandInteraction,
   MessageFlags,
   MessageFlagsBitField,
-} from 'discord.js'
+} from '#discordjs'
 
 import { InteractionMessage, SleetMessageCommand } from '../../src/index.ts'
 

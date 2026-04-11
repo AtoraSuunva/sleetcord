@@ -6,11 +6,12 @@ import {
   type APIApplicationCommandStringOption,
   ApplicationCommandOptionType,
 } from 'discord-api-types/v10'
+
 import type {
   ApplicationCommandOptionChoiceData,
   AutocompleteInteraction,
   Awaitable,
-} from 'discord.js'
+} from '#discordjs'
 
 import type { SlashEventHandlers, SleetContext } from '../events.ts'
 import { SleetSlashCommand } from './SleetSlashCommand.ts'

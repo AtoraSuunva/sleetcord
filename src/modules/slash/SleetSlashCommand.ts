@@ -3,10 +3,11 @@ import {
   ApplicationCommandType,
   type RESTPostAPIChatInputApplicationCommandsJSONBody,
 } from 'discord-api-types/v10'
+
 import type {
   ChatInputCommandInteraction,
   RESTPostAPIApplicationCommandsJSONBody,
-} from 'discord.js'
+} from '#discordjs'
 
 import { noop } from '../../utils/functions.ts'
 import { SleetCommand, type SleetCommandExtras } from '../base/SleetCommand.ts'

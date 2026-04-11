@@ -3,7 +3,8 @@ import {
   type APIApplicationCommandSubcommandOption,
   ApplicationCommandOptionType,
 } from 'discord-api-types/v10'
-import type { ChatInputCommandInteraction } from 'discord.js'
+
+import type { ChatInputCommandInteraction } from '#discordjs'
 
 import { noop } from '../../utils/functions.ts'
 import { SleetRunnable } from '../base/SleetRunnable.ts'
