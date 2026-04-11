@@ -5,7 +5,9 @@ export default defineConfig({
   platform: 'node',
   format: 'esm',
   target: 'node24',
-  skipNodeModulesBundle: true,
   sourcemap: true,
   unbundle: true,
+  deps: {
+    skipNodeModulesBundle: true,
+  },
 })
