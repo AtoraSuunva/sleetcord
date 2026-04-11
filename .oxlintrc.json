@@ -9,13 +9,20 @@
     "suspicious": "error",
     "perf": "error"
   },
-  "plugins": ["eslint", "typescript", "unicorn", "oxc", "jsdoc", "promise"],
+  "plugins": [
+    "eslint",
+    "typescript",
+    "unicorn",
+    "oxc",
+    "jsdoc",
+    "promise"
+  ],
   "rules": {
     "no-param-reassign": "error",
     "default-param-last": "error",
     "prefer-enum-initializers": "error",
     "no-inferrable-types": "error",
-    //
+    // we use this in autocomplete functions
     "no-this-in-exported-function": "allow",
     // most shadowing is fine
     "no-shadow": "allow",
@@ -24,5 +31,7 @@
     // we are smarter than the compiler :)
     "no-unsafe-type-assertion": "allow"
   },
-  "ignorePatterns": ["test/**/*"]
+  "ignorePatterns": [
+    "test/**/*"
+  ]
 }

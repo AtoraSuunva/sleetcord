@@ -7,14 +7,15 @@ import {
   hasPermissionsGuard,
   inGuildGuard,
   PreRunError,
+  SleetContext,
   SleetMessageCommand,
   SleetModule,
+  SleetModuleMiddleware,
   SleetSlashCommand,
   SleetSlashCommandGroup,
   SleetSlashSubcommand,
   SleetUserCommand,
 } from '../src/index.js'
-import { runningModuleStore } from '../src/SleetClient.js'
 
 export const readyLogModule = new SleetModule(
   {
@@ -357,8 +358,8 @@ const childModule = new SleetModule(
     name: 'Child Module',
   },
   {
-    messageCreate: (message) => {
-      const module = runningModuleStore.getStore()
+    messageCreate(this: SleetContext, message) {
+      const module = this.sleet.runningModuleStore.getStore()
 
       console.log(`the child module saw an event (from ${module?.name})`, message.content)
     },
@@ -371,8 +372,8 @@ const moduleChildSlashCommand = new SleetSlashCommand(
     description: 'Child slash command',
   },
   {
-    run: async (interaction) => {
-      const module = runningModuleStore.getStore()
+    async run(this: SleetContext, interaction) {
+      const module = this.sleet.runningModuleStore.getStore()
       await interaction.reply(`Child slash command running from ${module?.name}`)
     },
   },
@@ -482,3 +483,33 @@ export const moduleFilter = new SleetModule(
     },
   },
 )
+
+const moduleFilterMiddleware: SleetModuleMiddleware = async (module, event, next) => {
+  if (event.name === 'messageCreate') {
+    console.log('Module middleware checking messageCreate for', module.name)
+    if (event.arguments[0].content === '!ignore-this') {
+      console.log('Module middleware is skipping the event!')
+      return
+    }
+  }
+
+  if (event.name === 'interactionCreate') {
+    const interaction = event.arguments[0]
+
+    if (interaction.isChatInputCommand()) {
+      if (interaction.options.data.some((d) => d.value?.toString().includes('!!!ignore!!!'))) {
+        console.log('Module middleware is skipping the event!')
+        await interaction.reply(
+          'This command was ignored by module middleware for including "!!!ignore!!!" in an option value',
+        )
+        return
+      }
+    }
+  }
+
+  console.log(`Module middleware allowing event '${event.name}' for module '${module.name}'`)
+  await next()
+  console.log(
+    `Module middleware finished processing event '${event.name}' for module '${module.name}'`,
+  )
+}

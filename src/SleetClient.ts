@@ -2,7 +2,6 @@ import { AsyncLocalStorage } from 'node:async_hooks'
 
 import {
   type AutocompleteInteraction,
-  type Awaitable,
   type BaseInteraction,
   Client,
   type ClientOptions,
@@ -22,46 +21,26 @@ import {
   isDiscordEvent,
   isSleetEvent,
   isSpecialEvent,
-  type ShouldSkipEventReturn,
   type SleetContext,
-  type SleetExtensions,
   type SleetModuleEventHandlers,
 } from './modules/events.js'
 import { SleetSlashCommand } from './modules/slash/SleetSlashCommand.js'
 import { SleetRest } from './SleetRest.js'
 
 /**
- * A module runner, used to wrap around all module event runs.
+ * Middleware for the module event handling. Can be used like express middleware to wrap around event handling logic to add logging, error catching, conditional handling, etc.
  *
- * The default implementation simply does `return callback(...event.arguments)`.
- *
- * Your own implementation can implement more complex logic like error-catching or tracing, but it's
- * expected that you call AND return the value from `callback(...event.arguments)` at some point.
- * The rest of sleetcord **WILL** break if you don't uphold this assumption, from events being missed,
- * to other events not triggering, or even errors being thrown.
+ * See the `middleware` option in {@link SleetOptions} for more details and examples on how to use this.
  * @param module The module being run
  * @param callback The callback to run the event handler on the module
  * @param event The event being handled
  * @returns The result of the callback being run
  */
-export type ModuleRunner<R = unknown> = (
+export type SleetModuleMiddleware = (
   module: SleetModule,
-  callback: (...args: unknown[]) => Awaitable<R>,
   event: EventDetails,
-) => Awaitable<R>
-
-/**
- * A default module runner used if no implementation is provided. Simply calls `callback(...event.arguments)`.
- *
- * Useful if you want a conditional module runner, but falling back to the basic implementation using your own logic.
- * ie. you have a module runner for error catching, but with an option to disable error catching
- * @param _module The module being run
- * @param callback The callback to run the event handler on the module
- * @param event The event being handled
- * @returns The result of the callback being run
- */
-export const defaultModuleRunner: ModuleRunner = (_module, callback, event) =>
-  callback(...event.arguments)
+  next: () => Promise<unknown>,
+) => Promise<unknown>
 
 /**
  * Sleet-specific options
@@ -72,30 +51,30 @@ export interface SleetOptions {
   /** The bot's application ID */
   applicationId: string
   /**
-   * Use a custom runner to wrap around all module event runs, useful for adding tracing via transactions or spans
+   * Middleware for the module event handling. Can be used like express middleware to wrap around event handling logic to add logging, error catching, conditional handling, etc.
    *
-   * If you don't call the `callback`, the module will NOT run, the required arguments to the `callback` are in the `event` object as `event.arguments`
+   * Runners are run sequentially in the order they are provided, and each runner wraps around the previous one, so the first runner in the array is the outermost wrapper, and the last runner is the innermost wrapper (closest to the actual event handler).
    *
-   * The default implementation simply does `return callback(...event.arguments)`.
+   * If you don't call `next()`, the event will NOT be handled
    *
-   * Your own implementation can implement more complex logic like error-catching or tracing, but it's
-   * expected that you call AND return the value from `callback(...event.arguments)` at some point.
-   * The rest of sleetcord **WILL** break if you don't uphold this assumption, from events being missed,
-   * to other events not triggering, or even errors being thrown.
+   * You should follow these rules:
+   *   - No events or following module runners will be handled if you don't call `next()`. You can use this for conditional event handling
+   *     - Note that this includes all events, including interactions being routed to commands which will end up timing out if not handled
+   *     - The order of module runners is important, for example if you have [filtering, logging, error-catching], logging and error-catching will not run if filtering did not call `next()`.
    *
    * For most cases, you will use something like the following:
    * @example
-   * function moduleRunner(module, callback, event) {
-   *   const span = tracer.startSpan(`module.${module.name}.${event.name}`)
+   * async function addTrace(module, event, next) {
+   *   const span = tracer.startSpan(`module:${module.name}:${event.name}`)
    *
    *   try {
-   *     return callback(...event.arguments)
+   *     await next()
    *   } finally {
    *     span.finish()
    *   }
    * }
    */
-  moduleRunner?: ModuleRunner
+  middleware?: SleetModuleMiddleware[]
 }
 
 export interface SleetClientOptions {
@@ -105,7 +84,7 @@ export interface SleetClientOptions {
   sleet: SleetOptions
   /**
    * Options specific to and provided to the Discord.js client
-   * @see https://old.discordjs.dev/#/docs/discord.js/main/typedef/ClientOptions
+   * @see https://discordjs.dev/docs/packages/discord.js/14.26.2/ClientOptions:Interface
    */
   client: ClientOptions
 }
@@ -132,11 +111,6 @@ function isSleetCommand(value: unknown): value is SleetCommand {
 }
 
 /**
- * AsyncLocalStorage for the currently running module, in this current async context
- */
-export const runningModuleStore = new AsyncLocalStorage<SleetModule>()
-
-/**
  * A command handler built around Discord.js, the SleetClient handles passing
  * interactions to commands and registering them
  */
@@ -144,24 +118,55 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
   Required<BaseSleetModuleEventHandlers>
 > {
   options: SleetOptions
+  /**
+   * The Discord.js client used for interacting with the Discord API and receiving events.
+   */
   client: Client<Ready>
+  /**
+   * The SleetRest instance used for registering commands with Discord.
+   */
   rest: SleetRest
-  // Map<qualifiedName, module>
+  /**
+   * Map of module name to SleetModule, used for routing incoming events to the right module handlers. Note that modules are namespaced based on their parent modules, so child modules will be registered under `parent/child` to avoid conflicts between "different parent name, same child name" modules.
+   */
   modules = new Map<string, SleetModule>()
-  // Map<commandName, command>
+  /**
+   * Map of command name to SleetCommand module, used for routing incoming interactions to the right command module. Note that this is not namespaced like the `modules` map, so command modules with the same name will overwrite each other (and cause unexpected behavior), so make sure to give your command modules unique names.
+   */
   commands = new Map<string, SleetCommand>()
-  // Map<module, [event, handler][]>
+  /**
+   * Map of registered events for each module, used for unregistering events when a module is removed. Maps the module to an array of tuples of the event name and the event handler function.
+   */
   registeredEvents = new Map<SleetModule, SleetModuleEventRegistration[]>()
-  // Set<SleetModule that has shouldHandleEvent handler>
-  // Defined this way because of https://github.com/microsoft/TypeScript/issues/42873
-  shouldSkipHandlers: Set<SleetModule<Required<SleetExtensions>>> = new Set()
+  /**
+   * The context passed to module event handlers, containing the SleetClient and the Discord.js client.
+   */
   context: SleetContext
-  moduleRunner: ModuleRunner
+  /**
+   * The middleware stack for module event handling. See {@link SleetModuleMiddleware} for more details on how to use this.
+   */
+  middleware: SleetModuleMiddleware[]
+  /**
+   * "Compiled" middleware runner, to avoid composing the middleware on every event
+   */
+  #compiledModuleRunner: SleetModuleMiddleware | null = null
+  /**
+   * AsyncLocalStorage for the currently running module, in this current async context
+   */
+  runningModuleStore = new AsyncLocalStorage<SleetModule>()
+
+  get #moduleRunner() {
+    if (!this.#compiledModuleRunner) {
+      this.#compiledModuleRunner = this.#composeMiddleware(this.middleware)
+    }
+
+    return this.#compiledModuleRunner
+  }
 
   constructor(options: SleetClientOptions) {
     super()
     this.options = options.sleet
-    this.moduleRunner = options.sleet.moduleRunner ?? defaultModuleRunner
+    this.middleware = options.sleet.middleware ?? []
 
     this.client = new Client(options.client)
 
@@ -277,13 +282,6 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
 
       this.emit('sleetDebug', `Registering event '${event}' for '${module.name}'`)
 
-      if (event === 'shouldSkipEvent' && typeof module.handlers.shouldSkipEvent === 'function') {
-        // This is a special case, since we don't use any event emitters for this
-        // We need to call each one and track the return value
-        this.shouldSkipHandlers.add(module as SleetModule<Required<SleetExtensions>>)
-        continue
-      }
-
       const boundEvent = handler.bind(this.context)
       // For tseep to properly handle the event, we need to know how many arguments it takes
       // since tseep does optimization based on the number of arguments
@@ -297,14 +295,8 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
       // by just throwing unknowns everywhere until typescript says its okay
       const eventHandler = async (...args: EventArguments) => {
         const eventDetails: EventDetails = {
-          // biome-ignore lint/suspicious/noExplicitAny: any breaks the type system here
           name: event as any,
-          // biome-ignore lint/suspicious/noExplicitAny: any breaks the type system here
           arguments: args as any,
-        }
-
-        if (await this.#shouldSkipEvent(eventDetails, module)) {
-          return
         }
 
         // Conditional since we don't want to emit eventHandled for eventHandled
@@ -313,24 +305,18 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
           this.emit('eventHandled', eventDetails, module)
         }
 
-        this.moduleRunner(
-          module,
-          (...moduleArgs) =>
-            runningModuleStore.run<Promise<unknown>, unknown[]>(
-              module,
-              // biome-ignore lint/suspicious/noExplicitAny: any breaks the type system here
-              boundEvent as any,
-              ...moduleArgs,
-            ),
-          eventDetails,
+        await this.#runWithMiddleware(module, eventDetails, () =>
+          this.runningModuleStore.run<Promise<unknown>, unknown[]>(
+            module,
+            boundEvent as any,
+            ...args,
+          ),
         )
       }
 
       if (isDiscordEvent(event)) {
-        // biome-ignore lint/suspicious/noExplicitAny: any breaks the type system here
         this.client.on(event, eventHandler as any)
       } else if (isSleetEvent(event)) {
-        // biome-ignore lint/suspicious/noExplicitAny: any breaks the type system here
         this.addListener(event, eventHandler as any, argsNum as any)
       } else if (!isSpecialEvent(event)) {
         const strEvent = String(event)
@@ -360,10 +346,8 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
       if (!eventHandler) continue
 
       if (isDiscordEvent(event)) {
-        // biome-ignore lint/suspicious/noExplicitAny: Casts otherwise typescript does some crazy type inference that makes it both error and lag
         this.client.off(event, eventHandler as any)
       } else if (isSleetEvent(event)) {
-        // biome-ignore lint/suspicious/noExplicitAny: any breaks the type system here
         this.off(event, eventHandler as any)
       } else if (!isSpecialEvent(event)) {
         throw new Error(`Unknown event '${String(event)}' while processing ${module.name}`)
@@ -494,44 +478,28 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
       arguments: [interaction],
     }
 
-    const skipReason = await this.#shouldSkipEvent(eventDetails, module)
+    await this.#runWithMiddleware(module, eventDetails, () =>
+      this.runningModuleStore.run(module, async () => {
+        this.emit('runModule', module, interaction)
 
-    if (skipReason) {
-      await interaction.reply({
-        content: `This interaction was skipped for "${skipReason.message}"`,
-        ephemeral: skipReason.ephemeral ?? false,
-      })
-      return
-    }
-
-    this.moduleRunner(
-      module,
-      () =>
-        runningModuleStore.run(module, async () => {
-          this.emit('runModule', module, interaction)
-
-          try {
-            // Make sure the module can run the incoming type of interaction
-            if (interaction.isChatInputCommand() && module instanceof SleetSlashCommand) {
-              await module.run(this.context, interaction)
-            } else if (
-              interaction.isUserContextMenuCommand() &&
-              module instanceof SleetUserCommand
-            ) {
-              await module.run(this.context, interaction)
-            } else if (
-              interaction.isMessageContextMenuCommand() &&
-              module instanceof SleetMessageCommand
-            ) {
-              await module.run(this.context, interaction)
-            } else {
-              this.emit('sleetWarn', 'Module could not handle incoming interaction', interaction)
-            }
-          } catch (e) {
-            await this.#handleApplicationInteractionError(interaction, module, e)
+        try {
+          // Make sure the module can run the incoming type of interaction
+          if (interaction.isChatInputCommand() && module instanceof SleetSlashCommand) {
+            await module.run(this.context, interaction)
+          } else if (interaction.isUserContextMenuCommand() && module instanceof SleetUserCommand) {
+            await module.run(this.context, interaction)
+          } else if (
+            interaction.isMessageContextMenuCommand() &&
+            module instanceof SleetMessageCommand
+          ) {
+            await module.run(this.context, interaction)
+          } else {
+            this.emit('sleetWarn', 'Module could not handle incoming interaction', interaction)
           }
-        }),
-      eventDetails,
+        } catch (e) {
+          await this.#handleApplicationInteractionError(interaction, module, e)
+        }
+      }),
     )
   }
 
@@ -569,31 +537,16 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
       arguments: [interaction],
     }
 
-    const skipReason = await this.#shouldSkipEvent(eventDetails, module)
-
-    if (skipReason) {
-      await interaction.respond([
-        {
-          name: `This interaction was skipped for "${skipReason.message}"`,
-          value: 'SKIPPED',
-        },
-      ])
-      return
-    }
-
-    this.moduleRunner(
-      module,
-      () =>
-        runningModuleStore.run(module, async () => {
-          try {
-            if (module instanceof SleetSlashCommand) {
-              await module.autocomplete(this.context, interaction)
-            }
-          } catch (e) {
-            await this.#handleAutocompleteInteractionError(interaction, module, e)
+    await this.#runWithMiddleware(module, eventDetails, () =>
+      this.runningModuleStore.run(module, async () => {
+        try {
+          if (module instanceof SleetSlashCommand) {
+            await module.autocomplete(this.context, interaction)
           }
-        }),
-      eventDetails,
+        } catch (e) {
+          await this.#handleAutocompleteInteractionError(interaction, module, e)
+        }
+      }),
     )
   }
 
@@ -643,32 +596,76 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
     }
   }
 
-  /**
-   * Checks if an event and module pair should be skipped by any of the registered skip handlers
-   *
-   * This also handles emitting "eventSkipped" if the module should be skipped
-   *
-   * Only the first found skip reason is emitted and returned
-   * @param event The event to check
-   * @param module The module to check
-   * @returns A skip reason if the event should be skipped, false otherwise
-   */
-  async #shouldSkipEvent(event: EventDetails, module: SleetModule): Promise<ShouldSkipEventReturn> {
-    for (const skipper of this.shouldSkipHandlers.values()) {
-      // TODO: this has the module being run (skipper), but not the module being checked (module)
-      const reason = await (this.moduleRunner as ModuleRunner<ShouldSkipEventReturn>)(
-        skipper,
-        () => runningModuleStore.run(skipper, skipper.handlers.shouldSkipEvent, event, module),
-        event,
-      )
+  #composeMiddleware(middleware: SleetModuleMiddleware[]): SleetModuleMiddleware {
+    return function (module, event, final) {
+      let index = -1
 
-      if (reason) {
-        this.emit('eventSkipped', event, module, skipper, reason)
-        return reason
+      function dispatch(i: number): Promise<unknown> {
+        if (i <= index) {
+          return Promise.reject(new Error('next() called multiple times'))
+        }
+
+        index = i
+        let fn = i === middleware.length ? final : middleware[i]
+
+        if (!fn) {
+          return Promise.resolve()
+        }
+
+        try {
+          return Promise.resolve(fn(module, event, () => dispatch(i + 1)))
+        } catch (err) {
+          return Promise.reject(err)
+        }
       }
-    }
 
-    return false
+      return dispatch(0)
+    }
+  }
+
+  /**
+   * Runs any middleware and then finally the event handler callback for a given module and event
+   *
+   * @param module The module being run
+   * @param event The event being handled
+   * @param callback The callback to run the event handler on the module
+   * @returns The result of the callback being run, after all middleware has been processed
+   */
+  async #runWithMiddleware(
+    module: SleetModule,
+    event: EventDetails,
+    callback: () => Promise<unknown>,
+  ): Promise<unknown> {
+    return this.#moduleRunner(module, event, callback)
+  }
+
+  /**
+   * Adds a middleware to the module event handling. Can be used like express middleware to wrap around event handling logic to add logging, error catching, conditional handling, etc.
+   *
+   * Added middleware runs after all previously added middleware.
+   *
+   * See the `middleware` option in {@link SleetOptions} for more details and examples on how to use this.
+   * @param middleware The middleware to add
+   * @returns Nothing
+   */
+  addMiddleware(middleware: SleetModuleMiddleware): void {
+    this.middleware.push(middleware)
+    this.#compiledModuleRunner = null
+  }
+
+  /**
+   * Removes a middleware from the module event handling.
+   *
+   * Note that this will only remove the first instance of the middleware, if the same middleware is added multiple times, you will need to call this multiple times to remove all instances.
+   * @param middleware The middleware to remove
+   * @returns Nothing
+   */
+  removeMiddleware(middleware: SleetModuleMiddleware): void {
+    const index = this.middleware.indexOf(middleware)
+    if (index !== -1) {
+      this.middleware.splice(index, 1)
+      this.#compiledModuleRunner = null
+    }
   }
 }
 

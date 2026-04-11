@@ -28,7 +28,6 @@ export interface SleetContext {
   client: Client
 }
 
-// biome-ignore lint/suspicious/noConfusingVoidType: Required so a function doesn't need to call `return`
 export type ListenerResult<T = unknown> = Promise<T> | void
 
 /** A type of every possible Discord event key */
@@ -63,7 +62,6 @@ export const SleetEventsList: SleetEvent[] = [
   'unloadModule',
   'runModule',
   'eventHandled',
-  'eventSkipped',
   'autocompleteInteractionError',
   'applicationInteractionError',
   'sleetError',
@@ -87,9 +85,8 @@ export function isSleetEvent(event: string): event is SleetEvent {
  * or events that sleet treats more like callbacks and needs the return value
  */
 export type SpecialEvent = Exclude<
-  | keyof RunnableEventHandlers<CommandInteraction>
-  | keyof SlashEventHandlers
-  | keyof SleetExtensions,
+  keyof RunnableEventHandlers<CommandInteraction> | keyof SlashEventHandlers,
+  // | keyof SleetExtensions,
   keyof BaseSleetModuleEventHandlers
 >
 
@@ -97,7 +94,7 @@ export type SpecialEvent = Exclude<
  * An array of all "events" that aren't hooked directly into discord.js' or Sleet's event emitters,
  * and instead require some special processing
  */
-export const SpecialEventsList: SpecialEvent[] = ['run', 'autocomplete', 'shouldSkipEvent']
+export const SpecialEventsList: SpecialEvent[] = ['run', 'autocomplete']
 
 /**
  * Checks if a string is a valid Special Event
@@ -187,21 +184,6 @@ export interface BaseSleetModuleEventHandlers extends Partial<Omit<ClientEventHa
     module: SleetModule,
   ) => ListenerResult
   /**
-   * Event emitted when an event that a module would've handled was skipped since
-   * `shouldHandleEvent` returned `false` on some other module
-   * @param eventDetails The event that was handled
-   * @param skippedModule The module that would've handled the interaction
-   * @param skippedBy The module that caused the skipping
-   * @param reason The reason the event was skipped
-   */
-  eventSkipped?: (
-    this: SleetContext,
-    eventDetails: EventDetails,
-    skippedModule: SleetModule,
-    skippedBy: SleetModule,
-    reason: SkipReason,
-  ) => ListenerResult
-  /**
    * Event emitted when an autocomplete interaction errors out
    * @param module The module that was run
    * @param interaction The interaction that was handled
@@ -256,43 +238,11 @@ export interface BaseSleetModuleEventHandlers extends Partial<Omit<ClientEventHa
 }
 
 /**
- * The reason a module was skipped
- */
-export interface SkipReason {
-  /**
-   * The reason the module was skipped (shown to the user)
-   */
-  message: string
-  /**
-   * If the message should be ephemeral (for interactions)
-   * @default false
-   */
-  ephemeral?: boolean
-}
-
-/**
  * Extensions to the SleetModule interface
  *
  * Used for events that aren't _really_ events, as their return values are actually used and affect control flow
  */
-export interface SleetExtensions {
-  /**
-   * Decides if a module should handle an event or not. If this returns `false`,
-   * the module is skipped for that event. Can be used to disable modules for certain guilds,
-   * certain users, or bot-wide ratelimiting.
-   * @param eventDetails The details of the event that will be handled
-   * @param module The module that will be run
-   */
-  shouldSkipEvent?: (
-    this: SleetContext,
-    eventDetails: EventDetails,
-    module: SleetModule,
-  ) => Awaitable<SkipReason | false>
-}
-
-export type ShouldSkipEventReturn = Awaited<
-  ReturnType<NonNullable<SleetExtensions['shouldSkipEvent']>>
->
+export interface SleetExtensions {}
 
 export type SleetModuleEventHandlers = BaseSleetModuleEventHandlers & SleetExtensions
 
