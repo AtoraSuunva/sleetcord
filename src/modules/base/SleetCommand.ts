@@ -4,13 +4,13 @@ import type { CommandInteraction, PermissionResolvable } from 'discord.js'
 
 import { permissionsToStringBitfield } from '../../utils/permissions.js'
 import type { RunnableEventHandlers } from '../events.js'
-import type { SleetModule } from './SleetModule.js'
+import type { SleetModuleOptions } from './SleetModule.js'
 import { SleetRunnable } from './SleetRunnable.js'
 
 /**
  * Extra types added to all sleet commands, usually used to add additional "functionality" to commands like accepting one type of input and automatically converting it to what the api wants
  */
-export interface SleetCommandExtras {
+export interface SleetCommandExtras extends SleetModuleOptions {
   /**
    * The default permissions for this command, sent during creation
    *
@@ -56,8 +56,8 @@ export class SleetCommand<
 > extends SleetRunnable<RESTPostAPIApplicationCommandsJSONBody, I, A, Handlers> {
   public registerOnlyInGuilds?: string[]
 
-  constructor(body: SleetCommandBody, handlers: Handlers, modules?: SleetModule[])
-  constructor(body: SleetCommandExtendedBody, handlers: Handlers, modules: SleetModule[] = []) {
+  constructor(body: SleetCommandBody, handlers: Handlers, options?: SleetModuleOptions)
+  constructor(body: SleetCommandExtendedBody, handlers: Handlers, options?: SleetModuleOptions) {
     const { default_member_permissions, registerOnlyInGuilds } = body
 
     body.default_member_permissions = permissionsToStringBitfield(
@@ -66,7 +66,7 @@ export class SleetCommand<
 
     delete body.registerOnlyInGuilds
 
-    super(body, handlers, modules)
+    super(body, handlers, options)
 
     if (registerOnlyInGuilds) {
       this.registerOnlyInGuilds = registerOnlyInGuilds

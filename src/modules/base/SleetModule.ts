@@ -1,8 +1,16 @@
+import { SleetModuleMiddleware } from '../../SleetClient.js'
 import type { SleetModuleEventHandlers } from '../events.js'
 
-export interface SleetModuleOptions {
+export interface SleetModuleBody {
   /** The name of this module. used for logging and debugging */
   name: string
+}
+
+export interface SleetModuleOptions {
+  /** Child modules to load along with this one, allows you to "scope" modules that may share the same name. Mostly used to store subcommands for slash commands so their events are registered correctly */
+  modules?: SleetModule[]
+  /** Middleware functions to register with the SleetClient. Note this will run for ALL modules, and just serves as a convenience method to register middleware without needing to get a handle to SleetClient (i.e. from `ready`) */
+  middleware?: SleetModuleMiddleware[]
 }
 
 /**
@@ -17,16 +25,28 @@ export interface SleetModuleOptions {
  * like logging ready/init/warn/apiRequest/apiResponse/etc you can use this directly
  *
  * @example
- * const mod = new SleetModule('logging', {
- *  load: () => {
- *    console.log('This module was loaded by a SleetClient!')
- *  },
- *  warn: (message: string) => {
- *    console.warn('Warning from Discord.js!', message)
- *  },
+ * const mod = new SleetModule({
+ *   name: 'logging'
+ *  }, {
+ *   load: () => {
+ *     console.log('This module was loaded by a SleetClient!')
+ *   },
+ *   warn: (message: string) => {
+ *     console.warn('Warning from Discord.js!', message)
+ *   },
+ *  }, {
+ *   modules: [modModule],
+ *   middleware: [modMiddleware],
  * })
  */
-export class SleetModule<Handlers extends SleetModuleEventHandlers = SleetModuleEventHandlers> {
+export class SleetModule<
+  B extends SleetModuleBody = SleetModuleBody,
+  Handlers extends SleetModuleEventHandlers = SleetModuleEventHandlers,
+> {
+  /**
+   * The body that will be sent to Discord when registering this module
+   */
+  public body: B
   /**
    * The name used to key & map this module, should be unique at each "level"
    *
@@ -46,15 +66,22 @@ export class SleetModule<Handlers extends SleetModuleEventHandlers = SleetModule
    * registered correctly
    */
   public modules: SleetModule[]
+  /**
+   * Middleware functions to register with the SleetClient. Note this will run for ALL modules, and just serves as a convenience method to register middleware without needing to get a handle to SleetClient (i.e. from `ready`)
+   */
+  public middleware: SleetModuleMiddleware[]
 
   /**
    * Create a new SleetModule that a SleetClient can load and handle events for
-   * @param options The options for this module
+   * @param body The body for this module
    * @param handlers Event handlers for Sleet to register
+   * @param options Options for this module
    */
-  constructor(options: SleetModuleOptions, handlers: Handlers, modules: SleetModule[] = []) {
-    this.name = options.name
+  constructor(body: B, handlers: Handlers, options: SleetModuleOptions = {}) {
+    this.body = body
+    this.name = body.name
     this.handlers = handlers
-    this.modules = modules
+    this.modules = options.modules ?? []
+    this.middleware = options.middleware ?? []
   }
 }

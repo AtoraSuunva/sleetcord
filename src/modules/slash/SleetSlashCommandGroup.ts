@@ -8,7 +8,7 @@ import type { ChatInputCommandInteraction } from 'discord.js'
 import { noop } from '../../utils/functions.js'
 import { SleetRunnable } from '../base/SleetRunnable.js'
 import type { NoRunSlashEventHandlers, SlashEventHandlers, SleetContext } from '../events.js'
-import type { SleetModule } from '../index.js'
+import type { SleetModuleOptions } from '../index.js'
 import {
   autocompleteWithSubcommands,
   type SleetAutocompleteable,
@@ -58,18 +58,22 @@ export class SleetSlashCommandGroup
   constructor(
     body: SleetSlashCommandGroupBody,
     handlers: NoRunSlashEventHandlers = {},
-    modules: SleetModule[] = [],
+    options: SleetModuleOptions = {},
   ) {
     const { json, subcommands } = parseSlashCommandGroupOptions(body)
+    const { options: _, ...cloneable } = body
+    const copiedBody = structuredClone(cloneable) as APIApplicationCommandSubcommandGroupOption
+    copiedBody.type = ApplicationCommandOptionType.SubcommandGroup
+    copiedBody.options = json
 
-    body.type = ApplicationCommandOptionType.SubcommandGroup
-    body.options = json
     if (!handlers.run) handlers.run = noop
 
-    super(body as APIApplicationCommandSubcommandGroupOption, handlers as SlashEventHandlers, [
-      ...subcommands.values(),
-      ...modules,
-    ])
+    const modules = [...subcommands.values(), ...(options.modules ?? [])]
+
+    super(copiedBody, handlers as SlashEventHandlers, {
+      ...options,
+      modules,
+    })
 
     this.subcommands = subcommands
   }

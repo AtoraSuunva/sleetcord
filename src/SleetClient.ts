@@ -212,6 +212,10 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
         this.commands.set(module.name, module)
       }
 
+      for (const middleware of module.middleware ?? []) {
+        this.addMiddleware(middleware)
+      }
+
       for (const child of module.modules) {
         this.addModules([child], `${qualifiedName}/`)
       }
@@ -249,6 +253,10 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
         this.commands.delete(module.name)
       }
 
+      for (const middleware of module.middleware ?? []) {
+        this.removeMiddleware(middleware)
+      }
+
       for (const child of module.modules) {
         this.removeModules([child], `${qualifiedName}/`)
       }
@@ -259,7 +267,7 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
           this.emit('unloadModule', module, qualifiedName)
         } catch (e) {
           const err = e instanceof Error ? e : new Error(String(e))
-          this.emit('sleetError', `Module ${module.name} failed to load`, err)
+          this.emit('sleetError', `Module ${module.name} failed to unload`, err)
         }
       })()
     }

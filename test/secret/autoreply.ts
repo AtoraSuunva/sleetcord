@@ -20,7 +20,7 @@ async function handleMessageCreate(message: Message) {
   if (message.author.bot) return
 
   if (thanksRegex.test(message.content)) {
-    message.reply({
+    await message.reply({
       content: 'np',
       allowedMentions: { parse: [], repliedUser: false },
     })

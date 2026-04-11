@@ -388,7 +388,9 @@ export const parentModule = new SleetModule(
       console.log('the parent module saw an event', message.content)
     },
   },
-  [childModule, moduleChildSlashCommand],
+  {
+    modules: [childModule, moduleChildSlashCommand],
+  },
 )
 
 const childSlashCommand = new SleetSlashSubcommand(
@@ -447,44 +449,8 @@ export const eventLogger = new SleetModule(
   },
 )
 
-export const moduleFilter = new SleetModule(
-  {
-    name: 'moduleFilter',
-  },
-  {
-    shouldSkipEvent(eventDetails, module) {
-      if (eventDetails.name === 'messageCreate') {
-        console.log('checking messageCreate for', module.name)
-        if (eventDetails.arguments[0].content === '!ignore-this') {
-          return {
-            message: 'Message content was "!ignore-this"',
-          }
-        }
-      }
-
-      if (eventDetails.name === 'interactionCreate') {
-        const interaction = eventDetails.arguments[0]
-
-        if (interaction.isChatInputCommand()) {
-          if (interaction.options.data.some((d) => d.value?.toString().includes('!!!ignore!!!'))) {
-            return {
-              message: 'Command option value included "!!!ignore!!!"',
-            }
-          }
-        }
-      }
-
-      return false
-    },
-    eventSkipped(eventDetails, module, skipper, reason) {
-      console.log(
-        `Event '${eventDetails.name}' for '${module.name}' was skipped by '${skipper.name}' for '${reason.message}'`,
-      )
-    },
-  },
-)
-
 const moduleFilterMiddleware: SleetModuleMiddleware = async (module, event, next) => {
+  console.log('middleware for event', event.name, 'in module', module.name)
   if (event.name === 'messageCreate') {
     console.log('Module middleware checking messageCreate for', module.name)
     if (event.arguments[0].content === '!ignore-this') {
@@ -513,3 +479,13 @@ const moduleFilterMiddleware: SleetModuleMiddleware = async (module, event, next
     `Module middleware finished processing event '${event.name}' for module '${module.name}'`,
   )
 }
+
+export const moduleFilter = new SleetModule(
+  {
+    name: 'moduleFilter',
+  },
+  {},
+  {
+    middleware: [moduleFilterMiddleware],
+  },
+)

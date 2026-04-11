@@ -7,7 +7,7 @@ import type { ChatInputCommandInteraction } from 'discord.js'
 
 import { SleetRunnable } from '../base/SleetRunnable.js'
 import type { SlashEventHandlers } from '../events.js'
-import type { SleetModule } from '../index.js'
+import type { SleetModuleOptions } from '../index.js'
 import {
   isAutocompleteableOption,
   type SleetAutocompleteable,
@@ -62,13 +62,15 @@ export class SleetSlashSubcommand
   constructor(
     body: SleetSlashSubcommandBody,
     handlers: SlashEventHandlers,
-    modules: SleetModule[] = [],
+    options: SleetModuleOptions = {},
   ) {
     const { json, autocomplete } = parseSlashSubcommandOptions(body.options)
-    body.type = ApplicationCommandOptionType.Subcommand
-    body.options = json
+    const { options: _, ...cloneable } = body
+    const copiedBody = structuredClone(cloneable) as APIApplicationCommandSubcommandOption
+    copiedBody.type = ApplicationCommandOptionType.Subcommand
+    copiedBody.options = json
 
-    super(body as APIApplicationCommandSubcommandOption, handlers, modules)
+    super(copiedBody, handlers, options)
 
     this.autocompleteHandlers = autocomplete
   }

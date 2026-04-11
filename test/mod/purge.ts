@@ -15,6 +15,7 @@ import {
   type Snowflake,
   User,
 } from 'discord.js'
+
 import {
   botHasPermissionsGuard,
   getMentionables,
@@ -23,7 +24,7 @@ import {
   type Mentionable,
   PreRunError,
   SleetSlashCommand,
-} from 'sleetcord'
+} from '../../src/index.js'
 
 const MAX_FETCH_MESSAGES = 100
 const REGEX_TIMEOUT = 100
@@ -207,7 +208,7 @@ async function runPurge(interaction: ChatInputCommandInteraction) {
 
     if (!before && after) {
       // Forward search
-      const youngestMessage = messages.sort(youngestFirst).first()
+      const youngestMessage = messages.sorted(youngestFirst).first()
 
       if (youngestMessage === undefined || youngestMessage.id === afterOffset) {
         break
@@ -216,7 +217,7 @@ async function runPurge(interaction: ChatInputCommandInteraction) {
       afterOffset = youngestMessage.id
     } else {
       // Backward search
-      const oldestMessage = messages.sort(youngestFirst).last()
+      const oldestMessage = messages.sorted(youngestFirst).last()
 
       if (oldestMessage === undefined || oldestMessage.id === beforeOffset) {
         break
@@ -246,7 +247,7 @@ async function runPurge(interaction: ChatInputCommandInteraction) {
       continue
     }
 
-    const toPurge = filteredMessages.sort(youngestFirst).first(count - deletedCount)
+    const toPurge = filteredMessages.sorted(youngestFirst).first(count - deletedCount)
 
     const { size } = await (reacts ? bulkDeleteReacts(toPurge) : bulkDelete(channel, toPurge))
 

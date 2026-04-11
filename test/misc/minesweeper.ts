@@ -113,12 +113,12 @@ interface MinesweeperGame {
  * @returns A whole minesweeper game ready to be deployed
  */
 function createMinesweeper(height = 7, width = 7, mines = 0): MinesweeperGame {
-  mines = mines || Math.floor((height * width) / 4) || 1
+  const minesCount = mines || Math.floor((height * width) / 4) || 1
   let minecount = 0
   let safe: [number, number] = [Infinity, Infinity]
   const grid = genGrid(height, width)
 
-  for (let i = 0; i < mines; i++) {
+  for (let i = 0; i < minesCount; i++) {
     const x = randInt(0, width - 1)
     const y = randInt(0, height - 1)
     if (grid[y][x] === MINE) i--
@@ -161,7 +161,8 @@ type Grid = (number | string)[][]
  */
 function genGrid(height: number, width: number): Grid {
   const grid: number[][] = []
-  while (height--) {
+  let h = height
+  while (h--) {
     const row: number[] = []
     let w = width
     while (w--) row.push(0)

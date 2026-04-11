@@ -9,14 +9,7 @@
     "suspicious": "error",
     "perf": "error"
   },
-  "plugins": [
-    "eslint",
-    "typescript",
-    "unicorn",
-    "oxc",
-    "jsdoc",
-    "promise"
-  ],
+  "plugins": ["eslint", "typescript", "unicorn", "oxc", "jsdoc", "promise"],
   "rules": {
     "no-param-reassign": "error",
     "default-param-last": "error",
@@ -30,8 +23,6 @@
     "no-await-in-loop": "allow",
     // we are smarter than the compiler :)
     "no-unsafe-type-assertion": "allow"
-  },
-  "ignorePatterns": [
-    "test/**/*"
-  ]
+  }
+  // "ignorePatterns": ["test/**/*"]
 }

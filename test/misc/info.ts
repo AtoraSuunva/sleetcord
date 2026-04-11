@@ -10,7 +10,8 @@ import {
   Team,
   User,
 } from 'discord.js'
-import { exists, formatUser, SleetSlashCommand } from 'sleetcord'
+
+import { exists, formatUser, SleetSlashCommand } from '../../src/index.js'
 
 /**
  * Get some info about the bot, currently includes:
@@ -139,7 +140,7 @@ async function ensureInviteFor(guild: Guild, cachedInvite: Invite | null): Promi
       channels.find((c) => c !== null && c.id === guild.rulesChannelId) ??
       channels
         .filter(exists)
-        .sort((a, b) => a.rawPosition - b.rawPosition)
+        .sorted((a, b) => a.rawPosition - b.rawPosition)
         .find((c) => 'createInvite' in c)
 
     if (firstChannel === undefined) {

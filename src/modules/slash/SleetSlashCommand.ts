@@ -3,12 +3,15 @@ import {
   ApplicationCommandType,
   type RESTPostAPIChatInputApplicationCommandsJSONBody,
 } from 'discord-api-types/v10'
-import type { ChatInputCommandInteraction } from 'discord.js'
+import type {
+  ChatInputCommandInteraction,
+  RESTPostAPIApplicationCommandsJSONBody,
+} from 'discord.js'
 
 import { noop } from '../../utils/functions.js'
 import { SleetCommand, type SleetCommandExtras } from '../base/SleetCommand.js'
 import type { NoRunSlashEventHandlers, SlashEventHandlers, SleetContext } from '../events.js'
-import type { SleetModule } from '../index.js'
+import type { SleetModuleOptions } from '../index.js'
 import {
   autocompleteWithSubcommands,
   isAutocompleteableOption,
@@ -96,23 +99,24 @@ export class SleetSlashCommand
   constructor(
     body: SleetSlashCommandBodyWithSubcommands,
     handlers?: NoRunSlashEventHandlers,
-    modules?: SleetModule[],
+    options?: SleetModuleOptions,
   )
   constructor(
     body: SleetSlashCommandBodyAutocompleteable,
     handlers: SlashEventHandlers,
-    modules?: SleetModule[],
+    options?: SleetModuleOptions,
   )
   constructor(body: SleetSlashCommandBodyJSON, handlers: SlashEventHandlers)
   constructor(
     body: SleetSlashCommandBody,
     handlers: NoRunSlashEventHandlers = {},
-    modules: SleetModule[] = [],
+    options: SleetModuleOptions = {},
   ) {
     const { json, subcommands, groups, autocomplete } = parseSlashCommandOptions(body.options)
-    // TODO: probably copy this instead of modifying it in-place. Same issue of knowing which properties to copy as removing the cast
-    body.type = ApplicationCommandType.ChatInput
-    body.options = json
+    const { options: _, ...cloneable } = body
+    const copiedBody = structuredClone(cloneable) as RESTPostAPIApplicationCommandsJSONBody
+    copiedBody.type = ApplicationCommandType.ChatInput
+    copiedBody.options = json
 
     if (subcommands.size === 0 && groups.size === 0 && handlers.run === undefined) {
       throw new Error(
@@ -123,13 +127,12 @@ export class SleetSlashCommand
     // Just in case, but shouldn't run into an issue
     if (!handlers.run) handlers.run = noop
 
-    super(
-      // TODO: cast can be avoided by copying everything into a new object of the correct type
-      // is it worth the effort of maintaining which properties to copy?
-      body as RESTPostAPIChatInputApplicationCommandsJSONBody,
-      handlers as SlashEventHandlers,
-      [...subcommands.values(), ...groups.values(), ...modules],
-    )
+    const modules = [...subcommands.values(), ...groups.values(), ...(options?.modules ?? [])]
+
+    super(copiedBody, handlers as SlashEventHandlers, {
+      ...options,
+      modules,
+    })
 
     this.subcommands = subcommands
     this.groups = groups
