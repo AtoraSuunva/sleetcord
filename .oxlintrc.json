@@ -9,8 +9,9 @@
     "suspicious": "error",
     "perf": "error"
   },
-  "plugins": ["eslint", "typescript", "unicorn", "oxc", "jsdoc", "promise"],
+  "plugins": ["eslint", "typescript", "unicorn", "oxc", "jsdoc", "promise", "import"],
   "rules": {
+    "import/extensions": ["error", { "ts": "always", "js": "never" }],
     "no-param-reassign": "error",
     "default-param-last": "error",
     "prefer-enum-initializers": "error",
