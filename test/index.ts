@@ -1,6 +1,5 @@
+import { GatewayIntentBits } from 'discord.js'
 import env from 'env-var'
-
-import { GatewayIntentBits } from '#discordjs'
 
 import { SleetClient } from '../src/index.ts'
 import { blacklist } from './command-nesting-mix.ts'

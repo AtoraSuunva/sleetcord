@@ -1,6 +1,5 @@
 import { ApplicationCommandOptionType } from 'discord-api-types/v10'
-
-import { ChatInputCommandInteraction, GuildMember, Role } from '#discordjs'
+import { ChatInputCommandInteraction, GuildMember, Role } from 'discord.js'
 
 import { SleetSlashCommand, formatUser, getMembers, inGuildGuard } from '../../src/index.ts'
 

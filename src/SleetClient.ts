@@ -1,13 +1,12 @@
 import { AsyncLocalStorage } from 'node:async_hooks'
 
-import { EventEmitter } from 'tseep'
-
 import {
   type AutocompleteInteraction,
   type BaseInteraction,
   Client,
   type ClientOptions,
-} from '#discordjs'
+} from 'discord.js'
+import { EventEmitter } from 'tseep'
 
 import { PreRunError } from './errors/PreRunError.ts'
 import { SleetCommand } from './modules/base/SleetCommand.ts'

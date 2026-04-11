@@ -3,8 +3,7 @@ import {
   APIApplicationCommandOptionChoice,
   ApplicationCommandOptionType,
 } from 'discord-api-types/v10'
-
-import { ActivityOptions, ChatInputCommandInteraction, Client } from '#discordjs'
+import { ActivityOptions, ChatInputCommandInteraction, Client } from 'discord.js'
 
 import { isOwnerGuard, SleetContext, SleetSlashCommand } from '../../src/index.ts'
 

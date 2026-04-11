@@ -1,5 +1,4 @@
 import { ApplicationCommandOptionType } from 'discord-api-types/v10'
-
 import {
   ChatInputCommandInteraction,
   EmbedBuilder,
@@ -7,7 +6,7 @@ import {
   GuildBan,
   Invite,
   User,
-} from '#discordjs'
+} from 'discord.js'
 
 import {
   SleetSlashCommand,

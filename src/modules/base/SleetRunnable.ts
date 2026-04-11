@@ -1,4 +1,4 @@
-import type { Awaitable, CommandInteraction } from '#discordjs'
+import type { Awaitable, CommandInteraction } from 'discord.js'
 
 import type { RunnableEventHandlers, SleetContext } from '../events.ts'
 import { SleetModule, SleetModuleBody } from './SleetModule.ts'

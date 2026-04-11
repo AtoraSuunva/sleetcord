@@ -7,7 +7,7 @@ import {
   type PartialGuildMember,
   type PartialUser,
   type User,
-} from '#discordjs'
+} from 'discord.js'
 
 // See https://www.w3.org/International/articles/inline-bidi-markup/index#nomarkup
 // tl;dr: First character tells the text renderer "consider the upcoming text isolated" and the second says "this is the end of the isolated section"

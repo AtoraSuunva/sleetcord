@@ -1,6 +1,5 @@
 import { ApplicationCommandOptionType } from 'discord-api-types/v10'
-
-import { ChatInputCommandInteraction, Guild, GuildBan, GuildMember, User } from '#discordjs'
+import { ChatInputCommandInteraction, Guild, GuildBan, GuildMember, User } from 'discord.js'
 
 import {
   botHasPermissionsGuard,

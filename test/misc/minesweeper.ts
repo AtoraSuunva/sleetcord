@@ -1,6 +1,5 @@
 import { ApplicationCommandOptionType } from 'discord-api-types/v10'
-
-import { ChatInputCommandInteraction } from '#discordjs'
+import { ChatInputCommandInteraction } from 'discord.js'
 
 import { PreRunError, SleetSlashCommand } from '../../src/index.ts'
 

@@ -1,5 +1,4 @@
 import { ApplicationCommandOptionType } from 'discord-api-types/v10'
-
 import {
   Channel,
   ChatInputCommandInteraction,
@@ -9,7 +8,7 @@ import {
   Message,
   TextBasedChannel,
   User,
-} from '#discordjs'
+} from 'discord.js'
 
 import { SleetSlashCommand } from '../../src/index.ts'
 

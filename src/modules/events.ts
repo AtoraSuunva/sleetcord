@@ -1,5 +1,4 @@
 import type { APIApplicationCommandOptionChoice } from 'discord-api-types/v10'
-
 import {
   type AutocompleteInteraction,
   type Awaitable,
@@ -11,7 +10,7 @@ import {
   type GatewayDispatchPayload,
   type MessageContextMenuCommandInteraction,
   type UserContextMenuCommandInteraction,
-} from '#discordjs'
+} from 'discord.js'
 
 import type { SleetClient } from '../SleetClient.ts'
 import type { SleetModule } from './base/SleetModule.ts'
