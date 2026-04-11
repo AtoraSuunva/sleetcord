@@ -20,8 +20,8 @@ jobs:
           cache: 'pnpm'
       - run: pnpm install --frozen-lockfile
       - name: Run format
-        run: pnpm run check:format
+        run: pnpm run format:check
       - name: Run lint
-        run: pnpm run check:lint --format github --type-check
+        run: pnpm run lint:check --format github --type-check
       - name: Run build
         run: pnpm build
