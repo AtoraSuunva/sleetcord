@@ -43,7 +43,7 @@ export type SleetModuleMiddleware = (
 ) => Promise<unknown>
 
 /**
- * Sleet-specific options
+ * Options to configure the Sleet Client
  */
 export interface SleetOptions {
   /** The bot's token */
@@ -77,6 +77,9 @@ export interface SleetOptions {
   middleware?: SleetModuleMiddleware[]
 }
 
+/**
+ * Options for the SleetClient constructor, containing both Sleet-specific options and options for the underlying Discord.js client. See {@link SleetOptions} for more details on the Sleet-specific options, and the Discord.js documentation for the ClientOptions.
+ */
 export interface SleetClientOptions {
   /**
    * Options specific to and provided to SleetClient
@@ -89,6 +92,9 @@ export interface SleetClientOptions {
   client: ClientOptions
 }
 
+/**
+ * Options for the {@link SleetClient.putCommands} method, which registers commands with Discord. See the method documentation for more details on each option and how to use them.
+ */
 export interface PutCommandOptions {
   /** The commands to PUT, if any (defaults to added commands) */
   commands?: SleetCommand[]
@@ -117,6 +123,9 @@ function isSleetCommand(value: unknown): value is SleetCommand {
 export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
   Required<BaseSleetModuleEventHandlers>
 > {
+  /**
+   * The options used to configure this SleetClient, passed in the constructor. See {@link SleetOptions} for more details on the available options and how to use them.
+   */
   options: SleetOptions
   /**
    * The Discord.js client used for interacting with the Discord API and receiving events.

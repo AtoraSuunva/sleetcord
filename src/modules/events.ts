@@ -15,6 +15,9 @@ import {
 import type { SleetClient } from '../SleetClient.ts'
 import type { SleetModule } from './base/SleetModule.ts'
 
+/**
+ * A union type of all possible application interactions Sleet can handle
+ */
 export type ApplicationInteraction =
   | ChatInputCommandInteraction
   | MessageContextMenuCommandInteraction
@@ -24,10 +27,13 @@ export type ApplicationInteraction =
  * Context provided to every sleet module as `this`
  */
 export interface SleetContext {
+  /** The Sleet client instance */
   sleet: SleetClient
+  /** The Discord.js client instance */
   client: Client
 }
 
+/** The result of a listener function, which can be a promise or void */
 export type ListenerResult<T = unknown> = Promise<T> | void
 
 /** A type of every possible Discord event key */
@@ -126,6 +132,9 @@ export type EventDetails = NonNullable<
   }[keyof BaseSleetModuleEventHandlers]
 >
 
+/**
+ * A union of all possible event arguments for Sleet events
+ */
 export type EventArguments = EventDetails['arguments']
 
 /**
@@ -244,6 +253,9 @@ export interface BaseSleetModuleEventHandlers extends Partial<Omit<ClientEventHa
  */
 export interface SleetExtensions {}
 
+/**
+ * A map of all possible event handlers for Sleet events, Discord.js Events, and runnable modules
+ */
 export type SleetModuleEventHandlers = BaseSleetModuleEventHandlers & SleetExtensions
 
 /**
@@ -253,14 +265,22 @@ export interface RunnableEventHandlers<
   I extends CommandInteraction,
   A extends unknown[] = [],
 > extends BaseSleetModuleEventHandlers {
+  /**
+   * A generic run event handler for runnable modules, which are automatically routed and called by Sleet when the module is triggered (e.g. a slash command is invoked). Receives the interaction and any additional arguments as parameters, and can return a promise if it needs to perform asynchronous actions.
+   * @param interaction The interaction that triggered the module
+   * @param args Any additional arguments, such as the message that was right-clicked for a message context menu command
+   * @returns A promise that resolves when the handler is done, or void if it doesn't need to perform any asynchronous actions
+   */
   run: (this: SleetContext, interaction: I, ...args: A) => Awaitable<unknown>
 }
 
 /**
- * Event handler for Sleet events, Discord.js Events, runnable modules, and
- * slash commands (autocomplete!)
+ * Event handler for Sleet events, Discord.js Events, runnable modules, and slash commands (autocomplete!)
  */
 export interface SlashEventHandlers extends RunnableEventHandlers<ChatInputCommandInteraction> {
+  /**
+   * A generic autocomplete event handler for slash commands, which is automatically routed and called by Sleet when an autocomplete interaction is triggered for the command. Receives the interaction, the name of the focused option, and the current value of the focused option as parameters, and should return a promise that resolves to an array of choices to show in the autocomplete menu.
+   */
   autocomplete?:
     | ((
         this: SleetContext,
@@ -271,4 +291,7 @@ export interface SlashEventHandlers extends RunnableEventHandlers<ChatInputComma
     | undefined
 }
 
+/**
+ * Event handler for Modules without a run handler
+ */
 export type NoRunSlashEventHandlers = Partial<SlashEventHandlers>

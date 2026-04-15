@@ -1,5 +1,8 @@
 import type { AutocompleteHandler } from '../modules/slash/SleetAutocompleteable.ts'
 
+/**
+ * Options for creating an autocomplete handler that matches against an array of strings
+ */
 export interface StringAutocompleteHandlerOptions {
   /**
    * The array of strings to match against

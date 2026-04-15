@@ -1,6 +1,9 @@
 import { type RESTPostAPIApplicationCommandsJSONBody, Routes } from 'discord-api-types/v10'
 import { REST } from 'discord.js'
 
+/**
+ * Options for the SleetRest class
+ */
 export interface SleetRestOptions {
   /** The token for the bot */
   token: string
@@ -14,7 +17,9 @@ export interface SleetRestOptions {
  * This is used by SleetClient to register commands, you likely don't need to use this directly
  */
 export class SleetRest {
+  /** The application ID for the bot */
   applicationId: string
+  /** The REST client for making API requests */
   rest: REST
 
   constructor({ token, applicationId }: SleetRestOptions) {

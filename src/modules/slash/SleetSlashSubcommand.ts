@@ -15,15 +15,32 @@ import {
   autocomplete as sleetAutocomplete,
 } from './SleetAutocompleteable.ts'
 
+/**
+ * The body for creating a slash subcommand, which can have options that are API types or Sleet types with autocomplete handlers.
+ *
+ * A SleetSlashSubcommandBody will be used to create a SleetSlashSubcommand, which will automatically handle routing autocomplete interactions to the appropriate handlers based on interaction data
+ */
 export interface SleetSlashSubcommandBody extends Omit<
   APIApplicationCommandSubcommandOption,
   'type' | 'options'
 > {
+  /**
+   * The type of the subcommand, which is always Subcommand
+   */
   type?: ApplicationCommandOptionType.Subcommand
+  /**
+   * The options for the subcommand, which can be a mix of API options and SleetAutocompleteable options
+   */
   options?: (APIApplicationCommandBasicOption | SleetAutocompleteableOption)[]
 }
 
+/**
+ * The body for creating a slash subcommand, but with all options as raw API options.
+ */
 export interface SleetSlashSubcommandBodyJSON extends Omit<SleetSlashSubcommandBody, 'options'> {
+  /**
+   * The options for the subcommand, as raw API options. These won't have any autocomplete handlers.
+   */
   options?: APIApplicationCommandBasicOption[]
 }
 
@@ -53,11 +70,23 @@ function parseSlashSubcommandOptions(
   return { json, autocomplete }
 }
 
+/**
+ * Represents a slash subcommand, which can have options with autocomplete handlers.
+ *
+ * A SleetSlashSubcommand will automatically handle routing autocomplete interactions to the appropriate handlers based on interaction data
+ */
 export class SleetSlashSubcommand
   extends SleetRunnable<APIApplicationCommandSubcommandOption, ChatInputCommandInteraction>
   implements SleetAutocompleteable
 {
+  /**
+   * A map of option name to autocomplete handler for options in this subcommand
+   */
   public autocompleteHandlers: Map<string, SleetAutocompleteableOption>
+  /**
+   * The autocomplete handler, which will route to the appropriate handler based on interaction data
+   */
+  public autocomplete: SleetAutocompleteable['autocomplete'] = sleetAutocomplete.bind(this)
 
   constructor(
     body: SleetSlashSubcommandBody,
@@ -74,6 +103,4 @@ export class SleetSlashSubcommand
 
     this.autocompleteHandlers = autocomplete
   }
-
-  public autocomplete: SleetAutocompleteable['autocomplete'] = sleetAutocomplete.bind(this)
 }

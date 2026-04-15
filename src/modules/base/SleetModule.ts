@@ -1,15 +1,32 @@
 import { SleetModuleMiddleware } from '../../SleetClient.ts'
 import type { SleetModuleEventHandlers } from '../events.ts'
 
+/**
+ * The body of a SleetModule, which contains the necessary information for Sleet to register and handle the module.
+ *
+ * This is unique in that while most modules have a body that is sent to Discord to register the module (e.g. slash commands, context menu commands), SleetModule's body is just used for internal organization, though it's set to conveniently match the shape of Discord's API request bodies
+ */
 export interface SleetModuleBody {
   /** The name of this module. used for logging and debugging */
   name: string
 }
 
+/**
+ * Options for a SleetModule, which can contain child modules to load along with this one and middleware functions to register with the SleetClient. Note that middleware functions will run for ALL modules, so they should be used for functionality that needs to run across all modules, like logging or error handling.
+ *
+ * Your middleware functions will need to implement their own filtering logic if you want them to conditionally run, as to allow modules to easily implement logging or error handling modules without needing to get a handle to the SleetClient (i.e. from `ready`) just to register middleware
+ *
+ * If you only want to run a function to filter `run` handlers, you can implement the logic directly in the `run` handler of your module since commands/subcommand groups will run their own `run` handlers before their children and can throw to abort early
+ */
 export interface SleetModuleOptions {
   /** Child modules to load along with this one, allows you to "scope" modules that may share the same name. Mostly used to store subcommands for slash commands so their events are registered correctly */
   modules?: SleetModule[]
-  /** Middleware functions to register with the SleetClient. Note this will run for ALL modules, and just serves as a convenience method to register middleware without needing to get a handle to SleetClient (i.e. from `ready`) */
+  /**
+   * Middleware functions to register with the SleetClient.
+   *
+   * Note this will run for ALL modules, and just serves as a convenience method to register middleware without needing to get a handle to SleetClient (i.e. from `ready`).
+   * Use `run` handlers if you only wish to run logic/filter `run` handlers since they will be filtered to only run for subcommands
+   */
   middleware?: SleetModuleMiddleware[]
 }
 

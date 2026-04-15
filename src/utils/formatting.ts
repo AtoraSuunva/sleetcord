@@ -14,6 +14,9 @@ import {
 const FIRST_STRONG_ISOLATE = '\u{2068}'
 const POP_DIRECTIONAL_ISOLATE = '\u{2069}'
 
+/**
+ * Options for how to format a user when using the `formatUser` function. All options are optional and have default values, allowing you to specify only the formatting you want to customize.
+ */
 export interface FormatUserOptions {
   /** Show the user's ID after their tag (default: true) */
   id?: boolean
@@ -38,13 +41,20 @@ export interface FormatUserOptions {
   format?: FormatUserPart
 }
 
+/**
+ * Identifies which part of the user is being formatted in the `format` function of `FormatUserOptions`.
+ */
 export type UserPart = 'globalName' | 'discriminator' | 'username' | 'id'
+
 /**
  * @param part Identifies which part of the user is being formatted
  * @param str The part, without any formatting or surrounding characters (i.e. `username` instead of `[**username**]`)
  */
 export type FormatUserPart = (part: UserPart, str: string | null) => string | null
 
+/**
+ * A function that takes a string and returns it with markdown escaped. Can be used to create custom markdown escapers or disable markdown escaping by returning the input string unchanged.
+ */
 export type MarkdownEscaper = (text: string) => string
 
 /**
