@@ -25,8 +25,8 @@ export interface FormatUserOptions {
   bidirectional?: boolean
   /** Show the user's global name + username (default: true) */
   globalName?: boolean
-  /** Escape the user's username/global name (default: true) */
-  escapeMarkdown?: boolean
+  /** Escape the user's username/global name. Can be a boolean to escape all markdown or a custom function (default: true) */
+  escapeMarkdown?: boolean | MarkdownEscaper
   /** Wrap the user ID in backticks so it can be copied by tapping on mobile, disabled if markdown: false (default: true) */
   codeID?: boolean
   /**
@@ -44,6 +44,8 @@ export type UserPart = 'globalName' | 'discriminator' | 'username' | 'id'
  * @param str The part, without any formatting or surrounding characters (i.e. `username` instead of `[**username**]`)
  */
 export type FormatUserPart = (part: UserPart, str: string | null) => string | null
+
+export type MarkdownEscaper = (text: string) => string
 
 /**
  * Formats a user in the following way:
@@ -95,13 +97,13 @@ export function formatUser(
   }
 
   const formatted: string[] = []
-  const username =
-    escapeMarkdown && user.username ? escapeAllMarkdown(user.username) : user.username
+  const escapeFn = typeof escapeMarkdown === 'function' ? escapeMarkdown : escapeAllMarkdown
+  const username = escapeMarkdown && user.username ? escapeFn(user.username) : user.username
 
   const globalName = 'globalName' in user ? user.globalName : user.global_name
 
   if (globalName) {
-    const escapedGlobalName = escapeMarkdown ? escapeAllMarkdown(globalName) : globalName
+    const escapedGlobalName = escapeMarkdown ? escapeFn(globalName) : globalName
 
     if (bidirectional) formatted.push(FIRST_STRONG_ISOLATE)
     formatted.push(format('globalName', escapedGlobalName) ?? '')
