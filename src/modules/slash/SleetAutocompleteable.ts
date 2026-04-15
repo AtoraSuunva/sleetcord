@@ -16,6 +16,9 @@ import type { SlashEventHandlers, SleetContext } from '../events.ts'
 import { SleetSlashCommand } from './SleetSlashCommand.ts'
 import type { SleetSlashCommandGroup } from './SleetSlashCommandGroup.ts'
 
+/**
+ * A type representing the valid JS types that can be autocompleted by Sleet.
+ */
 export type AutocompleteableType = string | number
 
 /**

@@ -47,8 +47,10 @@ export interface FormatUserOptions {
 export type UserPart = 'globalName' | 'discriminator' | 'username' | 'id'
 
 /**
+ * A function to format specific parts of a user. This receives the name of the part being formatted and the value to format
  * @param part Identifies which part of the user is being formatted
  * @param str The part, without any formatting or surrounding characters (i.e. `username` instead of `[**username**]`)
+ * @returns The formatted part, which will be used in the final output of `formatUser`
  */
 export type FormatUserPart = (part: UserPart, str: string | null) => string | null
 

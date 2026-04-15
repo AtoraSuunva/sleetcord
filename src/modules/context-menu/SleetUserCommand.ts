@@ -18,6 +18,9 @@ type BaseUserCommandBody = Omit<
 > &
   SleetCommandExtras
 
+/**
+ * Represents the body of a user context menu command, which is a type of application command that appears in the context menu when right-clicking a user.
+ */
 export interface SleetUserCommandBody extends BaseUserCommandBody {
   /**
    * The type of the application command, which is always `ApplicationCommandType.User` for user context menu commands.
