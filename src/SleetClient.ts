@@ -207,10 +207,13 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
    * @param modules The modules to add
    * @returns This SleetClient for chaining
    */
-  addModules(modules: SleetModule[], namePrefix = ''): this {
+  addModules(modules: SleetModule[], namePrefix = '', registerHandlers = true): this {
     for (const module of modules) {
       const qualifiedName = `${namePrefix}${module.name}`
-      this.#registerEventsFor(module)
+      const shouldRegisterHandlers = module.registerHandlers && registerHandlers
+      if (shouldRegisterHandlers) {
+        this.#registerEventsFor(module)
+      }
       this.modules.set(qualifiedName, module)
 
       if (isSleetCommand(module)) {
@@ -226,7 +229,8 @@ export class SleetClient<Ready extends boolean = boolean> extends EventEmitter<
       }
 
       for (const child of module.modules) {
-        this.addModules([child], `${qualifiedName}/`)
+        const shouldRegisterChildHandlers = module.registerChildHandlers && registerHandlers
+        this.addModules([child], `${qualifiedName}/`, shouldRegisterChildHandlers)
       }
 
       void (async () => {

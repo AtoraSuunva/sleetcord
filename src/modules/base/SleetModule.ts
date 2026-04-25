@@ -78,11 +78,19 @@ export class SleetModule<
   /** Handlers that are called when events happen, either Discord.js events or Sleet events */
   public handlers: Handlers
   /**
+   * Automatically register handlers for this module. Sleetcord will dispatch events automatically when handlers are registered, when set to false the handlers won't be automatically called.
+   */
+  public registerHandlers = true
+  /**
    * "Child" modules that are loaded along with this one, allows you to "scope" modules that may
    * share the same name. Mostly used to store subcommands for slash commands so their events are
    * registered correctly
    */
   public modules: SleetModule[]
+  /**
+   * Whether to automatically register child handlers. This can be set to false if you want to manually control when child handlers are registered
+   */
+  public registerChildHandlers = true
   /**
    * Middleware functions to register with the SleetClient. Note this will run for ALL modules, and just serves as a convenience method to register middleware without needing to get a handle to SleetClient (i.e. from `ready`)
    */
