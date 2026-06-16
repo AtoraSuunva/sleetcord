@@ -8,63 +8,98 @@ on:
     types: [published]
 
 jobs:
-  lint-and-test:
+  prepare-pack:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - uses: pnpm/action-setup@v5
+      - uses: voidzero-dev/setup-vp@v1
         with:
-          package_json_file: 'package.json'
-      - uses: actions/setup-node@v5
+          node-version: '24'
+          cache: true
+      - id: find-lint-run
+        uses: actions/github-script@v7
         with:
-          node-version-file: 'package.json'
-          cache: 'pnpm'
-      - run: pnpm install --frozen-lockfile
-      - name: Run format
-        run: pnpm run format:check
-      - name: Run lint
-        run: pnpm run lint:check --format github --type-check
-      - name: Run build
-        run: pnpm build
+          script: |
+            const runs = await github.paginate(
+              github.rest.actions.listWorkflowRunsForRepo,
+              {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                workflow_id: 'lint.yml',
+                head_sha: context.sha,
+                status: 'completed',
+                per_page: 100,
+              },
+            )
 
-  build-and-publish-npm:
-    needs: lint-and-test
+            const successfulRun = runs.find((run) => run.conclusion === 'success')
+
+            core.setOutput('run_id', successfulRun ? String(successfulRun.id) : '')
+      - id: download-lint-artifact
+        if: steps.find-lint-run.outputs.run_id != ''
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: packed-workspace
+          path: lint-artifact
+          repository: ${{ github.repository }}
+          run-id: ${{ steps.find-lint-run.outputs.run_id }}
+          github-token: ${{ github.token }}
+      - name: Reuse lint pack artifact
+        if: steps.download-lint-artifact.outcome == 'success'
+        run: cp lint-artifact/workspace.tgz workspace.tgz
+      - name: Build pack artifact
+        if: steps.download-lint-artifact.outcome != 'success'
+        run: |
+          vp install --frozen-lockfile
+          vp check
+          vp pack
+          tar --exclude=.git --exclude=node_modules -czf workspace.tgz .
+      - name: Upload packed workspace
+        uses: actions/upload-artifact@v4
+        with:
+          name: packed-workspace
+          path: workspace.tgz
+          if-no-files-found: error
+
+  publish-npm:
+    needs: prepare-pack
     runs-on: ubuntu-latest
     permissions:
       contents: read
       id-token: write # https://docs.npmjs.com/generating-provenance-statements#publishing-packages-with-provenance-via-github-actions
     steps:
-      - uses: actions/checkout@v5
-      - uses: pnpm/action-setup@v5
+      - name: Download packed workspace
+        uses: actions/download-artifact@v4
         with:
-          package_json_file: 'package.json'
-      - uses: actions/setup-node@v5
+          name: packed-workspace
+      - name: Extract packed workspace
+        run: tar -xzf workspace.tgz -C .
+      - uses: voidzero-dev/setup-vp@v1
         with:
-          node-version-file: 'package.json'
-          cache: 'pnpm'
-          registry-url: 'https://registry.npmjs.org/'
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm build
-      - run: pnpm publish:npm --no-git-checks
+          node-version: '24'
+          cache: true
+      - run: vp pm publish --no-git-checks --ignore-scripts
 
   publish-jsr:
-    needs: lint-and-test
+    needs: prepare-pack
     runs-on: ubuntu-latest
     permissions:
       contents: read
       id-token: write # OIDC token for JSR auth
     steps:
-      - uses: actions/checkout@v5
-      - uses: pnpm/action-setup@v5
+      - name: Download packed workspace
+        uses: actions/download-artifact@v4
         with:
-          package_json_file: 'package.json'
-      - uses: actions/setup-node@v5
+          name: packed-workspace
+      - name: Extract packed workspace
+        run: tar -xzf workspace.tgz -C .
+      - uses: voidzero-dev/setup-vp@v1
         with:
-          node-version-file: 'package.json'
-          cache: 'pnpm'
-      - run: pnpm install --frozen-lockfile
+          node-version: '24'
+          cache: true
       - name: Rewrite discord.js imports for JSR
         run: |
           VERSION=$(node -p "require('./package.json').peerDependencies['discord.js']")
           find src -name '*.ts' | xargs sed -i "s|'discord\.js'|'npm:discord.js@${VERSION}'|g"
-      - run: pnpm publish:jsr --allow-dirty
+      - run: vp dlx jsr publish --allow-dirty

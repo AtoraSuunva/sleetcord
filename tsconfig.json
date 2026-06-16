@@ -1,9 +1,9 @@
 {
-  "include": ["src"],
+  "include": ["src", "test"],
   "exclude": ["**/node_modules", "**/.*/"],
   "compilerOptions": {
     /* Projects */
-    "rootDir": "./src",
+    "rootDir": ".",
     "outDir": "./dist",
     "incremental": true,
     "tsBuildInfoFile": ".tsbuildinfo",

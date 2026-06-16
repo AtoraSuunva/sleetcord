@@ -1,6 +1,6 @@
 {
   "name": "sleetcord",
-  "version": "4.2.0",
+  "version": "4.3.0",
   "description": "An interaction-first command library for Discord.js",
   "license": "MIT",
   "author": "AtoraSuunva",
@@ -22,17 +22,13 @@
     }
   },
   "scripts": {
-    "start:dev": "tsx -r dotenv/config test/index.ts",
-    "build": "tsdown",
-    "check": "pnpm run '/.*:check/'",
-    "fix": "pnpm run '/.*:fix/'",
-    "lint:check": "oxlint",
-    "format:check": "oxfmt --check",
-    "lint:fix": "oxlint --fix",
-    "format:fix": "oxfmt --write",
-    "prepublishOnly": "pnpm check && pnpm build",
-    "publish:npm": "pnpm publish",
-    "publish:jsr": "pnpx jsr publish"
+    "start:dev": "vp exec tsx -r dotenv/config test/index.ts",
+    "build": "vp pack",
+    "check": "vp check",
+    "fix": "vp check --fix",
+    "prepublishOnly": "vp check && vp pack",
+    "publish:npm": "vp pm publish",
+    "publish:jsr": "vp exec jsr publish"
   },
   "dependencies": {
     "discord-api-types": "^0.38.47",
@@ -43,11 +39,9 @@
     "@typescript/native-preview": "7.0.0-dev.20260424.2",
     "dotenv": "^17.4.2",
     "env-var": "^7.5.0",
-    "oxfmt": "^0.46.0",
-    "oxlint": "^1.61.0",
-    "oxlint-tsgolint": "^0.21.1",
-    "tsdown": "^0.21.10",
-    "tsx": "^4.21.0"
+    "jsr": "0.14.3",
+    "tsx": "^4.21.0",
+    "vite-plus": "^0.1.24"
   },
   "peerDependencies": {
     "discord.js": "^14.26.2"
@@ -55,5 +49,5 @@
   "engines": {
     "node": ">=24"
   },
-  "packageManager": "pnpm@10.33.0"
+  "packageManager": "pnpm@11.7.0"
 }
