@@ -66,6 +66,8 @@ export const getAllIDs = (str: string): string[] =>
  * Accepts user mentions (parsed from resolved data) or user IDs (fetched from Discord in batches of 1).
  * Unless you *need* Users that aren't in the guild (or can't fetch members from a guild), it's recommended to use `getMembers` instead since it can resolve string IDs in batches of 100.
  *
+ * Input string order is lost, results are sorted with resolved data first (in no particular order) and then fetched users (in no particular order)
+ *
  * Result is deduped.
  * @param interaction The interaction to resolve data for
  * @param name The name of the option to resolve data for
@@ -103,13 +105,15 @@ export async function getUsers(
     ),
   ).then((res) => res.filter(exists))
 
-  return [...resolvedIDUsers, ...resolvedDataUsers]
+  return [...resolvedDataUsers, ...resolvedIDUsers]
 }
 
 /**
  * Allows you to parse multiple members from a single string option (because the Member option only accepts 1 member)
  *
  * Accepts user mentions (parsed from resolved data) or user IDs (fetched from Discord in batches of 100)
+ *
+ * Input string order is lost, results are sorted with resolved data first (in no particular order) and then fetched members (in no particular order)
  *
  * Result is deduped.
  * @param interaction The interaction to resolve data for
@@ -166,7 +170,46 @@ export async function getMembers(
     )
   ).flat()
 
-  return [...resolvedIDMembers, ...resolvedDataMembers]
+  return [...resolvedDataMembers, ...resolvedIDMembers]
+}
+
+/**
+ * Get members (if user is in the guild) or users (if not) from an interaction option, fetching them if necessary
+ *
+ * Uses resolved data first and then falls back to fetching from Discord
+ *
+ * Input string order is lost, results are sorted with members first (in no particular order) and then users (in no particular order)
+ *
+ * @param interaction The interaction to resolve data for
+ * @param name The name of the option to resolve data for
+ * @param required Is the option required? If missing, an error will be thrown if true, null will be returned if false
+ * @returns An array of (GuildMember or User), or null if the option is not required & missing
+ */
+export async function getMembersOrUsers(
+  interaction: ChatInputCommandInteraction,
+  name: string,
+  required?: boolean,
+): Promise<(GuildMember | User)[] | null>
+export async function getMembersOrUsers(
+  interaction: ChatInputCommandInteraction,
+  name: string,
+  required: true,
+): Promise<(GuildMember | User)[]>
+export async function getMembersOrUsers(
+  interaction: ChatInputCommandInteraction,
+  name: string,
+  required = false,
+): Promise<(GuildMember | User)[] | null> {
+  const string = interaction.options.getString(name, required)
+  if (string === null) return null
+
+  const members = await getMembers(interaction, name, required)
+  const users = await getUsers(interaction, name, required)
+
+  const memberIDs = new Set(members?.map((m) => m.id))
+  const nonMemberUsers = users?.filter((u) => !memberIDs.has(u.id)) ?? []
+
+  return [...(members ?? []), ...nonMemberUsers]
 }
 
 /**
