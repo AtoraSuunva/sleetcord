@@ -54,7 +54,7 @@ jobs:
           vp install --frozen-lockfile
           vp check
           vp pack
-          tar --exclude=.git --exclude=node_modules -czf workspace.tgz .
+          tar --exclude=.git --exclude=node_modules --exclude=workspace.tgz -czf workspace.tgz .
       - name: Upload packed workspace
         uses: actions/upload-artifact@v4
         with:
