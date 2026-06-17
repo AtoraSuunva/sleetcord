@@ -47,7 +47,7 @@ jobs:
           github-token: ${{ github.token }}
       - name: Reuse lint pack artifact
         if: steps.download-lint-artifact.outcome == 'success'
-        run: cp lint-artifact/* .
+        run: cp -r lint-artifact/* .
       - name: Build pack artifact
         if: steps.download-lint-artifact.outcome != 'success'
         run: |
