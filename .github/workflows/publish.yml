@@ -12,10 +12,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - uses: voidzero-dev/setup-vp@v1
-        with:
-          node-version: '24'
-          cache: true
       - id: find-lint-run
         uses: actions/github-script@v7
         with:
@@ -47,7 +43,12 @@ jobs:
           github-token: ${{ github.token }}
       - name: Reuse lint pack artifact
         if: steps.download-lint-artifact.outcome == 'success'
-        run: cp -r lint-artifact/* .
+        run: cp --remove-destination -r lint-artifact/* .
+      - uses: voidzero-dev/setup-vp@v1
+        if: steps.download-lint-artifact.outcome != 'success'
+        with:
+          node-version: '24'
+          cache: true
       - name: Build pack artifact
         if: steps.download-lint-artifact.outcome != 'success'
         run: |
