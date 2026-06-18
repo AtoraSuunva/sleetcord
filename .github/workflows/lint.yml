@@ -12,7 +12,7 @@ jobs:
   lint-and-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: voidzero-dev/setup-vp@v1
         with:
           node-version: '24'
@@ -21,7 +21,7 @@ jobs:
       - run: vp check
       - run: vp pack
       - name: Upload workspace
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: workspace
           path: .
